@@ -23,6 +23,15 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 npm test
 ```
 
+## Developer Docs
+
+- [Developer Guide](./docs/developer-guide.md)
+- [How To Run The Backend](./docs/how-to-run-backend.md)
+- [Testing](./docs/testing.md)
+- [Troubleshooting](./docs/troubleshooting.md)
+- [Nice To Knows](./docs/nice-to-knows.md)
+- [Code Smells And Housekeeping Notes](./docs/code-smells.md)
+
 ## Phase 0 Guardrails
 
 - Browser-facing source must not reference automation credentials.

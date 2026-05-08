@@ -1,0 +1,76 @@
+# Developer Guide
+
+This repo is currently a no-build, model-level UI workspace for GroupScout operator screens. The source is plain JavaScript modules plus Node's built-in test runner.
+
+## Current Shape
+
+- `web/src/api/client.js` is the browser API boundary.
+- `web/src/app/shell.js` owns route-shell selection.
+- `web/src/app/leadInbox.js` owns the mocked Lead Inbox screen model.
+- `web/src/app/leadDetail.js` owns the mocked Lead Detail Evidence Workspace.
+- `web/src/app/leadStatus.js` owns status/action transition rules and mutation intent construction.
+- `web/src/design/tokens.js` exports the subset of `DESIGN.md` tokens needed by tests.
+- `test/*.test.js` contains contract and screen-model tests using `node:test`.
+
+There is no bundler, DOM renderer, framework runtime, lockfile, or package-install step yet.
+
+## Runtime
+
+Use Node `18+` or newer. Tests rely on modern built-in web APIs such as `Response.json`.
+
+## Daily Commands
+
+```sh
+npm test
+```
+
+Useful focused runs:
+
+```sh
+node --test test/lead-inbox-screen.test.js
+node --test test/lead-detail-screen.test.js
+node --test test/lead-status-state-model.test.js
+node --test test/lead-status-mutation-client.test.js
+```
+
+## Development Rules
+
+- Keep browser requests behind same-origin `/api/*` paths.
+- Add API access through `createApiClient(...)`; do not fetch backend URLs directly from app modules.
+- Keep status transitions in `leadStatus.js`; UI surfaces should consume action metadata instead of duplicating the transition table.
+- Keep mocked screen data aligned across inbox and detail models when a mocked lead appears in both places.
+- Treat `DESIGN.md` as the source design contract; `web/src/design/tokens.js` is a partial implementation used by tests.
+- Update phase docs and README when behavior or scope changes.
+
+## Backend Integration Boundary
+
+The backend repo is separate:
+
+```sh
+/mnt/c/Users/alvin/GolandProjects/groupscout
+```
+
+For backend startup and API checks, see [how-to-run-backend.md](./how-to-run-backend.md).
+
+Current UI client contracts:
+
+- `GET /api/leads`
+- `PATCH /api/leads/{id}`
+- Raw audit link intent on detail screens, currently represented as `/api/leads/{id}/audit/raw`
+
+## Adding A New UI Phase
+
+1. Write a focused test that describes the contract or screen-model behavior first.
+2. Keep the first implementation narrow and model-level unless the phase explicitly introduces rendering.
+3. Update the relevant `docs/phase-*` file or create a new phase doc.
+4. Update `README.md` current scope.
+5. Update `CHANGELOG.md` under `Unreleased`.
+6. Run `npm test`.
+
+## Current Limitations
+
+- Tests prove JavaScript model contracts, not rendered UI behavior in a browser.
+- Accessibility checks are metadata-level only.
+- Responsive behavior is represented as layout metadata, not measured DOM layout.
+- Design token tests check selected exports; they do not resolve every nested token reference from `DESIGN.md`.
+- The browser credential guard is currently file-list based; update it when browser-facing files are added, or replace it with a full `web/src` scan.

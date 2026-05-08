@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Housekeeping Docs
+
+- Added UI developer, testing, troubleshooting, nice-to-know, backend spin-up, and code-smell housekeeping docs under `docs/`.
+- Documented backend startup paths from the sibling Go repo without changing backend code.
+- Captured current UI test-coverage limits and known doc/config drift to guide future cleanup.
+
 ### Phase 4 - Lead Status Actions And State Model
 
 - Added failing-first Phase 4 state model tests for every recommended v1 status, allowed action, and disallowed transition.
