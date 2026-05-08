@@ -143,18 +143,117 @@ test("lead detail keeps content readable and actions reachable across responsive
   assert.ok(mobile.actions.items.every((item) => item.minTouchTarget >= 44));
 });
 
-test("lead detail is read-only and uses documented DESIGN.md component tokens", () => {
+test("lead detail shows only valid Phase 4 status actions for the current lead", () => {
   const screen = createLeadDetailScreen({ leadId: "lead_hotel_001" });
 
-  assert.ok(screen.actions.readOnly);
-  assert.ok(screen.actions.items.every((item) => item.disabled));
-  assert.equal(screen.mutations, undefined);
+  assert.equal(screen.actions.readOnly, false);
+  assert.deepEqual(
+    screen.actions.items.map((item) => [item.action, item.label, item.resultStatus, item.token]),
+    [
+      ["claim", "Claim lead", "claimed", "button-primary"],
+      ["dismiss", "Dismiss", "dismissed", "button-secondary"],
+      ["snooze", "Snooze", "snoozed", "button-secondary"],
+      ["flag", "Flag for verification", "flagged", "button-secondary"]
+    ]
+  );
+  assert.ok(screen.actions.items.every((item) => item.disabled === false));
+  assert.equal(screen.actions.items.some((item) => item.action === "won"), false);
+});
+
+test("lead detail action submission blocks invalid transitions before API mutation", async () => {
+  const patchCalls = [];
+  const screen = createLeadDetailScreen({
+    leadId: "lead_hotel_001",
+    patchLead: async (...args) => {
+      patchCalls.push(args);
+      return { ok: true };
+    }
+  });
+
+  await assert.rejects(
+    () => screen.actions.submit({ action: "won", notes: "Closing too early." }),
+    /won is not allowed from new/i
+  );
+  assert.deepEqual(patchCalls, []);
+
+  await screen.actions.submit({ action: "claim", owner: "Sam Rivera" });
+  assert.deepEqual(patchCalls, [
+    [
+      "lead_hotel_001",
+      {
+        status: "claimed",
+        owner: "Sam Rivera"
+      }
+    ]
+  ]);
+});
+
+test("lead detail action submission preserves auditable corrections", async () => {
+  const patchCalls = [];
+  const screen = createLeadDetailScreen({
+    leadId: "lead_hotel_001",
+    leads: {
+      lead_hotel_001: {
+        ...mockLeadDetails.lead_hotel_001,
+        status: "flagged"
+      }
+    },
+    patchLead: async (...args) => {
+      patchCalls.push(args);
+      return { ok: true };
+    }
+  });
+
+  assert.deepEqual(
+    screen.actions.items.map((item) => item.action),
+    ["verified", "corrected", "dismiss"]
+  );
+
+  await screen.actions.submit({
+    action: "corrected",
+    correctionReason: "Reviewer confirmed source-backed crew range.",
+    corrections: [
+      {
+        field: "estimatedCrewSize",
+        originalAiValue: 12,
+        originalSourceValue: "Permit scope lists two hotel wings and night work.",
+        correctedValue: "10-12",
+        correctedBy: "sam.rivera@groupscout.test",
+        reason: "Permit scope lists two fewer subcontractors than the AI estimate."
+      }
+    ]
+  });
+
+  assert.deepEqual(patchCalls, [
+    [
+      "lead_hotel_001",
+      {
+        status: "flagged",
+        corrections: [
+          {
+            field: "estimatedCrewSize",
+            correctedValue: "10-12",
+            originalAiValue: 12,
+            originalSourceValue: "Permit scope lists two hotel wings and night work.",
+            actor: "sam.rivera@groupscout.test",
+            reason: "Permit scope lists two fewer subcontractors than the AI estimate."
+          }
+        ],
+        correctionReason: "Reviewer confirmed source-backed crew range."
+      }
+    ]
+  ]);
+});
+
+test("lead detail uses documented DESIGN.md component tokens", () => {
+  const screen = createLeadDetailScreen({ leadId: "lead_hotel_001" });
 
   assert.equal(screen.tokens.card, designTokens.components["card-base"]);
   assert.equal(screen.tokens.row, designTokens.components["property-row"]);
   assert.equal(screen.tokens.original, designTokens.components["code-inline"]);
   assert.equal(screen.tokens.correction, designTokens.components["badge-tag"]);
   assert.equal(screen.tokens.rawAuditLink, designTokens.components["button-secondary"]);
+  assert.equal(screen.tokens.primaryAction, designTokens.components["button-primary"]);
 });
 
 test("phase 3 mock detail data stays aligned with the inbox selected lead", () => {

@@ -253,18 +253,27 @@ Do not add bulk actions until the status model is stable.
 
 ### Tasks
 
-- [ ] Test allowed transitions from each v1 status.
-- [ ] Test invalid transitions are blocked before API mutation.
-- [ ] Test claim, dismiss, snooze, flag, contacted, won, lost, no_response, follow_up, reopen, verified, and corrected actions where applicable.
-- [ ] Test notes and correction reason requirements.
-- [ ] Implement transition helpers and UI action controls after tests fail.
-- [ ] Keep mutation payloads typed and isolated in the API client boundary.
+- [x] Test allowed transitions from each v1 status.
+- [x] Test invalid transitions are blocked before API mutation.
+- [x] Test claim, dismiss, snooze, flag, contacted, won, lost, no_response, follow_up, reopen, verified, and corrected actions where applicable.
+- [x] Test notes and correction reason requirements.
+- [x] Implement transition helpers and UI action controls after tests fail.
+- [x] Keep mutation payloads typed and isolated in the API client boundary.
 
 ### Acceptance Criteria
 
-- [ ] Operators only see actions that make sense for the current lead.
-- [ ] Invalid transitions are impossible from the UI.
-- [ ] Corrections are auditable and do not overwrite source-backed data silently.
+- [x] Operators only see actions that make sense for the current lead.
+- [x] Invalid transitions are impossible from the UI.
+- [x] Corrections are auditable and do not overwrite source-backed data silently.
+
+### Implementation Notes
+
+- State model helpers live in `web/src/app/leadStatus.js`.
+- Lead Detail action controls are generated from the isolated status model in `web/src/app/leadDetail.js`.
+- PATCH mutation serialization lives in the browser API boundary at `web/src/api/client.js`.
+- Tests live in `test/lead-status-state-model.test.js`, `test/lead-status-mutation-client.test.js`, and the Phase 4 additions to `test/lead-detail-screen.test.js`.
+- Red runs failed first on missing `web/src/app/leadStatus.js`, missing `createApiClient().patchLead(...)`, read-only Phase 3 detail actions, and missing correction reason serialization.
+- Green run: `npm test` passes after adding transition helpers, valid action metadata, invalid transition blocking, typed lead PATCH payloads, and auditable correction payloads.
 
 ## Phase 5 - Verification Queue And Raw Audit Review
 

@@ -1,4 +1,9 @@
 import { designTokens } from "../design/tokens.js";
+import {
+  createLeadFieldCorrection,
+  createLeadStatusMutation,
+  getLeadStatusActions
+} from "./leadStatus.js";
 
 const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -22,6 +27,7 @@ const SECTION_TITLES = [
 export const mockLeadDetails = {
   lead_hotel_001: {
     id: "lead_hotel_001",
+    status: "new",
     summary: {
       title: "Riverside hotel renovation crew block",
       score: 96,
@@ -112,7 +118,10 @@ export function createLeadDetailScreen({
   leads = mockLeadDetails,
   state,
   errorMessage,
-  viewport = "desktop"
+  viewport = "desktop",
+  patchLead = async () => {
+    throw new Error("Lead status mutation client is not configured");
+  }
 } = {}) {
   const lead = leadId ? leads[leadId] : undefined;
   const displayState = state ?? (lead ? "ready" : "not-found");
@@ -133,6 +142,7 @@ export function createLeadDetailScreen({
       original: designTokens.components["code-inline"],
       correction: designTokens.components["badge-tag"],
       rawAuditLink: designTokens.components["button-secondary"],
+      primaryAction: designTokens.components["button-primary"],
       typeBadge: designTokens.components["badge-type"]
     }
   };
@@ -182,7 +192,7 @@ export function createLeadDetailScreen({
     summary: createSummary(lead),
     sourceEvidence,
     aiEnrichment: createAiEnrichment(lead, sourceEvidence),
-    actions: createActions(lead, layout),
+    actions: createActions(lead, layout, patchLead),
     outreach: createOutreach(lead),
     activity: createActivity(lead)
   };
@@ -251,16 +261,30 @@ function createClaim(claim, sourceEvidence) {
   };
 }
 
-function createActions(lead, layout) {
+function createActions(lead, layout, patchLead) {
   return {
-    readOnly: true,
+    readOnly: false,
     position: layout.actionPosition,
-    items: lead.actions.map((label) => ({
-      label,
-      disabled: true,
+    items: getLeadStatusActions(lead).map((action) => ({
+      ...action,
+      disabled: false,
       minTouchTarget: 44,
-      reason: "Read-only during Phase 3"
-    }))
+      reason: null
+    })),
+    submit: async ({ action, corrections, ...fields } = {}) => {
+      const normalizedCorrections = Array.isArray(corrections)
+        ? corrections.map(createLeadFieldCorrection)
+        : corrections;
+      const mutation = createLeadStatusMutation({
+        ...fields,
+        leadId: lead.id,
+        currentStatus: lead.status,
+        action,
+        corrections: normalizedCorrections
+      });
+
+      return patchLead(lead.id, mutation.body);
+    }
   };
 }
 

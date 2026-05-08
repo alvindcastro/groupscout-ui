@@ -43,6 +43,16 @@ export function createApiClient({ fetchImpl = globalThis.fetch } = {}) {
       return adaptLeadInboxResponse(response);
     },
 
+    async patchLead(leadId, patch = {}) {
+      return this.request(buildLeadPatchPath(leadId), {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify(buildLeadPatchPayload(patch))
+      });
+    },
+
     async request(path, init = {}) {
       assertSameOriginApiPath(path);
 
@@ -94,6 +104,79 @@ function buildLeadInboxPath(filters) {
 
   let queryString = searchParams.toString();
   return queryString ? `${API_BASE_PATH}/leads?${queryString}` : `${API_BASE_PATH}/leads`;
+}
+
+function buildLeadPatchPath(leadId) {
+  if (typeof leadId !== "string" || leadId.length === 0) {
+    throw new TypeError("Lead id must be a non-empty string");
+  }
+
+  return `${API_BASE_PATH}/leads/${encodeURIComponent(leadId)}`;
+}
+
+function buildLeadPatchPayload(patch) {
+  const payload = {};
+  const fields = [
+    ["status", "status"],
+    ["owner", "owner"],
+    ["notes", "notes"],
+    ["snoozeDate", "snooze_date"],
+    ["correctionReason", "correction_reason"]
+  ];
+
+  for (const [clientField, apiField] of fields) {
+    if (hasOwn(patch, clientField) && patch[clientField] !== undefined) {
+      payload[apiField] = patch[clientField];
+    }
+  }
+
+  if (hasOwn(patch, "corrections") && patch.corrections !== undefined) {
+    if (!Array.isArray(patch.corrections)) {
+      throw new TypeError("Lead corrections must be an array");
+    }
+
+    payload.corrections = patch.corrections.map(normalizeLeadCorrection);
+  }
+
+  return payload;
+}
+
+function normalizeLeadCorrection(correction) {
+  const requiredFields = [
+    ["field", "field"],
+    ["correctedValue", "corrected value"],
+    ["originalAiValue", "original AI value"],
+    ["originalSourceValue", "original source value"],
+    ["actor", "actor"],
+    ["reason", "reason"]
+  ];
+  const missingFields = requiredFields.filter(([field]) => isBlankCorrectionValue(correction?.[field]));
+
+  if (missingFields.length > 0) {
+    const names = missingFields.map(([, name]) => name).join(", ");
+    throw new Error(`Lead correction requires ${names}`);
+  }
+
+  return {
+    field: toApiFieldName(correction.field),
+    corrected_value: correction.correctedValue,
+    original_ai_value: correction.originalAiValue,
+    original_source_value: correction.originalSourceValue,
+    actor: correction.actor,
+    reason: correction.reason
+  };
+}
+
+function isBlankCorrectionValue(value) {
+  return value === undefined || value === null || value === "";
+}
+
+function toApiFieldName(field) {
+  if (typeof field !== "string" || field.length === 0) {
+    throw new TypeError("Correction field must be a non-empty string");
+  }
+
+  return field.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 
 function adaptLeadInboxResponse(response) {
@@ -149,4 +232,8 @@ function assertSameOriginApiPath(path) {
   if (!path.startsWith(`${API_BASE_PATH}/`)) {
     throw new Error("Browser API requests must use the /api boundary");
   }
+}
+
+function hasOwn(object, key) {
+  return Object.prototype.hasOwnProperty.call(object, key);
 }

@@ -1,6 +1,6 @@
 # GroupScout UI
 
-Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the read-only Lead Detail Evidence Workspace for source-backed review without write workflows.
+Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary.
 
 ## Current Scope
 
@@ -8,10 +8,13 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - The placeholder route shell lives in `web/src/app/shell.js`.
 - Browser API access is isolated in `web/src/api/client.js` and restricted to same-origin `/api/*` paths.
 - Lead inbox reads use `createApiClient().listLeads(...)` for `GET /api/leads` query serialization, pagination cursors, default priority ordering, and response field adaptation.
+- Lead status writes use `createApiClient().patchLead(...)` for `PATCH /api/leads/{id}` payloads covering status, owner, notes, snooze date, correction reason, and safe field corrections.
 - The Lead Inbox screen model lives in `web/src/app/leadInbox.js` and is mounted by `createRouteShell("/leads")`.
 - The Lead Detail Evidence Workspace lives in `web/src/app/leadDetail.js` and is mounted by `createRouteShell("/leads/{id}")`.
+- The lead status transition model lives in `web/src/app/leadStatus.js` and keeps valid actions isolated from detail rendering.
 - Phase 2 UI tests cover mocked rows, filters, loading/empty/error states, detail navigation intent, responsive metadata, accessibility metadata, and `DESIGN.md` component-token usage.
 - Phase 3 UI tests cover required detail sections, source evidence, raw audit link intent, AI enrichment, reviewer correction distinction, activity timeline entries, loading/not-found/error states, responsive metadata, and `DESIGN.md` component-token usage.
+- Phase 4 tests cover the v1 transition table, disallowed action blocking, Lead Detail action visibility, PATCH serialization, required notes/snooze/correction reason validation, and auditable correction payloads.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
@@ -51,4 +54,12 @@ npm test
 - AI Enrichment fields: contractor/applicant, project type, crew size, duration, rationale, uncertainty, and per-claim source evidence.
 - Reviewer corrections are shown alongside original AI extraction values and never silently replace source-backed values.
 - Responsive behavior: desktop evidence workspace, tablet evidence stack, and mobile detail stack with actions reachable.
-- Out of scope: status mutations, owner edits, reviewer correction writes, outreach logging, and inline raw audit payload rendering.
+- Out of scope: outreach logging and inline raw audit payload rendering.
+
+## Phase 4 Lead Status Actions
+
+- Statuses: `new`, `notified`, `claimed`, `contacted`, `snoozed`, `flagged`, `verified`, `dismissed`, `won`, `lost`, and `no_response`.
+- Actions are generated from the transition table so operators only see valid actions for the current status.
+- Invalid actions are rejected before `patchLead(...)` is called.
+- `follow_up` and `corrected` are modeled as actions, not statuses, and preserve the current status.
+- Corrections preserve original AI/source values and include actor plus reason metadata before API serialization.

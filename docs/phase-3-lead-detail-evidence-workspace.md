@@ -1,6 +1,6 @@
 # Phase 3 Lead Detail Evidence Workspace
 
-Phase 3 builds a read-only Lead Detail workspace around source-backed review. It lets operators understand why a lead exists, what the AI inferred, what evidence supports those claims, and what has already happened without adding write workflows yet.
+Phase 3 built the initial read-only Lead Detail workspace around source-backed review. Phase 4 keeps that evidence model and adds validated status actions on top of it.
 
 ## Scope
 
@@ -15,9 +15,9 @@ Phase 3 builds a read-only Lead Detail workspace around source-backed review. It
 
 ## UI Behavior
 
-- The workspace is read-only: status changes, ownership edits, outreach logging, reviewer corrections, and mutation side effects stay out of scope.
+- Phase 4 status actions now sit on top of this workspace through the isolated lead status model.
 - Source-backed extraction values and reviewer corrections must remain visually distinct so corrections never silently replace original evidence.
-- Actions are visible but disabled, with a read-only reason for Phase 3.
+- Actions are generated from the current lead status and remain backed by explicit validation before mutation.
 - Loading, not found, and error states are explicit screen states with accessible status or alert metadata.
 - Desktop layout uses an evidence workspace with summary, evidence, and side-panel regions.
 - Tablet and mobile layouts collapse into readable stacked sequences; mobile keeps actions reachable in sticky-bottom metadata.
@@ -39,13 +39,13 @@ Mint green remains reserved for active or confirmation accents. Evidence trust, 
 
 The current repo uses Node's built-in `node:test` harness without a DOM or browser runtime. Phase 3 tests verify screen contracts, section metadata, responsive layout metadata, token references, and navigation/link intents rather than computed CSS or real focus traversal.
 
-- Red run: `node --test test/lead-detail-screen.test.js test/app-shell.test.js` failed because `web/src/app/leadDetail.js` did not exist yet.
-- Green run: `node --test test/lead-detail-screen.test.js test/app-shell.test.js test/design-tokens.test.js` passed after adding the read-only detail workspace, `/leads/{id}` route contract, Phase 3 token exports, state metadata, source-versus-correction distinction, and raw audit link intent.
-- Full-suite run: `npm test` passes all Phase 0, Phase 1, Phase 2, and Phase 3 tests.
+- Original Phase 3 red run: `node --test test/lead-detail-screen.test.js test/app-shell.test.js` failed because `web/src/app/leadDetail.js` did not exist yet.
+- Original Phase 3 green run: `node --test test/lead-detail-screen.test.js test/app-shell.test.js test/design-tokens.test.js` passed after adding the read-only detail workspace, `/leads/{id}` route contract, Phase 3 token exports, state metadata, source-versus-correction distinction, and raw audit link intent.
+- Current full-suite run: `npm test` passes all Phase 0 through Phase 4 tests.
 
 ## Out Of Scope
 
-- Mutating lead status, owner, reviewer corrections, notes, or outreach history.
 - Fetching or rendering raw audit payloads inline.
+- Outreach history writes.
 - Browser-only assertions for computed layout, CSS media queries, or focus traversal.
 - Analytics, auth/session behavior, and production API integration beyond the detail read contract.

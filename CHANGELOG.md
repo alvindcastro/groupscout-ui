@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 4 - Lead Status Actions And State Model
+
+- Added failing-first Phase 4 state model tests for every recommended v1 status, allowed action, and disallowed transition.
+- Added `web/src/app/leadStatus.js` with status constants, transition helpers, action metadata, validation, PATCH mutation intent building, and auditable field correction helpers.
+- Added Lead Detail action controls that show only valid actions for the current lead status and reject invalid transitions before calling the API mutation boundary.
+- Added `createApiClient().patchLead(...)` for same-origin `PATCH /api/leads/{id}` payloads covering status, owner, notes, snooze date, correction reason, and safe field corrections.
+- Updated Phase 4 docs in `docs/phase-4-lead-status-actions-state-model.md`, `README.md`, and `UI_TDD_PHASE_PROMPTS.md`.
+
 ### Phase 3 - Lead Detail Evidence Workspace
 
 - Added failing-first Phase 3 Lead Detail screen tests for required evidence sections, source evidence, raw audit link intent, AI enrichment rationale/uncertainty, activity timeline entries, reviewer correction distinction, state handling, responsive metadata, and `DESIGN.md` token usage.
