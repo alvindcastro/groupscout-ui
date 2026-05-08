@@ -449,18 +449,29 @@ Do not build a custom dashboard builder in this phase.
 
 ### Tasks
 
-- [ ] Test stats client response.
-- [ ] Test status, source, score band, owner, and week summaries.
-- [ ] Test lead aging and verification quality summaries.
-- [ ] Test demand timing view.
-- [ ] Test visible denominator/date range labels.
-- [ ] Implement after tests fail.
+- [x] Test stats client response.
+- [x] Test status, source, score band, owner, and week summaries.
+- [x] Test lead aging and verification quality summaries.
+- [x] Test demand timing view.
+- [x] Test visible denominator/date range labels.
+- [x] Implement after tests fail.
 
 ### Acceptance Criteria
 
-- [ ] Managers can understand pipeline coverage and source quality.
-- [ ] Metrics are explainable and tied to explicit outcome definitions.
-- [ ] Analytics remain basic and operational.
+- [x] Managers can understand pipeline coverage and source quality.
+- [x] Metrics are explainable and tied to explicit outcome definitions.
+- [x] Analytics remain basic and operational.
+
+### Implementation Notes
+
+- Analytics screen surface lives in `web/src/app/analyticsDashboard.js` and is mounted from `/analytics` by `web/src/app/shell.js`.
+- Stats API access lives in `createApiClient().getStats(...)` and uses same-origin `GET /api/stats`.
+- Source hit rate is defined as `won leads / total source leads`, with `won` as the only numerator status and all source leads in the selected date range as the denominator.
+- Tests live in `test/stats-client.test.js`, `test/analytics-dashboard.test.js`, and `test/analytics-screen.test.js`, with route and credential-boundary assertions in `test/app-shell.test.js` and `test/api-boundary.test.js`.
+- Red run: `node --test test/stats-client.test.js test/analytics-dashboard.test.js` failed because the analytics module and stats client method did not exist yet.
+- Targeted green run: `node --test test/stats-client.test.js test/analytics-dashboard.test.js test/analytics-screen.test.js test/app-shell.test.js test/api-boundary.test.js`.
+- Green run: `npm test` passes after adding stats adaptation, explainable metric definitions, summary sections, lead aging, verification quality, demand rows, and `/analytics` route mounting.
+- Custom dashboard builders remain out of scope.
 
 ## Phase 9 - Session/Auth Wrapper And Same-Origin Deployment
 
@@ -488,18 +499,26 @@ Do not add complex role matrices unless the backend contract already defines the
 
 ### Tasks
 
-- [ ] Test session enforcement for `/api/*`.
-- [ ] Test no `API_TOKEN` in browser runtime/config.
-- [ ] Test base path mounting.
-- [ ] Test disabled UI behavior.
-- [ ] Test dev-only CORS behavior if needed.
-- [ ] Implement after tests fail.
+- [x] Test session enforcement for `/api/*`.
+- [x] Test no `API_TOKEN` in browser runtime/config.
+- [x] Test base path mounting.
+- [x] Test disabled UI behavior.
+- [x] Test dev-only CORS behavior if needed.
+- [x] Implement after tests fail.
 
 ### Acceptance Criteria
 
-- [ ] UI access is safe enough for operator use.
-- [ ] Automation credentials are not repurposed for browser sessions.
-- [ ] Deployment settings are explicit and test-covered.
+- [x] UI access is safe enough for operator use.
+- [x] Automation credentials are not repurposed for browser sessions.
+- [x] Deployment settings are explicit and test-covered.
+
+### Implementation Notes
+
+- Added `web/src/server/uiDeployment.js` for `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, development-only `CORS_ALLOWED_ORIGINS`, base-path mount resolution, and session-cookie `/api/*` authorization.
+- Added `createMountedRouteShell(...)` for `UI_BASE_PATH` route mapping and base-path-aware navigation hrefs.
+- Expanded browser credential tests to recursively scan browser-facing `web/src` modules while keeping server-only deployment helpers out of the bundle scan.
+- Red run: `node --test test/session-deployment.test.js test/api-boundary.test.js test/app-shell.test.js` failed with missing Phase 9 exports.
+- Green runs: `node --test test/session-deployment.test.js test/api-boundary.test.js test/app-shell.test.js` and `npm test`.
 
 ## Phase 10 - Later Alertd Read-Only Console
 
@@ -558,6 +577,6 @@ Do not let this phase block or expand the lead-management MVP.
 - [x] Phase 5 - Verification Queue And Raw Audit Review
 - [x] Phase 6 - Outreach Workspace And Activity Log
 - [x] Phase 7 - Pipeline Monitor And Run Controls
-- [ ] Phase 8 - Basic Analytics And Demand Signals
-- [ ] Phase 9 - Session/Auth Wrapper And Same-Origin Deployment
+- [x] Phase 8 - Basic Analytics And Demand Signals
+- [x] Phase 9 - Session/Auth Wrapper And Same-Origin Deployment
 - [ ] Phase 10 - Later Alertd Read-Only Console

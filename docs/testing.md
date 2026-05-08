@@ -21,6 +21,7 @@ There is no package install requirement yet.
 ```sh
 node --test test/api-boundary.test.js
 node --test test/app-shell.test.js
+node --test test/session-deployment.test.js
 node --test test/design-tokens.test.js
 node --test test/lead-inbox-client.test.js
 node --test test/lead-inbox-screen.test.js
@@ -33,11 +34,17 @@ node --test test/outreach-client.test.js
 node --test test/outreach-workspace.test.js
 node --test test/pipeline-client.test.js
 node --test test/pipeline-monitor.test.js
+node --test test/stats-client.test.js
+node --test test/analytics-dashboard.test.js
+node --test test/analytics-screen.test.js
 ```
 
 ## What The Current UI Tests Cover
 
 - Same-origin `/api/*` browser request boundary.
+- Session-cookie enforcement metadata for UI `/api/*` access.
+- `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, and development-only `CORS_ALLOWED_ORIGINS` deployment behavior.
+- Recursive browser-source checks that `API_TOKEN` is not referenced in browser-facing modules.
 - Lead inbox query serialization and response adaptation.
 - Lead inbox mocked table, filters, states, responsive metadata, and accessibility metadata.
 - Lead detail sections, source evidence, raw audit link intent, AI enrichment metadata, corrections, timeline, and states.
@@ -48,6 +55,8 @@ node --test test/pipeline-monitor.test.js
 - Outreach workspace editable drafts, contact validation, manual copied/sent/logged states, outcome capture, activity timelines, responsive metadata, and route mounting.
 - Pipeline client access through same-origin `GET/POST /api/pipeline/runs`.
 - Pipeline monitor compact health fields, async run creation state, collector counts/failures, LLM health, notification delivery health, partial-data/error states, responsive metadata, and route mounting.
+- Stats client access through same-origin `GET /api/stats`.
+- Analytics dashboard status/source/score/owner/week summaries, source-yield hit-rate definition, lead aging, verification quality, upcoming demand, denominator/date-range labels, responsive metadata, and route mounting.
 - Selected design token exports used by the current screen models.
 
 ## What The Current UI Tests Do Not Cover
@@ -58,9 +67,12 @@ node --test test/pipeline-monitor.test.js
 - Visual regression.
 - CSS layout.
 - Live backend compatibility.
+- Real cookie signing, browser session issuance, reverse-proxy behavior, and production CORS headers.
 - Raw audit payload redaction behavior beyond the explicit blocked TODO.
 - Real email sending, clipboard behavior, or CRM sync for outreach.
 - Real pipeline execution, worker polling, Grafana rendering, or log viewer integration.
+- Live analytics aggregation accuracy against backend storage.
+- Custom dashboard/chart rendering behavior.
 - Full `DESIGN.md` token-reference resolution.
 
 Before treating a UI feature as production-ready, add browser or component-level coverage once a renderer/framework exists.

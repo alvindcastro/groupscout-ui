@@ -1,3 +1,4 @@
+import { createAnalyticsDashboardScreen } from "./analyticsDashboard.js";
 import { createLeadDetailScreen } from "./leadDetail.js";
 import { createLeadInboxScreen } from "./leadInbox.js";
 import { createOutreachWorkspaceScreen } from "./outreachWorkspace.js";
@@ -26,6 +27,21 @@ export function createRouteShell(pathname = "/") {
       active: route.path === activeRoute.path
     })),
     content
+  };
+}
+
+export function createMountedRouteShell(pathname = "/", { basePath = "/" } = {}) {
+  const normalizedBasePath = normalizeBasePath(basePath);
+  const shellPath = stripBasePath(pathname, normalizedBasePath);
+  const shell = createRouteShell(shellPath);
+
+  return {
+    ...shell,
+    basePath: normalizedBasePath,
+    sections: shell.sections.map((section) => ({
+      ...section,
+      href: joinBasePath(normalizedBasePath, section.path)
+    }))
   };
 }
 
@@ -58,9 +74,58 @@ function createRouteContent(pathname, activeRoute) {
     return createPipelineMonitorScreen();
   }
 
+  if (activeRoute.path === "/analytics") {
+    return createAnalyticsDashboardScreen();
+  }
+
   return {
     status: "placeholder",
     description:
       "Phase 0 reserves navigation slots for future lead-management views while product workflows remain unimplemented."
   };
+}
+
+function stripBasePath(pathname, basePath) {
+  const normalizedBasePath = normalizeBasePath(basePath);
+  let path = pathname.startsWith("/") ? pathname : `/${pathname}`;
+
+  if (normalizedBasePath === "/") {
+    return path;
+  }
+
+  if (path === normalizedBasePath) {
+    return "/";
+  }
+
+  if (path.startsWith(`${normalizedBasePath}/`)) {
+    return path.slice(normalizedBasePath.length);
+  }
+
+  return path;
+}
+
+function normalizeBasePath(basePath) {
+  let normalized = String(basePath || "/").trim();
+
+  if (normalized === "" || normalized === "/") {
+    return "/";
+  }
+
+  if (!normalized.startsWith("/")) {
+    normalized = `/${normalized}`;
+  }
+
+  return normalized.replace(/\/+$/, "");
+}
+
+function joinBasePath(basePath, routePath) {
+  if (basePath === "/") {
+    return routePath;
+  }
+
+  if (routePath === "/") {
+    return basePath;
+  }
+
+  return `${basePath}${routePath}`;
 }

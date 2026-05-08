@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Phase 9 - Session/Auth Wrapper And Same-Origin Deployment
+
+- Added failing-first Phase 9 tests for session-required `/api/*` access, recursive browser-source `API_TOKEN` exclusion, base-path mounting, disabled UI behavior, deployment readiness, and development-only CORS configuration.
+- Added `web/src/server/uiDeployment.js` with `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, and `CORS_ALLOWED_ORIGINS` config parsing plus session-cookie API authorization.
+- Added `createMountedRouteShell(...)` so deployed UI routes under `UI_BASE_PATH` map back to workspace routes and expose base-path-aware navigation hrefs.
+- Kept browser API requests same-origin with session credentials and no automation-token headers.
+- Added Phase 9 implementation notes in `docs/phase-9-session-auth-wrapper-same-origin-deployment.md`, `README.md`, `docs/testing.md`, `docs/developer-guide.md`, and `UI_TDD_PHASE_PROMPTS.md`.
+
+### Phase 8 - Basic Analytics And Demand Signals
+
+- Added failing-first Phase 8 tests for `GET /api/stats`, status/source/score-band/owner/week summaries, source-yield hit-rate definitions, lead aging, verification quality, upcoming demand, denominator/date-range labels, `/analytics` route mounting, responsive metadata, and `DESIGN.md` token usage.
+- Added `web/src/app/analyticsDashboard.js` with mocked analytics stats, explainable source-yield calculations, lead aging, verification quality, demand rows, empty/loading/error states, and responsive layout metadata.
+- Added `createApiClient().getStats(...)` for same-origin `GET /api/stats` with date range, segment, and property filters.
+- Mounted the Analytics screen from `createRouteShell("/analytics")`.
+- Added Phase 8 implementation notes in `docs/phase-8-basic-analytics-demand-signals.md`, `README.md`, `docs/testing.md`, `docs/developer-guide.md`, and `UI_TDD_PHASE_PROMPTS.md`.
+
 ### Phase 7 - Pipeline Monitor And Run Controls
 
 - Added failing-first Phase 7 tests for pipeline run history, async run creation, compact collector/LLM/delivery health fields, recent failures, partial-data states, `/pipeline` route mounting, same-origin API boundaries, and `DESIGN.md` token usage.

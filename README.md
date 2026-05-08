@@ -1,29 +1,34 @@
 # GroupScout UI
 
-Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls.
+Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls. Phase 8 adds basic explainable analytics and demand signals. Phase 9 adds a minimal session/auth and same-origin deployment wrapper.
 
 ## Current Scope
 
 - Design tokens live in `web/src/design/tokens.js` and are mapped from `DESIGN.md`.
 - The placeholder route shell lives in `web/src/app/shell.js`.
 - Browser API access is isolated in `web/src/api/client.js` and restricted to same-origin `/api/*` paths.
+- UI deployment/session rules live in `web/src/server/uiDeployment.js` and cover `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, development-only `CORS_ALLOWED_ORIGINS`, and session-cookie `/api/*` access.
 - Lead inbox reads use `createApiClient().listLeads(...)` for `GET /api/leads` query serialization, pagination cursors, default priority ordering, and response field adaptation.
 - Lead status writes use `createApiClient().patchLead(...)` for `PATCH /api/leads/{id}` payloads covering status, owner, notes, snooze date, correction reason, and safe field corrections.
 - Raw audit reads use `createApiClient().getLeadRawAudit(...)` for the UI-safe `GET /api/leads/{id}/raw` alias.
 - Outreach history reads and manual attempt logs use `createApiClient().listLeadOutreach(...)` and `createApiClient().logLeadOutreach(...)` for `GET/POST /api/leads/{id}/outreach`.
 - Pipeline history reads and manual run starts use `createApiClient().listPipelineRuns(...)` and `createApiClient().startPipelineRun(...)` for `GET/POST /api/pipeline/runs`.
+- Basic analytics reads use `createApiClient().getStats(...)` for `GET /api/stats`.
 - The Lead Inbox screen model lives in `web/src/app/leadInbox.js` and is mounted by `createRouteShell("/leads")`.
 - The Lead Detail Evidence Workspace lives in `web/src/app/leadDetail.js` and is mounted by `createRouteShell("/leads/{id}")`.
 - The lead status transition model lives in `web/src/app/leadStatus.js` and keeps valid actions isolated from detail rendering.
 - The Verification Queue screen model lives in `web/src/app/verificationQueue.js` and is mounted by `createRouteShell("/verification")`.
 - The Outreach Workspace screen model lives in `web/src/app/outreachWorkspace.js` and is mounted by `createRouteShell("/outreach")`.
 - The Pipeline Monitor screen model lives in `web/src/app/pipelineMonitor.js` and is mounted by `createRouteShell("/pipeline")`.
+- The Analytics screen model lives in `web/src/app/analyticsDashboard.js` and is mounted by `createRouteShell("/analytics")`.
 - Phase 2 UI tests cover mocked rows, filters, loading/empty/error states, detail navigation intent, responsive metadata, accessibility metadata, and `DESIGN.md` component-token usage.
 - Phase 3 UI tests cover required detail sections, source evidence, raw audit link intent, AI enrichment, reviewer correction distinction, activity timeline entries, loading/not-found/error states, responsive metadata, and `DESIGN.md` component-token usage.
 - Phase 4 tests cover the v1 transition table, disallowed action blocking, Lead Detail action visibility, PATCH serialization, required notes/snooze/correction reason validation, and auditable correction payloads.
 - Phase 5 tests cover queue trigger classification, verification queue filters/actions, `/verification` route mounting, raw audit API alias use, responsive metadata, token usage, and the blocked redaction-policy TODO.
 - Phase 6 tests cover editable outreach drafts, contact validation, manual copied/sent/logged states, outreach API reads/writes, outcome capture, activity timelines, `/outreach` route mounting, responsive metadata, and token usage.
 - Phase 7 tests cover pipeline run history, async run creation, collector counts/failures, LLM and delivery health summaries, partial-data states, `/pipeline` route mounting, responsive metadata, and token usage.
+- Phase 8 tests cover stats client shape, status/source/score/owner/week summaries, source-yield hit-rate definitions, lead aging, verification quality, demand timing, visible denominator/date-range labels, `/analytics` route mounting, responsive metadata, and token usage.
+- Phase 9 tests cover session enforcement for `/api/*`, recursive browser credential exclusion, no automation-token browser headers, `UI_ENABLED`, `UI_BASE_PATH`, deployment readiness, and dev-only CORS configuration.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
@@ -40,6 +45,8 @@ npm test
 - [Troubleshooting](./docs/troubleshooting.md)
 - [Nice To Knows](./docs/nice-to-knows.md)
 - [Code Smells And Housekeeping Notes](./docs/code-smells.md)
+- [Phase 8 Basic Analytics And Demand Signals](./docs/phase-8-basic-analytics-demand-signals.md)
+- [Phase 9 Session/Auth Wrapper And Same-Origin Deployment](./docs/phase-9-session-auth-wrapper-same-origin-deployment.md)
 
 ## Phase 0 Guardrails
 
@@ -111,3 +118,20 @@ npm test
 - Manual run creation is modeled as accepted/queued browser-async work; the UI does not wait for the whole pipeline to finish.
 - Logs and Grafana are optional display links when the backend supplies them.
 - Out of scope: replacing Grafana, polling worker internals directly, exposing automation-only endpoints, and building a full observability dashboard.
+
+## Phase 8 Basic Analytics And Demand Signals
+
+- Screen model: `createAnalyticsDashboardScreen(...)`.
+- API boundary: `GET /api/stats` for date-range, segment, and property filtered stats.
+- Summary groups: status, source, score band, owner, and week.
+- Source yield defines hit rate as `won leads / total source leads`, with denominator and date range visible.
+- Operational views: lead aging, verification quality, and upcoming demand by week, segment, and property.
+- Out of scope: custom dashboard builder, direct database access, CRM replacement reporting, and unexplained metrics.
+
+## Phase 9 Session/Auth Wrapper And Same-Origin Deployment
+
+- Deployment helper: `createUiDeploymentConfig(...)`, `assertUiDeploymentReady(...)`, `resolveUiMount(...)`, and `authorizeUiApiRequest(...)`.
+- Session cookie: `groupscout_session` is required for browser `/api/*` access when the UI is enabled.
+- Settings: `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, and development-only `CORS_ALLOWED_ORIGINS`.
+- Mounted shell: `createMountedRouteShell(...)` maps URLs under `UI_BASE_PATH` to internal routes and emits base-path-aware hrefs.
+- Out of scope: role matrices, identity-provider UI, production proxy config, and repurposing `API_TOKEN` for browser sessions.
