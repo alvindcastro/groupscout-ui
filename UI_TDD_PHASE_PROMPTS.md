@@ -544,17 +544,28 @@ Do not let this phase block or expand the lead-management MVP.
 
 ### Tasks
 
-- [ ] Confirm lead workflow phases are stable before starting.
-- [ ] Test read-only alert summary.
-- [ ] Test evidence display.
-- [ ] Test room inventory display if data contract exists.
-- [ ] Test action history display.
-- [ ] Keep mutations out of scope.
+- [x] Confirm lead workflow phases are stable before starting.
+- [x] Test read-only alert summary.
+- [x] Test evidence display.
+- [x] Test room inventory display if data contract exists.
+- [x] Test action history display.
+- [x] Keep mutations out of scope.
 
 ### Acceptance Criteria
 
-- [ ] Disruption monitoring is visible without replacing Slack as the interrupt channel.
-- [ ] The console remains read-only unless future contracts justify actions.
+- [x] Disruption monitoring is visible without replacing Slack as the interrupt channel.
+- [x] The console remains read-only unless future contracts justify actions.
+
+### Implementation Notes
+
+- Alertd console surface lives in `web/src/app/alertdConsole.js` and is mounted from `/alerts` by `web/src/app/shell.js`.
+- Read-only alert API access lives in `createApiClient().listAlerts(...)` and uses `GET /api/alerts`.
+- The console shows current alert state, SPS, source evidence, room inventory, and action history while documenting Slack as the interrupt channel.
+- Alert mutations remain disabled and out of scope; the client exposes no create, patch, acknowledge, resolve, or suppress methods.
+- Tests live in `test/alert-console.test.js` and `test/alert-client.test.js`, with route and credential-boundary assertions in `test/app-shell.test.js` and `test/api-boundary.test.js`.
+- Lead-workflow stability check: `npm test` passed before Phase 10 implementation.
+- Red run: `node --test test/alert-console.test.js test/alert-client.test.js test/app-shell.test.js test/api-boundary.test.js` failed because the alert console module, `/alerts` route mounting, and `listAlerts(...)` client did not exist yet.
+- Green runs: `node --test test/alert-console.test.js test/alert-client.test.js test/app-shell.test.js test/api-boundary.test.js` and `npm test`.
 
 ## Open Decisions To Resolve Before Coding
 
@@ -579,4 +590,4 @@ Do not let this phase block or expand the lead-management MVP.
 - [x] Phase 7 - Pipeline Monitor And Run Controls
 - [x] Phase 8 - Basic Analytics And Demand Signals
 - [x] Phase 9 - Session/Auth Wrapper And Same-Origin Deployment
-- [ ] Phase 10 - Later Alertd Read-Only Console
+- [x] Phase 10 - Later Alertd Read-Only Console

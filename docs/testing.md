@@ -37,6 +37,8 @@ node --test test/pipeline-monitor.test.js
 node --test test/stats-client.test.js
 node --test test/analytics-dashboard.test.js
 node --test test/analytics-screen.test.js
+node --test test/alert-client.test.js
+node --test test/alert-console.test.js
 ```
 
 ## What The Current UI Tests Cover
@@ -57,6 +59,8 @@ node --test test/analytics-screen.test.js
 - Pipeline monitor compact health fields, async run creation state, collector counts/failures, LLM health, notification delivery health, partial-data/error states, responsive metadata, and route mounting.
 - Stats client access through same-origin `GET /api/stats`.
 - Analytics dashboard status/source/score/owner/week summaries, source-yield hit-rate definition, lead aging, verification quality, upcoming demand, denominator/date-range labels, responsive metadata, and route mounting.
+- Alert client access through read-only same-origin `GET /api/alerts`.
+- Alertd console current alert state, SPS summaries, evidence, room inventory, action history, disabled mutation actions, Slack-first policy metadata, responsive metadata, and route mounting.
 - Selected design token exports used by the current screen models.
 
 ## What The Current UI Tests Do Not Cover
@@ -73,6 +77,7 @@ node --test test/analytics-screen.test.js
 - Real pipeline execution, worker polling, Grafana rendering, or log viewer integration.
 - Live analytics aggregation accuracy against backend storage.
 - Custom dashboard/chart rendering behavior.
+- Live alertd contract compatibility, Slack delivery behavior, and alert acknowledgement/resolution workflows.
 - Full `DESIGN.md` token-reference resolution.
 
 Before treating a UI feature as production-ready, add browser or component-level coverage once a renderer/framework exists.

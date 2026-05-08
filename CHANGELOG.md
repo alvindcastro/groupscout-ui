@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 10 - Later Alertd Read-Only Console
+
+- Added failing-first Phase 10 tests for read-only alert state rendering, SPS summaries, evidence display, room inventory, action history, disabled mutation actions, `/alerts` route mounting, responsive metadata, `DESIGN.md` token usage, and `GET /api/alerts`.
+- Added `web/src/app/alertdConsole.js` with mocked Alertd data, Slack-first policy metadata, dense alert rows, evidence rows, room inventory details, action-history rows, loading/empty/error states, responsive layouts, and disabled acknowledge/resolve/suppress actions.
+- Added `createApiClient().listAlerts(...)` for read-only same-origin `GET /api/alerts` access.
+- Mounted the Alertd console from `createRouteShell("/alerts")`.
+- Added Phase 10 implementation notes in `docs/phase-10-later-alertd-read-only-console.md`, `README.md`, `docs/testing.md`, `docs/developer-guide.md`, and `UI_TDD_PHASE_PROMPTS.md`.
+
 ### Phase 9 - Session/Auth Wrapper And Same-Origin Deployment
 
 - Added failing-first Phase 9 tests for session-required `/api/*` access, recursive browser-source `API_TOKEN` exclusion, base-path mounting, disabled UI behavior, deployment readiness, and development-only CORS configuration.

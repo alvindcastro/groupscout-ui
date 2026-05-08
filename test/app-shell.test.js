@@ -10,6 +10,7 @@ const expectedRoutes = [
   ["Outreach", "/outreach"],
   ["Pipeline", "/pipeline"],
   ["Analytics", "/analytics"],
+  ["Alerts", "/alerts"],
   ["Settings", "/settings"]
 ];
 
@@ -66,6 +67,16 @@ test("route shell mounts the Phase 8 analytics dashboard for the Analytics route
   assert.equal(shell.content.kind, "analytics-dashboard-screen");
   assert.equal(shell.content.state, "ready");
   assert.match(shell.content.denominatorLabel, /64 leads collected/i);
+});
+
+test("route shell mounts the Phase 10 alertd read-only console for the Alerts route", () => {
+  const shell = createRouteShell("/alerts");
+
+  assert.equal(shell.kind, "operator-workspace-shell");
+  assert.equal(shell.activeRoute.label, "Alerts");
+  assert.equal(shell.content.kind, "alertd-console-screen");
+  assert.equal(shell.content.state, "ready");
+  assert.equal(shell.content.actionPolicy.readOnly, true);
 });
 
 test("route shell mounts the Phase 5 verification queue for the Verification route", () => {

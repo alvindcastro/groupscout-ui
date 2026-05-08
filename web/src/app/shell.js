@@ -1,4 +1,5 @@
 import { createAnalyticsDashboardScreen } from "./analyticsDashboard.js";
+import { createAlertdConsoleScreen } from "./alertdConsole.js";
 import { createLeadDetailScreen } from "./leadDetail.js";
 import { createLeadInboxScreen } from "./leadInbox.js";
 import { createOutreachWorkspaceScreen } from "./outreachWorkspace.js";
@@ -12,6 +13,7 @@ export const appNavigation = [
   { label: "Outreach", path: "/outreach" },
   { label: "Pipeline", path: "/pipeline" },
   { label: "Analytics", path: "/analytics" },
+  { label: "Alerts", path: "/alerts" },
   { label: "Settings", path: "/settings" }
 ];
 
@@ -76,6 +78,10 @@ function createRouteContent(pathname, activeRoute) {
 
   if (activeRoute.path === "/analytics") {
     return createAnalyticsDashboardScreen();
+  }
+
+  if (activeRoute.path === "/alerts") {
+    return createAlertdConsoleScreen();
   }
 
   return {

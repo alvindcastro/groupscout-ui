@@ -14,6 +14,7 @@ This repo is currently a no-build, model-level UI workspace for GroupScout opera
 - `web/src/app/outreachWorkspace.js` owns the mocked Outreach Workspace screen model and manual outreach logging metadata.
 - `web/src/app/pipelineMonitor.js` owns the mocked Pipeline Monitor screen model, health summaries, and async run-control metadata.
 - `web/src/app/analyticsDashboard.js` owns the mocked Analytics screen model, source-yield definitions, and demand-signal metadata.
+- `web/src/app/alertdConsole.js` owns the mocked Alertd read-only console model, SPS summaries, evidence, room inventory, action-history metadata, and disabled alert action policy.
 - `web/src/design/tokens.js` exports the subset of `DESIGN.md` tokens needed by tests.
 - `test/*.test.js` contains contract and screen-model tests using `node:test`.
 
@@ -45,6 +46,8 @@ node --test test/pipeline-monitor.test.js
 node --test test/stats-client.test.js
 node --test test/analytics-dashboard.test.js
 node --test test/analytics-screen.test.js
+node --test test/alert-client.test.js
+node --test test/alert-console.test.js
 node --test test/session-deployment.test.js
 ```
 
@@ -59,6 +62,7 @@ node --test test/session-deployment.test.js
 - Use `GET /api/leads/{id}/raw` for browser-facing raw audit access; do not link older raw audit endpoints from UI screens.
 - Use `GET/POST /api/pipeline/runs` for pipeline history and manual run creation; do not call worker, scheduler, or one-shot automation endpoints directly from app modules.
 - Use `GET /api/stats` for browser-facing analytics; keep denominators, date ranges, and outcome definitions visible when adding metrics.
+- Use `GET /api/alerts` for the read-only Alertd console; keep Slack as the interrupt channel and keep alert mutations disabled unless a future contract explicitly adds them.
 - Keep status transitions in `leadStatus.js`; UI surfaces should consume action metadata instead of duplicating the transition table.
 - Keep mocked screen data aligned across inbox and detail models when a mocked lead appears in both places.
 - Treat `DESIGN.md` as the source design contract; `web/src/design/tokens.js` is a partial implementation used by tests.
@@ -84,6 +88,7 @@ Current UI client contracts:
 - `GET /api/pipeline/runs`
 - `POST /api/pipeline/runs`
 - `GET /api/stats`
+- `GET /api/alerts`
 
 ## Adding A New UI Phase
 

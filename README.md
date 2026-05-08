@@ -1,6 +1,6 @@
 # GroupScout UI
 
-Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls. Phase 8 adds basic explainable analytics and demand signals. Phase 9 adds a minimal session/auth and same-origin deployment wrapper.
+Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls. Phase 8 adds basic explainable analytics and demand signals. Phase 9 adds a minimal session/auth and same-origin deployment wrapper. Phase 10 adds a later read-only Alertd console while keeping Slack as the interrupt channel.
 
 ## Current Scope
 
@@ -14,6 +14,7 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Outreach history reads and manual attempt logs use `createApiClient().listLeadOutreach(...)` and `createApiClient().logLeadOutreach(...)` for `GET/POST /api/leads/{id}/outreach`.
 - Pipeline history reads and manual run starts use `createApiClient().listPipelineRuns(...)` and `createApiClient().startPipelineRun(...)` for `GET/POST /api/pipeline/runs`.
 - Basic analytics reads use `createApiClient().getStats(...)` for `GET /api/stats`.
+- Alert reads use `createApiClient().listAlerts(...)` for read-only `GET /api/alerts`.
 - The Lead Inbox screen model lives in `web/src/app/leadInbox.js` and is mounted by `createRouteShell("/leads")`.
 - The Lead Detail Evidence Workspace lives in `web/src/app/leadDetail.js` and is mounted by `createRouteShell("/leads/{id}")`.
 - The lead status transition model lives in `web/src/app/leadStatus.js` and keeps valid actions isolated from detail rendering.
@@ -21,6 +22,7 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - The Outreach Workspace screen model lives in `web/src/app/outreachWorkspace.js` and is mounted by `createRouteShell("/outreach")`.
 - The Pipeline Monitor screen model lives in `web/src/app/pipelineMonitor.js` and is mounted by `createRouteShell("/pipeline")`.
 - The Analytics screen model lives in `web/src/app/analyticsDashboard.js` and is mounted by `createRouteShell("/analytics")`.
+- The Alertd console screen model lives in `web/src/app/alertdConsole.js` and is mounted by `createRouteShell("/alerts")`.
 - Phase 2 UI tests cover mocked rows, filters, loading/empty/error states, detail navigation intent, responsive metadata, accessibility metadata, and `DESIGN.md` component-token usage.
 - Phase 3 UI tests cover required detail sections, source evidence, raw audit link intent, AI enrichment, reviewer correction distinction, activity timeline entries, loading/not-found/error states, responsive metadata, and `DESIGN.md` component-token usage.
 - Phase 4 tests cover the v1 transition table, disallowed action blocking, Lead Detail action visibility, PATCH serialization, required notes/snooze/correction reason validation, and auditable correction payloads.
@@ -29,6 +31,7 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Phase 7 tests cover pipeline run history, async run creation, collector counts/failures, LLM and delivery health summaries, partial-data states, `/pipeline` route mounting, responsive metadata, and token usage.
 - Phase 8 tests cover stats client shape, status/source/score/owner/week summaries, source-yield hit-rate definitions, lead aging, verification quality, demand timing, visible denominator/date-range labels, `/analytics` route mounting, responsive metadata, and token usage.
 - Phase 9 tests cover session enforcement for `/api/*`, recursive browser credential exclusion, no automation-token browser headers, `UI_ENABLED`, `UI_BASE_PATH`, deployment readiness, and dev-only CORS configuration.
+- Phase 10 tests cover read-only alert state rendering, SPS summaries, evidence, room inventory, action history, disabled mutation actions, `/alerts` route mounting, responsive metadata, token usage, and `GET /api/alerts`.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
@@ -47,12 +50,13 @@ npm test
 - [Code Smells And Housekeeping Notes](./docs/code-smells.md)
 - [Phase 8 Basic Analytics And Demand Signals](./docs/phase-8-basic-analytics-demand-signals.md)
 - [Phase 9 Session/Auth Wrapper And Same-Origin Deployment](./docs/phase-9-session-auth-wrapper-same-origin-deployment.md)
+- [Phase 10 Later Alertd Read-Only Console](./docs/phase-10-later-alertd-read-only-console.md)
 
 ## Phase 0 Guardrails
 
 - Browser-facing source must not reference automation credentials.
 - Browser requests must stay behind explicit `/api/*` contracts.
-- The shell reserves navigation for Today, Leads, Verification, Outreach, Pipeline, Analytics, and Settings.
+- The shell reserves navigation for Today, Leads, Verification, Outreach, Pipeline, Analytics, Alerts, and Settings.
 - Feature screens, real API calls, auth, analytics, and deployment behavior remain out of scope until later phases.
 
 ## Phase 1 Lead Inbox Contract
@@ -135,3 +139,11 @@ npm test
 - Settings: `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, and development-only `CORS_ALLOWED_ORIGINS`.
 - Mounted shell: `createMountedRouteShell(...)` maps URLs under `UI_BASE_PATH` to internal routes and emits base-path-aware hrefs.
 - Out of scope: role matrices, identity-provider UI, production proxy config, and repurposing `API_TOKEN` for browser sessions.
+
+## Phase 10 Later Alertd Read-Only Console
+
+- Screen model: `createAlertdConsoleScreen(...)`.
+- API boundary: read-only `GET /api/alerts` for state, property, limit, and cursor filtered alert data.
+- Summary fields: active alert count, highest SPS, critical unavailable-room impact, and last update.
+- Detail fields: evidence rows, room inventory, and action history.
+- Slack remains the interrupt channel; acknowledge, resolve, and suppress actions stay disabled and out of scope.
