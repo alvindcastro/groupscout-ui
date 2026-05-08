@@ -45,6 +45,8 @@ test("component tokens preserve the named DESIGN.md component contracts", () => 
   assert.equal(designTokens.components["segmented-tab-active"].border, "0 0 2px {colors.ink} solid");
   assert.equal(designTokens.components["badge-tag"].textColor, "{colors.brand-tag}");
   assert.equal(designTokens.components["badge-type"].typography, "{typography.code-sm}");
+  assert.equal(designTokens.components["card-base"].padding, "{spacing.xl}");
+  assert.equal(designTokens.components["code-inline"].typography, "{typography.code-inline}");
   assert.equal(
     designTokens.components["feature-comparison-table"].border,
     "1px solid {colors.hairline}"

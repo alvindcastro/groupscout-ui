@@ -1,6 +1,6 @@
 # GroupScout UI
 
-Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage without write workflows.
+Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the read-only Lead Detail Evidence Workspace for source-backed review without write workflows.
 
 ## Current Scope
 
@@ -9,7 +9,9 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Browser API access is isolated in `web/src/api/client.js` and restricted to same-origin `/api/*` paths.
 - Lead inbox reads use `createApiClient().listLeads(...)` for `GET /api/leads` query serialization, pagination cursors, default priority ordering, and response field adaptation.
 - The Lead Inbox screen model lives in `web/src/app/leadInbox.js` and is mounted by `createRouteShell("/leads")`.
+- The Lead Detail Evidence Workspace lives in `web/src/app/leadDetail.js` and is mounted by `createRouteShell("/leads/{id}")`.
 - Phase 2 UI tests cover mocked rows, filters, loading/empty/error states, detail navigation intent, responsive metadata, accessibility metadata, and `DESIGN.md` component-token usage.
+- Phase 3 UI tests cover required detail sections, source evidence, raw audit link intent, AI enrichment, reviewer correction distinction, activity timeline entries, loading/not-found/error states, responsive metadata, and `DESIGN.md` component-token usage.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
@@ -39,3 +41,14 @@ npm test
 - Table columns: score, title, segment/project, location/property, source, crew/duration, outreach timing, status, owner, created, and evidence/verification.
 - Responsive behavior: desktop table, tablet priority table, and mobile lead cards.
 - Out of scope: status mutations, outreach logging, raw audit viewing, lead detail evidence, and analytics.
+
+## Phase 3 Lead Detail Evidence Workspace
+
+- Screen model: `createLeadDetailScreen(...)`.
+- Required sections: Summary, Source Evidence, AI Enrichment, Actions, Outreach, and Activity.
+- Summary fields: title, score, timing, room-night signal, and property fit.
+- Source Evidence fields: source name, source URL, raw audit link intent, and collected timestamp.
+- AI Enrichment fields: contractor/applicant, project type, crew size, duration, rationale, uncertainty, and per-claim source evidence.
+- Reviewer corrections are shown alongside original AI extraction values and never silently replace source-backed values.
+- Responsive behavior: desktop evidence workspace, tablet evidence stack, and mobile detail stack with actions reachable.
+- Out of scope: status mutations, owner edits, reviewer correction writes, outreach logging, and inline raw audit payload rendering.

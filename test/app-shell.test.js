@@ -30,6 +30,16 @@ test("route shell mounts the Phase 2 lead inbox for the Leads route", () => {
   assert.equal(shell.content.state, "ready");
 });
 
+test("route shell mounts the Phase 3 lead detail evidence workspace for lead routes", () => {
+  const shell = createRouteShell("/leads/lead_hotel_001");
+
+  assert.equal(shell.kind, "operator-workspace-shell");
+  assert.equal(shell.activeRoute.label, "Leads");
+  assert.equal(shell.content.kind, "lead-detail-screen");
+  assert.equal(shell.content.state, "ready");
+  assert.equal(shell.content.summary.items[0][1], "Riverside hotel renovation crew block");
+});
+
 test("non-lead routes remain placeholders without feature workflow content", () => {
   const shell = createRouteShell("/verification");
 

@@ -173,6 +173,20 @@ export const designTokens = {
       rounded: "{rounded.sm}",
       padding: "2px 6px"
     },
+    "card-base": {
+      backgroundColor: "{colors.canvas}",
+      rounded: "{rounded.lg}",
+      padding: "{spacing.xl}",
+      border: "1px solid {colors.hairline}"
+    },
+    "code-inline": {
+      backgroundColor: "{colors.surface}",
+      textColor: "{colors.charcoal}",
+      typography: "{typography.code-inline}",
+      rounded: "{rounded.xs}",
+      padding: "2px 6px",
+      border: "1px solid {colors.hairline}"
+    },
     "feature-comparison-table": {
       backgroundColor: "{colors.canvas}",
       textColor: "{colors.ink}",

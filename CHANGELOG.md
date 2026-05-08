@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 3 - Lead Detail Evidence Workspace
+
+- Added failing-first Phase 3 Lead Detail screen tests for required evidence sections, source evidence, raw audit link intent, AI enrichment rationale/uncertainty, activity timeline entries, reviewer correction distinction, state handling, responsive metadata, and `DESIGN.md` token usage.
+- Added `createLeadDetailScreen(...)` and mocked lead detail evidence under `web/src/app/leadDetail.js`.
+- Mounted read-only lead detail workspaces from `/leads/{id}` while keeping the Leads navigation section active.
+- Expanded design token exports with documented `DESIGN.md` component names needed by the Lead Detail workspace: `card-base` and `code-inline`.
+- Added Phase 3 implementation notes in `docs/phase-3-lead-detail-evidence-workspace.md`.
+
 ### Phase 2 - Lead Inbox UI
 
 - Added failing-first Phase 2 Lead Inbox screen tests for dense table rendering, mocked lead rows, filters, loading/empty/error states, row detail navigation, responsive layout metadata, accessibility metadata, and `DESIGN.md` token usage.

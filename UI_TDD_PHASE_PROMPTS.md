@@ -206,18 +206,26 @@ Do not implement mutations beyond read-only detail display in this phase.
 
 ### Tasks
 
-- [ ] Add tests for all required detail sections.
-- [ ] Add tests for source evidence and raw audit link.
-- [ ] Add tests for AI rationale and uncertainty display.
-- [ ] Add tests for activity timeline entries.
-- [ ] Add tests that reviewer corrections never silently replace source-backed extraction.
-- [ ] Implement read-only detail UI after tests fail.
+- [x] Add tests for all required detail sections.
+- [x] Add tests for source evidence and raw audit link.
+- [x] Add tests for AI rationale and uncertainty display.
+- [x] Add tests for activity timeline entries.
+- [x] Add tests that reviewer corrections never silently replace source-backed extraction.
+- [x] Implement read-only detail UI after tests fail.
 
 ### Acceptance Criteria
 
-- [ ] Operators can evaluate why a lead exists and whether it is trustworthy.
-- [ ] Source evidence is paired with every AI claim that needs review.
-- [ ] Audit trail concepts are visible before write workflows are added.
+- [x] Operators can evaluate why a lead exists and whether it is trustworthy.
+- [x] Source evidence is paired with every AI claim that needs review.
+- [x] Audit trail concepts are visible before write workflows are added.
+
+### Implementation Notes
+
+- Detail workspace surface lives in `web/src/app/leadDetail.js` and is mounted from `/leads/{id}` by `web/src/app/shell.js`.
+- Tests live in `test/lead-detail-screen.test.js`, with route coverage in `test/app-shell.test.js` and token coverage in `test/design-tokens.test.js`.
+- Red run: `node --test test/lead-detail-screen.test.js test/app-shell.test.js` failed because `web/src/app/leadDetail.js` did not exist yet.
+- Green run: `node --test test/lead-detail-screen.test.js test/app-shell.test.js test/design-tokens.test.js` passed after adding the read-only workspace, Phase 3 token exports, and `/leads/{id}` routing.
+- The current no-dependency harness verifies screen contracts, state metadata, responsive metadata, token references, and raw audit link intent. It does not perform computed CSS, real browser focus checks, or raw payload rendering.
 
 ## Phase 4 - Lead Status Actions And State Model
 
@@ -506,7 +514,7 @@ Do not let this phase block or expand the lead-management MVP.
 - [x] Phase 0 - Product Contract And Test Harness
 - [x] Phase 1 - Lead Inbox API Contract And Client
 - [x] Phase 2 - Lead Inbox UI
-- [ ] Phase 3 - Lead Detail Evidence Workspace
+- [x] Phase 3 - Lead Detail Evidence Workspace
 - [ ] Phase 4 - Lead Status Actions And State Model
 - [ ] Phase 5 - Verification Queue And Raw Audit Review
 - [ ] Phase 6 - Outreach Workspace And Activity Log

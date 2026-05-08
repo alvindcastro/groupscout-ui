@@ -1,3 +1,4 @@
+import { createLeadDetailScreen } from "./leadDetail.js";
 import { createLeadInboxScreen } from "./leadInbox.js";
 
 export const appNavigation = [
@@ -11,16 +12,8 @@ export const appNavigation = [
 ];
 
 export function createRouteShell(pathname = "/") {
-  const activeRoute =
-    appNavigation.find((route) => route.path === pathname) ?? appNavigation[0];
-  const content =
-    activeRoute.path === "/leads"
-      ? createLeadInboxScreen()
-      : {
-          status: "placeholder",
-          description:
-            "Phase 0 reserves navigation slots for future lead-management views while product workflows remain unimplemented."
-        };
+  const activeRoute = findActiveRoute(pathname);
+  const content = createRouteContent(pathname, activeRoute);
 
   return {
     kind: "operator-workspace-shell",
@@ -30,5 +23,29 @@ export function createRouteShell(pathname = "/") {
       active: route.path === activeRoute.path
     })),
     content
+  };
+}
+
+function findActiveRoute(pathname) {
+  if (pathname.startsWith("/leads/")) {
+    return appNavigation.find((route) => route.path === "/leads");
+  }
+
+  return appNavigation.find((route) => route.path === pathname) ?? appNavigation[0];
+}
+
+function createRouteContent(pathname, activeRoute) {
+  if (pathname.startsWith("/leads/")) {
+    return createLeadDetailScreen({ leadId: pathname.slice("/leads/".length) });
+  }
+
+  if (activeRoute.path === "/leads") {
+    return createLeadInboxScreen();
+  }
+
+  return {
+    status: "placeholder",
+    description:
+      "Phase 0 reserves navigation slots for future lead-management views while product workflows remain unimplemented."
   };
 }
