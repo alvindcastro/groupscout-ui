@@ -4,6 +4,30 @@ These are documentation-only findings from the current UI and backend housekeepi
 
 ## UI Repo
 
+### Growing API Client Module
+
+`web/src/api/client.js` now owns transport rules, path builders, payload normalization, response adaptation, and feature-specific contracts for every browser API.
+
+Impact: each new UI feature makes one shared file larger and raises the chance that unrelated contract changes conflict or become hard to review.
+
+Suggested follow-up: when the next substantial API surface lands, split feature adapters into focused modules while keeping one shared same-origin transport guard.
+
+### Mock Fixture Coupling
+
+Production screen modules export and default to mock data such as lead rows, detail evidence, analytics stats, alert rows, and Today summaries.
+
+Impact: demo/test data is coupled to runtime factories, which can blur the line between fixture behavior and production behavior once live data is introduced.
+
+Suggested follow-up: move fixtures behind explicit test/demo inputs before a renderer or live backend wiring ships.
+
+### Duplicated Domain Constants
+
+Some domain rules exist in both app model modules and the API client layer. Examples include outreach outcomes and analytics hit-rate definitions.
+
+Impact: UI display rules and serialized payload validation can drift independently.
+
+Suggested follow-up: centralize shared constants or document one source of truth before adding more mutation-heavy flows.
+
 ### Partial Design Token Mapping
 
 `web/src/design/tokens.js` exports only the token subset needed by current tests. One observed risk is component token references that point to nested token names without a resolver/parity check against `DESIGN.md`.
@@ -12,13 +36,13 @@ Impact: future rendered CSS could rely on unresolved token references even while
 
 Suggested follow-up: add token parity or resolver tests before introducing real CSS rendering.
 
-### File-List Credential Guard
+### Recursive Credential Guard Boundary
 
-`test/api-boundary.test.js` checks a hard-coded set of files for browser credential leaks.
+`test/api-boundary.test.js` recursively scans browser-facing `web/src/**/*.js` files and skips `web/src/server`.
 
-Impact: a new browser-facing file can be missed unless the allowlist is updated.
+Impact: the old file-list risk is reduced, but files placed under `web/src/server` are treated as server-only and are excluded from browser credential checks.
 
-Suggested follow-up: scan all relevant `web/src/**/*.js` files instead of maintaining a static list.
+Suggested follow-up: keep browser modules out of `web/src/server`, or make the server/browser boundary explicit when a real bundler exists.
 
 ### Mutation Metadata Is Not A Full Payload Schema
 
@@ -35,6 +59,22 @@ Suggested follow-up: either document `mutationFields` as display metadata only o
 Impact: query strings, trailing slashes, and encoded route params will be treated as literal IDs.
 
 Suggested follow-up: normalize route params when a real router is introduced.
+
+### Repeated Screen Scaffolding
+
+Screen factories repeat similar state, layout, control, token, loading, empty, and error metadata patterns.
+
+Impact: this is manageable at the current model level, but broad behavior changes could become noisy as more screens are added.
+
+Suggested follow-up: wait for a repeated behavior change before extracting shared helpers; avoid premature framework-like abstractions.
+
+### Brittle Large-Shape Tests
+
+Some tests assert large object shapes and exact display strings.
+
+Impact: refactors that preserve behavior can still require many assertion updates.
+
+Suggested follow-up: keep high-signal contract assertions, but prefer focused assertions when adding new tests for copy-heavy screen models.
 
 ### Model-Level Test Coverage Only
 

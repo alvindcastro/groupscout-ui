@@ -64,6 +64,7 @@
 - Added UI developer, testing, troubleshooting, nice-to-know, backend spin-up, and code-smell housekeeping docs under `docs/`.
 - Documented backend startup paths from the sibling Go repo without changing backend code.
 - Captured current UI test-coverage limits and known doc/config drift to guide future cleanup.
+- Refreshed housekeeping docs with recursive credential-guard behavior, current phase links, focused test commands, optional design linting, and the latest code-smell watchlist.
 
 ### Phase 4 - Lead Status Actions And State Model
 

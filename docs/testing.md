@@ -16,6 +16,14 @@ node --test
 
 There is no package install requirement yet.
 
+Housekeeping run on 2026-05-08: `npm test` passed all 22 test files.
+
+Optional design-doc lint. This is not an npm script and may use the network through `npx`:
+
+```sh
+npx @google/design.md lint DESIGN.md
+```
+
 ## Focused UI Tests
 
 ```sh
@@ -48,7 +56,7 @@ node --test test/today-command-center.test.js
 - Same-origin `/api/*` browser request boundary.
 - Session-cookie enforcement metadata for UI `/api/*` access.
 - `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, and development-only `CORS_ALLOWED_ORIGINS` deployment behavior.
-- Recursive browser-source checks that `API_TOKEN` is not referenced in browser-facing modules.
+- Recursive browser-source checks that `API_TOKEN` is not referenced in browser-facing `web/src/**/*.js` modules outside `web/src/server`.
 - Lead inbox query serialization and response adaptation.
 - Lead inbox mocked table, filters, states, responsive metadata, and accessibility metadata.
 - Lead detail sections, source evidence, raw audit link intent, AI enrichment metadata, corrections, timeline, and states.
@@ -86,6 +94,14 @@ node --test test/today-command-center.test.js
 - Full `DESIGN.md` token-reference resolution.
 
 Before treating a UI feature as production-ready, add browser or component-level coverage once a renderer/framework exists.
+
+## Interpreting API Boundary Failures
+
+- Absolute `http` or `https` browser requests fail before fetch because UI calls must stay same-origin.
+- Non-`/api/` paths fail before fetch because `web/src/api/client.js` is the browser API boundary.
+- Non-2xx responses throw `Request failed with status N`.
+- API adapter errors usually mean the backend response shape drifted from the model contract. Check required sections such as `leads`, `date_range`, `summaries`, `pipeline`, `counts`, `alerts`, `evidence`, `room_inventory`, and `action_history`.
+- Session/deployment failures usually come from a missing or short `UI_SESSION_SECRET`, missing `groupscout_session`, or production `CORS_ALLOWED_ORIGINS` configuration.
 
 ## Backend Tests
 

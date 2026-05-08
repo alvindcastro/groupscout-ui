@@ -5,7 +5,7 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 ## Current Scope
 
 - Design tokens live in `web/src/design/tokens.js` and are mapped from `DESIGN.md`.
-- The placeholder route shell lives in `web/src/app/shell.js`.
+- The route shell lives in `web/src/app/shell.js` and mounts Today, Leads, Verification, Outreach, Pipeline, Analytics, Alerts, and a Settings placeholder.
 - Browser API access is isolated in `web/src/api/client.js` and restricted to same-origin `/api/*` paths.
 - UI deployment/session rules live in `web/src/server/uiDeployment.js` and cover `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, development-only `CORS_ALLOWED_ORIGINS`, and session-cookie `/api/*` access.
 - Lead inbox reads use `createApiClient().listLeads(...)` for `GET /api/leads` query serialization, pagination cursors, default priority ordering, and response field adaptation.
@@ -51,6 +51,14 @@ npm test
 - [Troubleshooting](./docs/troubleshooting.md)
 - [Nice To Knows](./docs/nice-to-knows.md)
 - [Code Smells And Housekeeping Notes](./docs/code-smells.md)
+- [Phase 0 Product Contract](./docs/phase-0-product-contract.md)
+- [Phase 1 Lead Inbox Contract](./docs/phase-1-lead-inbox-contract.md)
+- [Phase 2 Lead Inbox UI](./docs/phase-2-lead-inbox-ui.md)
+- [Phase 3 Lead Detail Evidence Workspace](./docs/phase-3-lead-detail-evidence-workspace.md)
+- [Phase 4 Lead Status Actions And State Model](./docs/phase-4-lead-status-actions-state-model.md)
+- [Phase 5 Verification Queue And Raw Audit Review](./docs/phase-5-verification-queue-raw-audit-review.md)
+- [Phase 6 Outreach Workspace And Activity Log](./docs/phase-6-outreach-workspace-activity-log.md)
+- [Phase 7 Pipeline Monitor And Run Controls](./docs/phase-7-pipeline-monitor-run-controls.md)
 - [Phase 8 Basic Analytics And Demand Signals](./docs/phase-8-basic-analytics-demand-signals.md)
 - [Phase 9 Session/Auth Wrapper And Same-Origin Deployment](./docs/phase-9-session-auth-wrapper-same-origin-deployment.md)
 - [Phase 10 Later Alertd Read-Only Console](./docs/phase-10-later-alertd-read-only-console.md)
@@ -61,7 +69,7 @@ npm test
 - Browser-facing source must not reference automation credentials.
 - Browser requests must stay behind explicit `/api/*` contracts.
 - The shell reserves navigation for Today, Leads, Verification, Outreach, Pipeline, Analytics, Alerts, and Settings.
-- Feature screens, real API calls, auth, analytics, and deployment behavior remain out of scope until later phases.
+- Historically, Phase 0 kept feature screens, real API calls, auth, analytics, and deployment behavior out of scope. Later phases now add model-level screens, browser API clients, analytics, session/deployment metadata, and read-only system surfaces.
 
 ## Phase 1 Lead Inbox Contract
 

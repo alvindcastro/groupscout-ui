@@ -18,7 +18,27 @@ Check:
 
 - New app files under `web/src` should route API calls through `web/src/api/client.js`.
 - Same-origin paths must start with `/api/`.
-- The credential guard in `test/api-boundary.test.js` is file-list based today. If a new browser-facing file is added, update the test list or replace it with a full `web/src` scan.
+- The credential guard in `test/api-boundary.test.js` recursively scans browser-facing `web/src/**/*.js` files and skips `web/src/server`.
+- Browser API calls intentionally use `credentials: "same-origin"` and do not inject `Authorization`, `x-api-key`, or `x-api-token` headers.
+
+Common causes:
+
+- A browser module calls an absolute `http` or `https` URL.
+- A browser module calls a backend path outside `/api/`.
+- A new browser-facing file was placed under `web/src/server`, which is treated as server-only by the credential scan.
+
+## API Adapter Test Fails
+
+The client adapters intentionally fail loudly when backend response shapes drift from the UI contract.
+
+Check the required response sections named in the error. Common required sections include:
+
+- `leads` for `GET /api/leads`.
+- `date_range`, `denominator`, `summaries`, `source_yield`, `verification_quality`, and `demand` for `GET /api/stats`.
+- `alerts`, `evidence`, `room_inventory`, and `action_history` for `GET /api/alerts`.
+- `generated_at`, `health`, `pipeline`, and `counts` for `GET /api/system`.
+
+Non-2xx fetch responses throw `Request failed with status N` before adapter logic runs.
 
 ## Lead Inbox Data Looks Missing In Tests
 
@@ -50,6 +70,16 @@ If an action is missing:
 - Confirm required fields are present, such as `owner`, `notes`, `snoozeUntil`, `corrections`, or `correctionReason`.
 
 Note: `follow_up` and `corrected` are actions, not statuses. They preserve the current status.
+
+## UI Deployment Readiness Fails
+
+Check `web/src/server/uiDeployment.js` behavior through `test/session-deployment.test.js`.
+
+Common causes:
+
+- `UI_ENABLED` is true but `UI_SESSION_SECRET` is missing or shorter than 32 characters.
+- `CORS_ALLOWED_ORIGINS` is configured for a production environment. CORS allow lists are development-only in the current deployment model.
+- Browser `/api/*` requests lack the `groupscout_session` cookie or present an invalid session value.
 
 ## Backend Health Check Fails
 

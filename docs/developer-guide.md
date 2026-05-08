@@ -31,9 +31,19 @@ Use Node `18+` or newer. Tests rely on modern built-in web APIs such as `Respons
 npm test
 ```
 
+Optional design-doc lint. This uses `npx` and may fetch the package if it is not already cached:
+
+```sh
+npx @google/design.md lint DESIGN.md
+```
+
 Useful focused runs:
 
 ```sh
+node --test test/api-boundary.test.js
+node --test test/app-shell.test.js
+node --test test/design-tokens.test.js
+node --test test/lead-inbox-client.test.js
 node --test test/lead-inbox-screen.test.js
 node --test test/lead-detail-screen.test.js
 node --test test/lead-status-state-model.test.js
@@ -110,4 +120,4 @@ Current UI client contracts:
 - Accessibility checks are metadata-level only.
 - Responsive behavior is represented as layout metadata, not measured DOM layout.
 - Design token tests check selected exports; they do not resolve every nested token reference from `DESIGN.md`.
-- The browser credential guard is currently file-list based; update it when browser-facing files are added, or replace it with a full `web/src` scan.
+- The browser credential guard recursively scans browser-facing `web/src/**/*.js` files while excluding `web/src/server`; keep server-only code in that excluded subtree and keep browser modules free of automation credentials.

@@ -6,7 +6,7 @@ This UI repo does not start the GroupScout backend directly. The backend lives a
 /mnt/c/Users/alvin/GolandProjects/groupscout
 ```
 
-Use these notes when you need API data for UI contract work or local integration checks.
+Use these notes when you need API data for UI contract work or local integration checks. They mirror useful backend context, but the backend repo remains the source of truth when examples disagree.
 
 ## Prerequisites
 
@@ -23,6 +23,8 @@ SLACK_WEBHOOK_URL=https://hooks.slack.com/services/XXX/YYY/ZZZ
 API_TOKEN=your_secure_token_here
 DATABASE_URL=groupscout.db
 ```
+
+Note: backend email-provider docs have had `SENDGRID_API_KEY` versus `RESEND_API_KEY` drift. Prefer the backend repo's current `.env.example` and `config/config.go` when configuring email.
 
 For Postgres local development:
 
