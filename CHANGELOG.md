@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 5 - Verification Queue And Raw Audit Review
+
+- Added failing-first Phase 5 tests for verification trigger classification, queue filters/actions, `/verification` route integration, raw audit API alias use, responsive metadata, and `DESIGN.md` token usage.
+- Added `web/src/app/verificationQueue.js` with trigger classification, mocked queue data, dense row models, mobile card metadata, row actions, raw audit link intent, and an explicit blocked redaction-policy TODO.
+- Added `createApiClient().getLeadRawAudit(...)` for same-origin `GET /api/leads/{id}/raw` access and updated Lead Detail raw audit links to use the UI-safe alias.
+- Mounted the Verification Queue from `createRouteShell("/verification")`.
+- Added Phase 5 implementation notes in `docs/phase-5-verification-queue-raw-audit-review.md`, `README.md`, and `UI_TDD_PHASE_PROMPTS.md`.
+
 ### Housekeeping Docs
 
 - Added UI developer, testing, troubleshooting, nice-to-know, backend spin-up, and code-smell housekeeping docs under `docs/`.

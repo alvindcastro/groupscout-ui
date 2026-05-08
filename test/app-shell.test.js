@@ -41,9 +41,19 @@ test("route shell mounts the Phase 3 lead detail evidence workspace for lead rou
 });
 
 test("non-lead routes remain placeholders without feature workflow content", () => {
-  const shell = createRouteShell("/verification");
+  const shell = createRouteShell("/outreach");
 
   assert.equal(shell.content.status, "placeholder");
   assert.match(shell.content.description, /future lead-management views/i);
   assert.doesNotMatch(shell.content.description, /claim|dismiss|snooze|contacted|won|lost/i);
+});
+
+test("route shell mounts the Phase 5 verification queue for the Verification route", () => {
+  const shell = createRouteShell("/verification");
+
+  assert.equal(shell.kind, "operator-workspace-shell");
+  assert.equal(shell.activeRoute.label, "Verification");
+  assert.equal(shell.content.kind, "verification-queue-screen");
+  assert.equal(shell.content.state, "ready");
+  assert.ok(shell.content.table.rows.length > 0);
 });

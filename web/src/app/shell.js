@@ -1,5 +1,6 @@
 import { createLeadDetailScreen } from "./leadDetail.js";
 import { createLeadInboxScreen } from "./leadInbox.js";
+import { createVerificationQueueScreen } from "./verificationQueue.js";
 
 export const appNavigation = [
   { label: "Today", path: "/" },
@@ -41,6 +42,10 @@ function createRouteContent(pathname, activeRoute) {
 
   if (activeRoute.path === "/leads") {
     return createLeadInboxScreen();
+  }
+
+  if (activeRoute.path === "/verification") {
+    return createVerificationQueueScreen();
   }
 
   return {

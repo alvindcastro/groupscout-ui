@@ -53,6 +53,14 @@ export function createApiClient({ fetchImpl = globalThis.fetch } = {}) {
       });
     },
 
+    async getLeadRawAudit(leadId) {
+      const response = await this.request(buildLeadRawAuditPath(leadId), {
+        method: "GET"
+      });
+
+      return adaptLeadRawAuditResponse(response);
+    },
+
     async request(path, init = {}) {
       assertSameOriginApiPath(path);
 
@@ -112,6 +120,14 @@ function buildLeadPatchPath(leadId) {
   }
 
   return `${API_BASE_PATH}/leads/${encodeURIComponent(leadId)}`;
+}
+
+function buildLeadRawAuditPath(leadId) {
+  if (typeof leadId !== "string" || leadId.length === 0) {
+    throw new TypeError("Lead id must be a non-empty string");
+  }
+
+  return `${API_BASE_PATH}/leads/${encodeURIComponent(leadId)}/raw`;
 }
 
 function buildLeadPatchPayload(patch) {
@@ -218,6 +234,18 @@ function adaptLeadInboxItem(lead) {
   }
 
   return item;
+}
+
+function adaptLeadRawAuditResponse(response) {
+  if (!response || typeof response.lead_id !== "string") {
+    throw new Error("GET /api/leads/{id}/raw response must include lead_id");
+  }
+
+  return {
+    leadId: response.lead_id,
+    redaction: response.redaction ?? null,
+    payload: response.payload ?? null
+  };
 }
 
 function assertSameOriginApiPath(path) {

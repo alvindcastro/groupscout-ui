@@ -1,6 +1,6 @@
 # GroupScout UI
 
-Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary.
+Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point.
 
 ## Current Scope
 
@@ -9,12 +9,15 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Browser API access is isolated in `web/src/api/client.js` and restricted to same-origin `/api/*` paths.
 - Lead inbox reads use `createApiClient().listLeads(...)` for `GET /api/leads` query serialization, pagination cursors, default priority ordering, and response field adaptation.
 - Lead status writes use `createApiClient().patchLead(...)` for `PATCH /api/leads/{id}` payloads covering status, owner, notes, snooze date, correction reason, and safe field corrections.
+- Raw audit reads use `createApiClient().getLeadRawAudit(...)` for the UI-safe `GET /api/leads/{id}/raw` alias.
 - The Lead Inbox screen model lives in `web/src/app/leadInbox.js` and is mounted by `createRouteShell("/leads")`.
 - The Lead Detail Evidence Workspace lives in `web/src/app/leadDetail.js` and is mounted by `createRouteShell("/leads/{id}")`.
 - The lead status transition model lives in `web/src/app/leadStatus.js` and keeps valid actions isolated from detail rendering.
+- The Verification Queue screen model lives in `web/src/app/verificationQueue.js` and is mounted by `createRouteShell("/verification")`.
 - Phase 2 UI tests cover mocked rows, filters, loading/empty/error states, detail navigation intent, responsive metadata, accessibility metadata, and `DESIGN.md` component-token usage.
 - Phase 3 UI tests cover required detail sections, source evidence, raw audit link intent, AI enrichment, reviewer correction distinction, activity timeline entries, loading/not-found/error states, responsive metadata, and `DESIGN.md` component-token usage.
 - Phase 4 tests cover the v1 transition table, disallowed action blocking, Lead Detail action visibility, PATCH serialization, required notes/snooze/correction reason validation, and auditable correction payloads.
+- Phase 5 tests cover queue trigger classification, verification queue filters/actions, `/verification` route mounting, raw audit API alias use, responsive metadata, token usage, and the blocked redaction-policy TODO.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
@@ -63,6 +66,7 @@ npm test
 - AI Enrichment fields: contractor/applicant, project type, crew size, duration, rationale, uncertainty, and per-claim source evidence.
 - Reviewer corrections are shown alongside original AI extraction values and never silently replace source-backed values.
 - Responsive behavior: desktop evidence workspace, tablet evidence stack, and mobile detail stack with actions reachable.
+- Raw audit links use the UI-safe `/api/leads/{id}/raw` alias.
 - Out of scope: outreach logging and inline raw audit payload rendering.
 
 ## Phase 4 Lead Status Actions
@@ -72,3 +76,12 @@ npm test
 - Invalid actions are rejected before `patchLead(...)` is called.
 - `follow_up` and `corrected` are modeled as actions, not statuses, and preserve the current status.
 - Corrections preserve original AI/source values and include actor plus reason metadata before API serialization.
+
+## Phase 5 Verification Queue And Raw Audit Review
+
+- Screen model: `createVerificationQueueScreen(...)`.
+- Queue triggers: missing source/raw audit, high score with weak rationale, raw/enriched contradiction, low confidence collector parse, and manual operator flag.
+- Controls: trigger, source, owner, minimum score, and clear filters.
+- Row actions: verify, correct, dismiss, and return to lead.
+- Raw audit review links and client reads use `GET /api/leads/{id}/raw`.
+- Redaction policy remains explicitly blocked until raw payload redaction rules are defined.

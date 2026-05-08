@@ -301,18 +301,28 @@ If redaction rules are not defined, add a blocked test/TODO documenting the miss
 
 ### Tasks
 
-- [ ] Test queue trigger classification.
-- [ ] Test verification queue list rendering.
-- [ ] Test verify, correct, dismiss, and return-to-lead actions.
-- [ ] Test raw audit link/client path uses `/api/leads/{id}/raw`.
-- [ ] Test missing-redaction decision is visible if rules are undefined.
-- [ ] Implement after tests fail.
+- [x] Test queue trigger classification.
+- [x] Test verification queue list rendering.
+- [x] Test verify, correct, dismiss, and return-to-lead actions.
+- [x] Test raw audit link/client path uses `/api/leads/{id}/raw`.
+- [x] Test missing-redaction decision is visible if rules are undefined.
+- [x] Implement after tests fail.
 
 ### Acceptance Criteria
 
-- [ ] High-value but low-trust leads have a focused workspace.
-- [ ] Raw audit access goes through the UI-safe API boundary.
-- [ ] Undefined redaction policy remains explicit instead of hidden in UI behavior.
+- [x] High-value but low-trust leads have a focused workspace.
+- [x] Raw audit access goes through the UI-safe API boundary.
+- [x] Undefined redaction policy remains explicit instead of hidden in UI behavior.
+
+### Implementation Notes
+
+- Verification Queue screen surface lives in `web/src/app/verificationQueue.js` and is mounted from `/verification` by `web/src/app/shell.js`.
+- Raw audit client access lives in `createApiClient().getLeadRawAudit(...)` and uses `GET /api/leads/{id}/raw`.
+- Lead Detail raw audit evidence links now use `/api/leads/{id}/raw`.
+- Tests live in `test/verification-queue.test.js`, `test/raw-audit-client.test.js`, plus Phase 5 route/raw-link assertions in `test/app-shell.test.js` and `test/lead-detail-screen.test.js`.
+- Red run: `node --test test/verification-queue.test.js test/raw-audit-client.test.js test/app-shell.test.js test/lead-detail-screen.test.js` failed because the queue module, raw audit client method, `/verification` route mounting, and UI-safe Lead Detail raw link did not exist yet.
+- Green run: `npm test` passes after adding queue trigger classification, queue filters/actions, raw audit alias client access, `/verification` route mounting, and explicit blocked redaction metadata.
+- Redaction rules are still undefined; Phase 5 documents `RAW_AUDIT_REDACTION_POLICY.status = "blocked"` instead of rendering sensitive raw payloads inline.
 
 ## Phase 6 - Outreach Workspace And Activity Log
 
@@ -515,7 +525,7 @@ Do not let this phase block or expand the lead-management MVP.
 - [ ] Is built-in cookie auth required, or will the UI sit behind an auth proxy?
 - [ ] Is GroupScout or a future CRM the source of truth for outreach outcomes?
 - [ ] What exactly counts as source hit rate: claimed/total, won/claimed, won/total, or another metric?
-- [ ] What raw audit payloads can operators view, and what must be redacted before display?
+- [ ] What raw audit payloads can operators view, and what must be redacted before display? Phase 5 keeps this blocked explicitly before inline raw payload rendering.
 - [ ] Should v1 ship Slack quick actions, the admin UI, or both together?
 
 ## Suggested Phase Order
@@ -524,8 +534,8 @@ Do not let this phase block or expand the lead-management MVP.
 - [x] Phase 1 - Lead Inbox API Contract And Client
 - [x] Phase 2 - Lead Inbox UI
 - [x] Phase 3 - Lead Detail Evidence Workspace
-- [ ] Phase 4 - Lead Status Actions And State Model
-- [ ] Phase 5 - Verification Queue And Raw Audit Review
+- [x] Phase 4 - Lead Status Actions And State Model
+- [x] Phase 5 - Verification Queue And Raw Audit Review
 - [ ] Phase 6 - Outreach Workspace And Activity Log
 - [ ] Phase 7 - Pipeline Monitor And Run Controls
 - [ ] Phase 8 - Basic Analytics And Demand Signals

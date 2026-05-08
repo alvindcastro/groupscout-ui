@@ -27,6 +27,8 @@ node --test test/lead-inbox-screen.test.js
 node --test test/lead-detail-screen.test.js
 node --test test/lead-status-state-model.test.js
 node --test test/lead-status-mutation-client.test.js
+node --test test/verification-queue.test.js
+node --test test/raw-audit-client.test.js
 ```
 
 ## What The Current UI Tests Cover
@@ -36,6 +38,8 @@ node --test test/lead-status-mutation-client.test.js
 - Lead inbox mocked table, filters, states, responsive metadata, and accessibility metadata.
 - Lead detail sections, source evidence, raw audit link intent, AI enrichment metadata, corrections, timeline, and states.
 - Lead status transition rules, invalid transition blocking, validation, and PATCH mutation intent.
+- Verification queue trigger classification, filters, row actions, raw audit alias links, responsive metadata, and blocked redaction-policy metadata.
+- Raw audit client access through same-origin `GET /api/leads/{id}/raw`.
 - Selected design token exports used by the current screen models.
 
 ## What The Current UI Tests Do Not Cover
@@ -46,6 +50,7 @@ node --test test/lead-status-mutation-client.test.js
 - Visual regression.
 - CSS layout.
 - Live backend compatibility.
+- Raw audit payload redaction behavior beyond the explicit blocked TODO.
 - Full `DESIGN.md` token-reference resolution.
 
 Before treating a UI feature as production-ready, add browser or component-level coverage once a renderer/framework exists.

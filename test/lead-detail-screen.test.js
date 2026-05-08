@@ -35,7 +35,7 @@ test("lead detail pairs source evidence with raw audit access without loading ra
     sourceUrl: "https://permits.example.test/portland/renovation-881",
     rawAuditLink: {
       label: "Open raw audit record",
-      href: "/api/leads/lead_hotel_001/audit/raw",
+      href: "/api/leads/lead_hotel_001/raw",
       loadsInline: false
     },
     collectedAt: "May 7, 2026, 4:10 PM UTC"
@@ -58,11 +58,11 @@ test("lead detail displays AI enrichment rationale, uncertainty, and source-back
         "Contractor / applicant",
         "Northwest Build Partners",
         "Portland permit feed",
-        "/api/leads/lead_hotel_001/audit/raw"
+        "/api/leads/lead_hotel_001/raw"
       ],
-      ["Project type", "renovation", "Portland permit feed", "/api/leads/lead_hotel_001/audit/raw"],
-      ["Crew size", "12", "Portland permit feed", "/api/leads/lead_hotel_001/audit/raw"],
-      ["Duration", "28 days", "Portland permit feed", "/api/leads/lead_hotel_001/audit/raw"]
+      ["Project type", "renovation", "Portland permit feed", "/api/leads/lead_hotel_001/raw"],
+      ["Crew size", "12", "Portland permit feed", "/api/leads/lead_hotel_001/raw"],
+      ["Duration", "28 days", "Portland permit feed", "/api/leads/lead_hotel_001/raw"]
     ]
   );
   assert.equal(

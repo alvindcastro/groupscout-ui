@@ -9,6 +9,7 @@ This repo is currently a no-build, model-level UI workspace for GroupScout opera
 - `web/src/app/leadInbox.js` owns the mocked Lead Inbox screen model.
 - `web/src/app/leadDetail.js` owns the mocked Lead Detail Evidence Workspace.
 - `web/src/app/leadStatus.js` owns status/action transition rules and mutation intent construction.
+- `web/src/app/verificationQueue.js` owns the mocked Verification Queue screen model and raw audit review metadata.
 - `web/src/design/tokens.js` exports the subset of `DESIGN.md` tokens needed by tests.
 - `test/*.test.js` contains contract and screen-model tests using `node:test`.
 
@@ -31,12 +32,15 @@ node --test test/lead-inbox-screen.test.js
 node --test test/lead-detail-screen.test.js
 node --test test/lead-status-state-model.test.js
 node --test test/lead-status-mutation-client.test.js
+node --test test/verification-queue.test.js
+node --test test/raw-audit-client.test.js
 ```
 
 ## Development Rules
 
 - Keep browser requests behind same-origin `/api/*` paths.
 - Add API access through `createApiClient(...)`; do not fetch backend URLs directly from app modules.
+- Use `GET /api/leads/{id}/raw` for browser-facing raw audit access; do not link older raw audit endpoints from UI screens.
 - Keep status transitions in `leadStatus.js`; UI surfaces should consume action metadata instead of duplicating the transition table.
 - Keep mocked screen data aligned across inbox and detail models when a mocked lead appears in both places.
 - Treat `DESIGN.md` as the source design contract; `web/src/design/tokens.js` is a partial implementation used by tests.
@@ -56,7 +60,7 @@ Current UI client contracts:
 
 - `GET /api/leads`
 - `PATCH /api/leads/{id}`
-- Raw audit link intent on detail screens, currently represented as `/api/leads/{id}/audit/raw`
+- `GET /api/leads/{id}/raw`
 
 ## Adding A New UI Phase
 

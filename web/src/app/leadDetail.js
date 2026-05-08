@@ -38,7 +38,7 @@ export const mockLeadDetails = {
     sourceEvidence: {
       sourceName: "Portland permit feed",
       sourceUrl: "https://permits.example.test/portland/renovation-881",
-      rawAuditHref: "/api/leads/lead_hotel_001/audit/raw",
+      rawAuditHref: "/api/leads/lead_hotel_001/raw",
       collectedAt: "2026-05-07T16:10:00Z"
     },
     aiEnrichment: {
