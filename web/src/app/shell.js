@@ -4,6 +4,7 @@ import { createLeadDetailScreen } from "./leadDetail.js";
 import { createLeadInboxScreen } from "./leadInbox.js";
 import { createOutreachWorkspaceScreen } from "./outreachWorkspace.js";
 import { createPipelineMonitorScreen } from "./pipelineMonitor.js";
+import { createTodayCommandCenterScreen } from "./todayCommandCenter.js";
 import { createVerificationQueueScreen } from "./verificationQueue.js";
 
 export const appNavigation = [
@@ -58,6 +59,10 @@ function findActiveRoute(pathname) {
 function createRouteContent(pathname, activeRoute) {
   if (pathname.startsWith("/leads/")) {
     return createLeadDetailScreen({ leadId: pathname.slice("/leads/".length) });
+  }
+
+  if (activeRoute.path === "/") {
+    return createTodayCommandCenterScreen();
   }
 
   if (activeRoute.path === "/leads") {

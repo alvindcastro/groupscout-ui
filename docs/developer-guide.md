@@ -7,6 +7,7 @@ This repo is currently a no-build, model-level UI workspace for GroupScout opera
 - `web/src/api/client.js` is the browser API boundary.
 - `web/src/app/shell.js` owns route-shell selection.
 - `web/src/server/uiDeployment.js` owns model-level UI deployment settings, base-path mounting, session-cookie API authorization, and development-only CORS metadata.
+- `web/src/app/todayCommandCenter.js` owns the mocked Today command center, operational priority summaries, system health metadata, and read-only routing policy.
 - `web/src/app/leadInbox.js` owns the mocked Lead Inbox screen model.
 - `web/src/app/leadDetail.js` owns the mocked Lead Detail Evidence Workspace.
 - `web/src/app/leadStatus.js` owns status/action transition rules and mutation intent construction.
@@ -48,6 +49,8 @@ node --test test/analytics-dashboard.test.js
 node --test test/analytics-screen.test.js
 node --test test/alert-client.test.js
 node --test test/alert-console.test.js
+node --test test/system-client.test.js
+node --test test/today-command-center.test.js
 node --test test/session-deployment.test.js
 ```
 
@@ -63,6 +66,7 @@ node --test test/session-deployment.test.js
 - Use `GET/POST /api/pipeline/runs` for pipeline history and manual run creation; do not call worker, scheduler, or one-shot automation endpoints directly from app modules.
 - Use `GET /api/stats` for browser-facing analytics; keep denominators, date ranges, and outcome definitions visible when adding metrics.
 - Use `GET /api/alerts` for the read-only Alertd console; keep Slack as the interrupt channel and keep alert mutations disabled unless a future contract explicitly adds them.
+- Use `GET /api/system` for Today/system-health summaries; keep Today as a read-only routing surface and leave mutations in the owning workspaces.
 - Keep status transitions in `leadStatus.js`; UI surfaces should consume action metadata instead of duplicating the transition table.
 - Keep mocked screen data aligned across inbox and detail models when a mocked lead appears in both places.
 - Treat `DESIGN.md` as the source design contract; `web/src/design/tokens.js` is a partial implementation used by tests.
@@ -89,6 +93,7 @@ Current UI client contracts:
 - `POST /api/pipeline/runs`
 - `GET /api/stats`
 - `GET /api/alerts`
+- `GET /api/system`
 
 ## Adding A New UI Phase
 

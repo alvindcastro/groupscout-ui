@@ -1,6 +1,6 @@
 # GroupScout UI
 
-Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls. Phase 8 adds basic explainable analytics and demand signals. Phase 9 adds a minimal session/auth and same-origin deployment wrapper. Phase 10 adds a later read-only Alertd console while keeping Slack as the interrupt channel.
+Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls. Phase 8 adds basic explainable analytics and demand signals. Phase 9 adds a minimal session/auth and same-origin deployment wrapper. Phase 10 adds a later read-only Alertd console while keeping Slack as the interrupt channel. Phase 11 adds the Today command center and read-only system health summary.
 
 ## Current Scope
 
@@ -15,6 +15,8 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Pipeline history reads and manual run starts use `createApiClient().listPipelineRuns(...)` and `createApiClient().startPipelineRun(...)` for `GET/POST /api/pipeline/runs`.
 - Basic analytics reads use `createApiClient().getStats(...)` for `GET /api/stats`.
 - Alert reads use `createApiClient().listAlerts(...)` for read-only `GET /api/alerts`.
+- System summary reads use `createApiClient().getSystem()` for read-only `GET /api/system`.
+- The Today command center lives in `web/src/app/todayCommandCenter.js` and is mounted by `createRouteShell("/")`.
 - The Lead Inbox screen model lives in `web/src/app/leadInbox.js` and is mounted by `createRouteShell("/leads")`.
 - The Lead Detail Evidence Workspace lives in `web/src/app/leadDetail.js` and is mounted by `createRouteShell("/leads/{id}")`.
 - The lead status transition model lives in `web/src/app/leadStatus.js` and keeps valid actions isolated from detail rendering.
@@ -32,6 +34,7 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Phase 8 tests cover stats client shape, status/source/score/owner/week summaries, source-yield hit-rate definitions, lead aging, verification quality, demand timing, visible denominator/date-range labels, `/analytics` route mounting, responsive metadata, and token usage.
 - Phase 9 tests cover session enforcement for `/api/*`, recursive browser credential exclusion, no automation-token browser headers, `UI_ENABLED`, `UI_BASE_PATH`, deployment readiness, and dev-only CORS configuration.
 - Phase 10 tests cover read-only alert state rendering, SPS summaries, evidence, room inventory, action history, disabled mutation actions, `/alerts` route mounting, responsive metadata, token usage, and `GET /api/alerts`.
+- Phase 11 tests cover the Today command center, priority lead and aging-work summaries, active alerts, failed jobs, system health, read-only action policy, `/` route mounting, responsive metadata, token usage, and `GET /api/system`.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
@@ -51,6 +54,7 @@ npm test
 - [Phase 8 Basic Analytics And Demand Signals](./docs/phase-8-basic-analytics-demand-signals.md)
 - [Phase 9 Session/Auth Wrapper And Same-Origin Deployment](./docs/phase-9-session-auth-wrapper-same-origin-deployment.md)
 - [Phase 10 Later Alertd Read-Only Console](./docs/phase-10-later-alertd-read-only-console.md)
+- [Phase 11 Today Command Center And System Health Summary](./docs/phase-11-today-command-center-system-health.md)
 
 ## Phase 0 Guardrails
 
@@ -147,3 +151,11 @@ npm test
 - Summary fields: active alert count, highest SPS, critical unavailable-room impact, and last update.
 - Detail fields: evidence rows, room inventory, and action history.
 - Slack remains the interrupt channel; acknowledge, resolve, and suppress actions stay disabled and out of scope.
+
+## Phase 11 Today Command Center And System Health Summary
+
+- Screen model: `createTodayCommandCenterScreen(...)`.
+- API boundary: read-only `GET /api/system` for UI-friendly system health, pipeline freshness, and operational counts.
+- Summary fields: high-score new leads, aging claimed leads, active alerts, failed jobs, and overall system health.
+- Work sections link to the owning screens: Leads, Verification, Outreach, Pipeline, and Alerts.
+- Today is read-only; status, outreach, alert, pipeline, and settings mutations stay out of scope.

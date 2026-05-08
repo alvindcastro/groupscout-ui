@@ -567,6 +567,58 @@ Do not let this phase block or expand the lead-management MVP.
 - Red run: `node --test test/alert-console.test.js test/alert-client.test.js test/app-shell.test.js test/api-boundary.test.js` failed because the alert console module, `/alerts` route mounting, and `listAlerts(...)` client did not exist yet.
 - Green runs: `node --test test/alert-console.test.js test/alert-client.test.js test/app-shell.test.js test/api-boundary.test.js` and `npm test`.
 
+## Phase 11 - Today Command Center And System Health Summary
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: replace the reserved Today placeholder with a dense command center that shows the operator what needs attention now.
+
+Context:
+- Today is the first workspace route and should summarize existing lead, verification, outreach, pipeline, analytics, and alert surfaces.
+- The command center should show high-score new leads, aging claimed leads, active disruption alerts, failed jobs, and system health.
+- System health must use a UI-friendly /api/system contract, not browser calls to raw health/metrics/automation endpoints.
+- Today is an orientation and routing surface. Mutations remain in the owning workspaces.
+
+TDD requirements:
+1. Write failing tests for the Today command center before implementing the screen.
+2. Test priority leads, aging claimed work, active alerts, failed jobs, system health, read-only action policy, loading/empty/error states, responsive metadata, token usage, and root route mounting.
+3. Write failing client tests for read-only GET /api/system.
+4. Run tests and confirm expected failure.
+5. Implement the smallest screen and client surface needed.
+6. Rerun targeted tests and then the full suite.
+
+Do not build Settings, custom dashboards, system mutations, alert mutations, pipeline internals, or direct browser access to automation endpoints.
+```
+
+### Tasks
+
+- [x] Test the Today summary counts and generated timestamp.
+- [x] Test high-score new lead rows and aging claimed lead rows.
+- [x] Test active alert, failed job, and system-health summaries.
+- [x] Test read-only route/action policy.
+- [x] Test loading, empty, error, desktop, tablet, and mobile state metadata.
+- [x] Test `GET /api/system` client access and response adaptation.
+- [x] Mount Today from the root route after tests fail.
+
+### Acceptance Criteria
+
+- [x] Operators can scan the day’s highest-priority work from `/`.
+- [x] Every Today action links to an owning workspace instead of introducing duplicate mutations.
+- [x] System health is exposed through same-origin `/api/system`.
+- [x] Settings remains out of scope.
+
+### Implementation Notes
+
+- Today command center surface lives in `web/src/app/todayCommandCenter.js` and is mounted from `/` by `web/src/app/shell.js`.
+- Read-only system summary API access lives in `createApiClient().getSystem()` and uses `GET /api/system`.
+- Today shows high-score new leads, aging claimed leads, active alerts, failed jobs, and API/database/collector/LLM health.
+- Tests live in `test/today-command-center.test.js` and `test/system-client.test.js`, with root route coverage in `test/app-shell.test.js`.
+- Red run: `node --test test/today-command-center.test.js test/system-client.test.js test/app-shell.test.js` failed because the Today module, `/` route mounting, and `getSystem()` client did not exist yet.
+- Green runs: `node --test test/today-command-center.test.js test/system-client.test.js test/app-shell.test.js` and `npm test`.
+
 ## Open Decisions To Resolve Before Coding
 
 - [ ] Is verification a lead status or a separate source-review status?
@@ -591,3 +643,4 @@ Do not let this phase block or expand the lead-management MVP.
 - [x] Phase 8 - Basic Analytics And Demand Signals
 - [x] Phase 9 - Session/Auth Wrapper And Same-Origin Deployment
 - [x] Phase 10 - Later Alertd Read-Only Console
+- [x] Phase 11 - Today Command Center And System Health Summary

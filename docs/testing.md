@@ -39,6 +39,8 @@ node --test test/analytics-dashboard.test.js
 node --test test/analytics-screen.test.js
 node --test test/alert-client.test.js
 node --test test/alert-console.test.js
+node --test test/system-client.test.js
+node --test test/today-command-center.test.js
 ```
 
 ## What The Current UI Tests Cover
@@ -61,6 +63,8 @@ node --test test/alert-console.test.js
 - Analytics dashboard status/source/score/owner/week summaries, source-yield hit-rate definition, lead aging, verification quality, upcoming demand, denominator/date-range labels, responsive metadata, and route mounting.
 - Alert client access through read-only same-origin `GET /api/alerts`.
 - Alertd console current alert state, SPS summaries, evidence, room inventory, action history, disabled mutation actions, Slack-first policy metadata, responsive metadata, and route mounting.
+- System client access through read-only same-origin `GET /api/system`.
+- Today command center summary counts, priority lead rows, aging claimed work, active alerts, failed jobs, system health, read-only action policy, responsive metadata, and root route mounting.
 - Selected design token exports used by the current screen models.
 
 ## What The Current UI Tests Do Not Cover
@@ -78,6 +82,7 @@ node --test test/alert-console.test.js
 - Live analytics aggregation accuracy against backend storage.
 - Custom dashboard/chart rendering behavior.
 - Live alertd contract compatibility, Slack delivery behavior, and alert acknowledgement/resolution workflows.
+- Live `/api/system` compatibility or real system-health aggregation accuracy.
 - Full `DESIGN.md` token-reference resolution.
 
 Before treating a UI feature as production-ready, add browser or component-level coverage once a renderer/framework exists.

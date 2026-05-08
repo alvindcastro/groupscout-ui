@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 11 - Today Command Center And System Health Summary
+
+- Added failing-first Phase 11 tests for the Today command center, priority lead and aging-work summaries, active alerts, failed jobs, system health, read-only action policy, responsive metadata, `DESIGN.md` token usage, `/` route mounting, and `GET /api/system`.
+- Added `web/src/app/todayCommandCenter.js` with mocked command-center data, summary cards, dense work rows, cross-workspace navigation intents, loading/empty/error states, responsive layouts, and read-only policy metadata.
+- Added `createApiClient().getSystem()` for same-origin read-only `GET /api/system` access.
+- Mounted the Today command center from `createRouteShell("/")` while keeping Settings as a placeholder.
+- Added Phase 11 implementation notes in `docs/phase-11-today-command-center-system-health.md`, `README.md`, `docs/testing.md`, `docs/developer-guide.md`, and `UI_TDD_PHASE_PROMPTS.md`.
+
 ### Phase 10 - Later Alertd Read-Only Console
 
 - Added failing-first Phase 10 tests for read-only alert state rendering, SPS summaries, evidence display, room inventory, action history, disabled mutation actions, `/alerts` route mounting, responsive metadata, `DESIGN.md` token usage, and `GET /api/alerts`.
