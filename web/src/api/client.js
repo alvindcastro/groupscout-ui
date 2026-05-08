@@ -1,11 +1,48 @@
 export const API_BASE_PATH = "/api";
 
+export const DEFAULT_LEAD_INBOX_SORT = {
+  queryValue: "priority",
+  priority: [
+    ["urgency", "desc"],
+    ["owner", "unowned_first"],
+    ["score", "desc"],
+    ["created_at", "desc"]
+  ]
+};
+
+export const LEAD_INBOX_ITEM_FIELDS = [
+  "id",
+  "score",
+  "title",
+  "segment",
+  "projectType",
+  "location",
+  "propertyFit",
+  "source",
+  "estimatedCrewSize",
+  "estimatedDurationDays",
+  "outreachTiming",
+  "status",
+  "owner",
+  "createdAt",
+  "evidenceState",
+  "verificationState"
+];
+
 export function createApiClient({ fetchImpl = globalThis.fetch } = {}) {
   if (typeof fetchImpl !== "function") {
     throw new TypeError("createApiClient requires a fetch implementation");
   }
 
   return {
+    async listLeads(filters = {}) {
+      const response = await this.request(buildLeadInboxPath(filters), {
+        method: "GET"
+      });
+
+      return adaptLeadInboxResponse(response);
+    },
+
     async request(path, init = {}) {
       assertSameOriginApiPath(path);
 
@@ -30,6 +67,74 @@ export function createApiClient({ fetchImpl = globalThis.fetch } = {}) {
       return response.json();
     }
   };
+}
+
+function buildLeadInboxPath(filters) {
+  const searchParams = new URLSearchParams();
+  const query = {
+    q: filters.q,
+    status: filters.status,
+    source: filters.source,
+    min_score: filters.minScore,
+    created_from: filters.createdFrom,
+    created_to: filters.createdTo,
+    property: filters.property,
+    owner: filters.owner,
+    verification_state: filters.verificationState,
+    limit: filters.limit,
+    cursor: filters.cursor,
+    sort: filters.sort ?? DEFAULT_LEAD_INBOX_SORT.queryValue
+  };
+
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.set(key, String(value));
+    }
+  }
+
+  let queryString = searchParams.toString();
+  return queryString ? `${API_BASE_PATH}/leads?${queryString}` : `${API_BASE_PATH}/leads`;
+}
+
+function adaptLeadInboxResponse(response) {
+  if (!response || !Array.isArray(response.leads)) {
+    throw new Error("GET /api/leads response must include a leads array");
+  }
+
+  return {
+    leads: response.leads.map(adaptLeadInboxItem),
+    nextCursor: response.next_cursor ?? null,
+    sort: DEFAULT_LEAD_INBOX_SORT
+  };
+}
+
+function adaptLeadInboxItem(lead) {
+  const item = {
+    id: lead.id,
+    score: lead.score,
+    title: lead.title,
+    segment: lead.segment,
+    projectType: lead.project_type,
+    location: lead.location,
+    propertyFit: lead.property_fit,
+    source: lead.source,
+    estimatedCrewSize: lead.estimated_crew_size,
+    estimatedDurationDays: lead.estimated_duration_days,
+    outreachTiming: lead.outreach_timing,
+    status: lead.status,
+    owner: lead.owner,
+    createdAt: lead.created_at,
+    evidenceState: lead.evidence_state,
+    verificationState: lead.verification_state
+  };
+
+  for (const field of LEAD_INBOX_ITEM_FIELDS) {
+    if (item[field] === undefined) {
+      throw new Error(`GET /api/leads item is missing required field: ${field}`);
+    }
+  }
+
+  return item;
 }
 
 function assertSameOriginApiPath(path) {

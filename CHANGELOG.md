@@ -4,6 +4,10 @@
 
 ### Added
 
+- Added Phase 1 lead inbox API contract tests for `GET /api/leads` query serialization, pagination, default priority ordering, response field adaptation, and missing-field validation.
+- Added `createApiClient().listLeads(...)` as the typed browser boundary for the future lead inbox UI.
+- Added default lead inbox priority sort metadata for urgent, unowned, high-score leads.
+- Added Phase 1 contract documentation in `docs/phase-1-lead-inbox-contract.md`.
 - Added a no-dependency Node test harness with `npm test`.
 - Added Phase 0 guardrail tests for `DESIGN.md` token mapping, route shell IA, `/api/*` client isolation, and browser credential safety.
 - Added minimal design token exports under `web/src/design/tokens.js`.

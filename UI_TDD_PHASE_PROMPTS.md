@@ -105,18 +105,26 @@ Do not build the visual inbox table yet.
 
 ### Tasks
 
-- [ ] Add tests for `GET /api/leads` query parameters.
-- [ ] Add tests for pagination cursor handling.
-- [ ] Add tests for default priority ordering expectations.
-- [ ] Add tests for lead list item fields required by the inbox.
-- [ ] Implement only the typed contract/client surface needed for those tests.
-- [ ] Update OpenAPI or typed schema notes if this repo owns them.
+- [x] Add tests for `GET /api/leads` query parameters.
+- [x] Add tests for pagination cursor handling.
+- [x] Add tests for default priority ordering expectations.
+- [x] Add tests for lead list item fields required by the inbox.
+- [x] Implement only the typed contract/client surface needed for those tests.
+- [x] Update OpenAPI or typed schema notes if this repo owns them.
 
 ### Acceptance Criteria
 
-- [ ] Inbox data requirements are test-covered before UI rendering starts.
-- [ ] Pagination and filters are represented in one typed boundary.
-- [ ] Components will not need to know raw endpoint URLs.
+- [x] Inbox data requirements are test-covered before UI rendering starts.
+- [x] Pagination and filters are represented in one typed boundary.
+- [x] Components will not need to know raw endpoint URLs.
+
+### Implementation Notes
+
+- Contract/client surface lives in `web/src/api/client.js`.
+- Tests live in `test/lead-inbox-client.test.js`.
+- Typed schema notes live in `docs/phase-1-lead-inbox-contract.md`.
+- Red run: `npm test` failed because Phase 1 lead inbox contract exports did not exist yet.
+- Green run: `npm test` passes after adding `listLeads`, query serialization, default priority sort metadata, and the response adapter.
 
 ## Phase 2 - Lead Inbox UI
 
