@@ -154,20 +154,28 @@ Do not implement status mutations, outreach logging, raw audit viewing, or analy
 
 ### Tasks
 
-- [ ] Test table columns and row content from mocked leads.
-- [ ] Test search and each planned filter control.
-- [ ] Test loading, empty, and error states.
-- [ ] Test row activation opens or routes to lead detail.
-- [ ] Test desktop, tablet, and mobile layout behavior.
-- [ ] Test design-token usage for buttons, inputs, tabs, badges, and table surfaces.
-- [ ] Implement after the tests fail.
+- [x] Test table columns and row content from mocked leads.
+- [x] Test search and each planned filter control.
+- [x] Test loading, empty, and error states.
+- [x] Test row activation opens or routes to lead detail.
+- [x] Test desktop, tablet, and mobile layout behavior.
+- [x] Test design-token usage for buttons, inputs, tabs, badges, and table surfaces.
+- [x] Implement after the tests fail.
 
 ### Acceptance Criteria
 
-- [ ] Operators can scan high-priority unowned leads.
-- [ ] Filters are usable and reflected in client query state.
-- [ ] UI follows `DESIGN.md` tokens for typography, spacing, borders, radius, and status accents.
-- [ ] The screen remains dense and operational at desktop sizes and usable on mobile.
+- [x] Operators can scan high-priority unowned leads.
+- [x] Filters are usable and reflected in client query state.
+- [x] UI follows `DESIGN.md` tokens for typography, spacing, borders, radius, and status accents.
+- [x] The screen remains dense and operational at desktop sizes and usable on mobile.
+
+### Implementation Notes
+
+- Screen surface lives in `web/src/app/leadInbox.js`.
+- Tests live in `test/lead-inbox-screen.test.js`, with shell integration coverage in `test/app-shell.test.js`.
+- Red run: Phase 2 screen tests failed because `web/src/app/leadInbox.js` did not exist yet; stricter follow-up tests failed while `/leads` still returned placeholder content and Phase 2 component tokens were incomplete.
+- Green run: `npm test` passes after adding the mocked Lead Inbox screen, documented `DESIGN.md` component tokens, and `/leads` shell mounting.
+- The current no-dependency harness verifies view model, token, responsive metadata, accessibility metadata, and navigation intent. It does not perform computed CSS or real browser focus checks yet.
 
 ## Phase 3 - Lead Detail Evidence Workspace
 
@@ -495,9 +503,9 @@ Do not let this phase block or expand the lead-management MVP.
 
 ## Suggested Phase Order
 
-- [ ] Phase 0 - Product Contract And Test Harness
-- [ ] Phase 1 - Lead Inbox API Contract And Client
-- [ ] Phase 2 - Lead Inbox UI
+- [x] Phase 0 - Product Contract And Test Harness
+- [x] Phase 1 - Lead Inbox API Contract And Client
+- [x] Phase 2 - Lead Inbox UI
 - [ ] Phase 3 - Lead Detail Evidence Workspace
 - [ ] Phase 4 - Lead Status Actions And State Model
 - [ ] Phase 5 - Verification Queue And Raw Audit Review

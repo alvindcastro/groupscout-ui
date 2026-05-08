@@ -20,12 +20,19 @@ test("route shell hosts the planned Phase 0 information architecture", () => {
   );
 });
 
-test("route shell is a placeholder workspace without feature workflow content", () => {
+test("route shell mounts the Phase 2 lead inbox for the Leads route", () => {
   const shell = createRouteShell("/leads");
 
   assert.equal(shell.kind, "operator-workspace-shell");
   assert.equal(shell.activeRoute.label, "Leads");
   assert.equal(shell.sections.length, expectedRoutes.length);
+  assert.equal(shell.content.kind, "lead-inbox-screen");
+  assert.equal(shell.content.state, "ready");
+});
+
+test("non-lead routes remain placeholders without feature workflow content", () => {
+  const shell = createRouteShell("/verification");
+
   assert.equal(shell.content.status, "placeholder");
   assert.match(shell.content.description, /future lead-management views/i);
   assert.doesNotMatch(shell.content.description, /claim|dismiss|snooze|contacted|won|lost/i);

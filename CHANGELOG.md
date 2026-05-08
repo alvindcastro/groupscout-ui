@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 2 - Lead Inbox UI
+
+- Added failing-first Phase 2 Lead Inbox screen tests for dense table rendering, mocked lead rows, filters, loading/empty/error states, row detail navigation, responsive layout metadata, accessibility metadata, and `DESIGN.md` token usage.
+- Added `createLeadInboxScreen(...)`, Lead Inbox columns, and mocked lead data under `web/src/app/leadInbox.js`.
+- Mounted the Lead Inbox screen from the `/leads` route shell while keeping non-lead routes as placeholders.
+- Expanded design token exports with documented `DESIGN.md` component names needed by the Lead Inbox: `button-secondary`, `search-pill`, `badge-tag`, `badge-type`, `feature-comparison-table`, and `property-row`.
+- Added Phase 2 implementation notes in `docs/phase-2-lead-inbox-ui.md`.
+
 ### Phase 1 - Lead Inbox API Contract And Client
 
 - Added Phase 1 lead inbox API contract tests for `GET /api/leads` query serialization, pagination, default priority ordering, response field adaptation, and missing-field validation.

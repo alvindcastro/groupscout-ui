@@ -1,3 +1,5 @@
+import { createLeadInboxScreen } from "./leadInbox.js";
+
 export const appNavigation = [
   { label: "Today", path: "/" },
   { label: "Leads", path: "/leads" },
@@ -11,6 +13,14 @@ export const appNavigation = [
 export function createRouteShell(pathname = "/") {
   const activeRoute =
     appNavigation.find((route) => route.path === pathname) ?? appNavigation[0];
+  const content =
+    activeRoute.path === "/leads"
+      ? createLeadInboxScreen()
+      : {
+          status: "placeholder",
+          description:
+            "Phase 0 reserves navigation slots for future lead-management views while product workflows remain unimplemented."
+        };
 
   return {
     kind: "operator-workspace-shell",
@@ -19,10 +29,6 @@ export function createRouteShell(pathname = "/") {
       ...route,
       active: route.path === activeRoute.path
     })),
-    content: {
-      status: "placeholder",
-      description:
-        "Phase 0 reserves navigation slots for future lead-management views while product workflows remain unimplemented."
-    }
+    content
   };
 }

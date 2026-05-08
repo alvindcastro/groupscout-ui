@@ -34,6 +34,12 @@ export const designTokens = {
     "on-dark-muted": "#b3b3b3"
   },
   typography: {
+    "body-md": {
+      fontFamily: "Inter",
+      fontSize: "16px",
+      fontWeight: 400,
+      lineHeight: 1.5
+    },
     "body-sm": {
       fontFamily: "Inter",
       fontSize: "14px",
@@ -45,6 +51,18 @@ export const designTokens = {
       fontSize: "14px",
       fontWeight: 500,
       lineHeight: 1.5
+    },
+    "caption-bold": {
+      fontFamily: "Inter",
+      fontSize: "13px",
+      fontWeight: 600,
+      lineHeight: 1.4
+    },
+    micro: {
+      fontFamily: "Inter",
+      fontSize: "12px",
+      fontWeight: 500,
+      lineHeight: 1.4
     },
     "button-md": {
       fontFamily: "Inter",
@@ -90,6 +108,14 @@ export const designTokens = {
       rounded: "{rounded.full}",
       padding: "10px 20px"
     },
+    "button-secondary": {
+      backgroundColor: "transparent",
+      textColor: "{colors.ink}",
+      typography: "{typography.button-md}",
+      rounded: "{rounded.full}",
+      padding: "10px 20px",
+      border: "1px solid {colors.hairline}"
+    },
     "text-input": {
       backgroundColor: "{colors.canvas}",
       textColor: "{colors.ink}",
@@ -98,6 +124,15 @@ export const designTokens = {
       padding: "{spacing.sm} {spacing.md}",
       border: "1px solid {colors.hairline}",
       height: "40px"
+    },
+    "search-pill": {
+      backgroundColor: "{colors.surface}",
+      textColor: "{colors.steel}",
+      typography: "{typography.body-sm}",
+      rounded: "{rounded.md}",
+      padding: "{spacing.xs} {spacing.md}",
+      height: "36px",
+      border: "1px solid {colors.hairline}"
     },
     "segmented-tab": {
       backgroundColor: "transparent",
@@ -123,6 +158,34 @@ export const designTokens = {
       backgroundColor: "{colors.surface}",
       textColor: "{colors.ink}",
       typography: "{typography.body-sm-medium}"
+    },
+    "badge-tag": {
+      backgroundColor: "rgba(55, 114, 207, 0.15)",
+      textColor: "{colors.brand-tag}",
+      typography: "{typography.caption-bold}",
+      rounded: "{rounded.sm}",
+      padding: "2px 8px"
+    },
+    "badge-type": {
+      backgroundColor: "{colors.surface}",
+      textColor: "{colors.steel}",
+      typography: "{typography.code-sm}",
+      rounded: "{rounded.sm}",
+      padding: "2px 6px"
+    },
+    "feature-comparison-table": {
+      backgroundColor: "{colors.canvas}",
+      textColor: "{colors.ink}",
+      typography: "{typography.body-sm}",
+      rounded: "{rounded.md}",
+      border: "1px solid {colors.hairline}"
+    },
+    "property-row": {
+      backgroundColor: "{colors.canvas}",
+      textColor: "{colors.ink}",
+      typography: "{typography.body-sm}",
+      padding: "{spacing.md} 0",
+      border: "0 0 1px {colors.hairline-soft} solid"
     }
   }
 };
