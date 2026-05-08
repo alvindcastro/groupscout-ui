@@ -400,18 +400,28 @@ Do not expose automation-only endpoints directly in browser components.
 
 ### Tasks
 
-- [ ] Test run history client behavior.
-- [ ] Test async run creation state.
-- [ ] Test collector count display.
-- [ ] Test recent failures display.
-- [ ] Test LLM and notification delivery health summaries.
-- [ ] Implement after tests fail.
+- [x] Test run history client behavior.
+- [x] Test async run creation state.
+- [x] Test collector count display.
+- [x] Test recent failures display.
+- [x] Test LLM and notification delivery health summaries.
+- [x] Implement after tests fail.
 
 ### Acceptance Criteria
 
-- [ ] Operators can see whether the lead pipeline is fresh and healthy.
-- [ ] Manual run control does not block the UI for long-running pipeline work.
-- [ ] Browser components do not call automation endpoints directly.
+- [x] Operators can see whether the lead pipeline is fresh and healthy.
+- [x] Manual run control does not block the UI for long-running pipeline work.
+- [x] Browser components do not call automation endpoints directly.
+
+### Implementation Notes
+
+- Pipeline Monitor surface lives in `web/src/app/pipelineMonitor.js` and is mounted from `/pipeline` by `web/src/app/shell.js`.
+- Pipeline API reads and writes live in `createApiClient().listPipelineRuns(...)` and `createApiClient().startPipelineRun(...)`.
+- Tests live in `test/pipeline-monitor.test.js` and `test/pipeline-client.test.js`, with route and credential-boundary assertions in `test/app-shell.test.js` and `test/api-boundary.test.js`.
+- Red run: `npm test` failed because the pipeline client methods and monitor module did not exist yet.
+- Targeted green runs: `node --test test/pipeline-client.test.js` and `node --test test/pipeline-monitor.test.js`.
+- Green run: `npm test` passes after adding compact health summaries, recent run history, async run-control metadata, same-origin `GET/POST /api/pipeline/runs`, partial-data states, and `/pipeline` route mounting.
+- Grafana/log links are optional display links; automation-only endpoints remain out of browser components.
 
 ## Phase 8 - Basic Analytics And Demand Signals
 
@@ -547,7 +557,7 @@ Do not let this phase block or expand the lead-management MVP.
 - [x] Phase 4 - Lead Status Actions And State Model
 - [x] Phase 5 - Verification Queue And Raw Audit Review
 - [x] Phase 6 - Outreach Workspace And Activity Log
-- [ ] Phase 7 - Pipeline Monitor And Run Controls
+- [x] Phase 7 - Pipeline Monitor And Run Controls
 - [ ] Phase 8 - Basic Analytics And Demand Signals
 - [ ] Phase 9 - Session/Auth Wrapper And Same-Origin Deployment
 - [ ] Phase 10 - Later Alertd Read-Only Console

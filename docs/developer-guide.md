@@ -10,6 +10,8 @@ This repo is currently a no-build, model-level UI workspace for GroupScout opera
 - `web/src/app/leadDetail.js` owns the mocked Lead Detail Evidence Workspace.
 - `web/src/app/leadStatus.js` owns status/action transition rules and mutation intent construction.
 - `web/src/app/verificationQueue.js` owns the mocked Verification Queue screen model and raw audit review metadata.
+- `web/src/app/outreachWorkspace.js` owns the mocked Outreach Workspace screen model and manual outreach logging metadata.
+- `web/src/app/pipelineMonitor.js` owns the mocked Pipeline Monitor screen model, health summaries, and async run-control metadata.
 - `web/src/design/tokens.js` exports the subset of `DESIGN.md` tokens needed by tests.
 - `test/*.test.js` contains contract and screen-model tests using `node:test`.
 
@@ -34,6 +36,10 @@ node --test test/lead-status-state-model.test.js
 node --test test/lead-status-mutation-client.test.js
 node --test test/verification-queue.test.js
 node --test test/raw-audit-client.test.js
+node --test test/outreach-client.test.js
+node --test test/outreach-workspace.test.js
+node --test test/pipeline-client.test.js
+node --test test/pipeline-monitor.test.js
 ```
 
 ## Development Rules
@@ -41,6 +47,7 @@ node --test test/raw-audit-client.test.js
 - Keep browser requests behind same-origin `/api/*` paths.
 - Add API access through `createApiClient(...)`; do not fetch backend URLs directly from app modules.
 - Use `GET /api/leads/{id}/raw` for browser-facing raw audit access; do not link older raw audit endpoints from UI screens.
+- Use `GET/POST /api/pipeline/runs` for pipeline history and manual run creation; do not call worker, scheduler, or one-shot automation endpoints directly from app modules.
 - Keep status transitions in `leadStatus.js`; UI surfaces should consume action metadata instead of duplicating the transition table.
 - Keep mocked screen data aligned across inbox and detail models when a mocked lead appears in both places.
 - Treat `DESIGN.md` as the source design contract; `web/src/design/tokens.js` is a partial implementation used by tests.
@@ -61,6 +68,10 @@ Current UI client contracts:
 - `GET /api/leads`
 - `PATCH /api/leads/{id}`
 - `GET /api/leads/{id}/raw`
+- `GET /api/leads/{id}/outreach`
+- `POST /api/leads/{id}/outreach`
+- `GET /api/pipeline/runs`
+- `POST /api/pipeline/runs`
 
 ## Adding A New UI Phase
 

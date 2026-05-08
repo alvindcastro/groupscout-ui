@@ -51,7 +51,7 @@ test("route shell mounts the Phase 6 outreach workspace for the Outreach route",
 });
 
 test("future non-lead routes remain placeholders without feature workflow content", () => {
-  const shell = createRouteShell("/pipeline");
+  const shell = createRouteShell("/analytics");
 
   assert.equal(shell.content.status, "placeholder");
   assert.match(shell.content.description, /future lead-management views/i);

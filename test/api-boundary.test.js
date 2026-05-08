@@ -38,6 +38,7 @@ test("browser-facing source files do not reference API_TOKEN", async () => {
   const files = [
     "../web/src/api/client.js",
     "../web/src/app/leadDetail.js",
+    "../web/src/app/pipelineMonitor.js",
     "../web/src/app/shell.js",
     "../web/src/design/tokens.js"
   ];

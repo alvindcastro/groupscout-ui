@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 7 - Pipeline Monitor And Run Controls
+
+- Added failing-first Phase 7 tests for pipeline run history, async run creation, compact collector/LLM/delivery health fields, recent failures, partial-data states, `/pipeline` route mounting, same-origin API boundaries, and `DESIGN.md` token usage.
+- Added `web/src/app/pipelineMonitor.js` with mocked pipeline run data, compact health summaries, recent failure summaries, optional log/Grafana links, responsive layouts, and browser-async run-control metadata.
+- Added `createApiClient().listPipelineRuns(...)` and `createApiClient().startPipelineRun(...)` for same-origin `GET/POST /api/pipeline/runs`.
+- Mounted the Pipeline Monitor from `createRouteShell("/pipeline")`.
+- Added Phase 7 implementation notes in `docs/phase-7-pipeline-monitor-run-controls.md`, `README.md`, `docs/testing.md`, `docs/developer-guide.md`, and `UI_TDD_PHASE_PROMPTS.md`.
+
 ### Phase 6 - Outreach Workspace And Activity Log
 
 - Added failing-first Phase 6 tests for editable outreach drafts, contact validation, manual copied/sent/logged states, same-origin outreach API reads/writes, outcome capture, Lead Detail activity rows, `/outreach` route mounting, responsive metadata, and `DESIGN.md` token usage.

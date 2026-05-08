@@ -31,6 +31,8 @@ node --test test/verification-queue.test.js
 node --test test/raw-audit-client.test.js
 node --test test/outreach-client.test.js
 node --test test/outreach-workspace.test.js
+node --test test/pipeline-client.test.js
+node --test test/pipeline-monitor.test.js
 ```
 
 ## What The Current UI Tests Cover
@@ -44,6 +46,8 @@ node --test test/outreach-workspace.test.js
 - Raw audit client access through same-origin `GET /api/leads/{id}/raw`.
 - Outreach client access through same-origin `GET/POST /api/leads/{id}/outreach`.
 - Outreach workspace editable drafts, contact validation, manual copied/sent/logged states, outcome capture, activity timelines, responsive metadata, and route mounting.
+- Pipeline client access through same-origin `GET/POST /api/pipeline/runs`.
+- Pipeline monitor compact health fields, async run creation state, collector counts/failures, LLM health, notification delivery health, partial-data/error states, responsive metadata, and route mounting.
 - Selected design token exports used by the current screen models.
 
 ## What The Current UI Tests Do Not Cover
@@ -56,6 +60,7 @@ node --test test/outreach-workspace.test.js
 - Live backend compatibility.
 - Raw audit payload redaction behavior beyond the explicit blocked TODO.
 - Real email sending, clipboard behavior, or CRM sync for outreach.
+- Real pipeline execution, worker polling, Grafana rendering, or log viewer integration.
 - Full `DESIGN.md` token-reference resolution.
 
 Before treating a UI feature as production-ready, add browser or component-level coverage once a renderer/framework exists.

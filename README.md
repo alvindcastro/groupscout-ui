@@ -1,6 +1,6 @@
 # GroupScout UI
 
-Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity.
+Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls.
 
 ## Current Scope
 
@@ -11,16 +11,19 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Lead status writes use `createApiClient().patchLead(...)` for `PATCH /api/leads/{id}` payloads covering status, owner, notes, snooze date, correction reason, and safe field corrections.
 - Raw audit reads use `createApiClient().getLeadRawAudit(...)` for the UI-safe `GET /api/leads/{id}/raw` alias.
 - Outreach history reads and manual attempt logs use `createApiClient().listLeadOutreach(...)` and `createApiClient().logLeadOutreach(...)` for `GET/POST /api/leads/{id}/outreach`.
+- Pipeline history reads and manual run starts use `createApiClient().listPipelineRuns(...)` and `createApiClient().startPipelineRun(...)` for `GET/POST /api/pipeline/runs`.
 - The Lead Inbox screen model lives in `web/src/app/leadInbox.js` and is mounted by `createRouteShell("/leads")`.
 - The Lead Detail Evidence Workspace lives in `web/src/app/leadDetail.js` and is mounted by `createRouteShell("/leads/{id}")`.
 - The lead status transition model lives in `web/src/app/leadStatus.js` and keeps valid actions isolated from detail rendering.
 - The Verification Queue screen model lives in `web/src/app/verificationQueue.js` and is mounted by `createRouteShell("/verification")`.
 - The Outreach Workspace screen model lives in `web/src/app/outreachWorkspace.js` and is mounted by `createRouteShell("/outreach")`.
+- The Pipeline Monitor screen model lives in `web/src/app/pipelineMonitor.js` and is mounted by `createRouteShell("/pipeline")`.
 - Phase 2 UI tests cover mocked rows, filters, loading/empty/error states, detail navigation intent, responsive metadata, accessibility metadata, and `DESIGN.md` component-token usage.
 - Phase 3 UI tests cover required detail sections, source evidence, raw audit link intent, AI enrichment, reviewer correction distinction, activity timeline entries, loading/not-found/error states, responsive metadata, and `DESIGN.md` component-token usage.
 - Phase 4 tests cover the v1 transition table, disallowed action blocking, Lead Detail action visibility, PATCH serialization, required notes/snooze/correction reason validation, and auditable correction payloads.
 - Phase 5 tests cover queue trigger classification, verification queue filters/actions, `/verification` route mounting, raw audit API alias use, responsive metadata, token usage, and the blocked redaction-policy TODO.
 - Phase 6 tests cover editable outreach drafts, contact validation, manual copied/sent/logged states, outreach API reads/writes, outcome capture, activity timelines, `/outreach` route mounting, responsive metadata, and token usage.
+- Phase 7 tests cover pipeline run history, async run creation, collector counts/failures, LLM and delivery health summaries, partial-data states, `/pipeline` route mounting, responsive metadata, and token usage.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
@@ -99,3 +102,12 @@ npm test
 - API boundary: `GET /api/leads/{id}/outreach` for history and `POST /api/leads/{id}/outreach` for manual attempt logs.
 - Activity rows distinguish manual outreach attempts and outcomes from source evidence, AI enrichment, and reviewer corrections.
 - Out of scope: automated sending, CRM sync, bulk outreach, and analytics.
+
+## Phase 7 Pipeline Monitor And Run Controls
+
+- Screen model: `createPipelineMonitorScreen(...)`.
+- Health fields: last run/result, collector collected/skipped/enriched counts, collector failures, LLM provider/latency/errors, and Slack/email/webhook delivery failures.
+- API boundary: `GET /api/pipeline/runs` for recent history and `POST /api/pipeline/runs` for manual run creation.
+- Manual run creation is modeled as accepted/queued browser-async work; the UI does not wait for the whole pipeline to finish.
+- Logs and Grafana are optional display links when the backend supplies them.
+- Out of scope: replacing Grafana, polling worker internals directly, exposing automation-only endpoints, and building a full observability dashboard.
