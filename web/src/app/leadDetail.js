@@ -76,11 +76,28 @@ export const mockLeadDetails = {
     ],
     outreach: {
       recommendedTiming: "Call property manager today before 4 PM local time.",
+      contact: {
+        channel: "email",
+        value: "manager@riverside.example"
+      },
+      draft:
+        "Riverside hotel renovation crew block: GroupScout can hold rooms for your renovation crew near the property this week.",
       attempts: [
         {
           channel: "phone",
           label: "Initial call queued",
+          contact: "+1-555-0100",
+          notes: "Call task prepared for the assigned operator.",
+          outcome: "contacted",
           timestamp: "2026-05-07T17:05:00Z"
+        },
+        {
+          channel: "email",
+          label: "Email draft copied",
+          contact: "manager@riverside.example",
+          notes: "Operator copied the draft into their inbox for manual sending.",
+          outcome: "contacted",
+          timestamp: "2026-05-07T18:10:00Z"
         }
       ]
     },
@@ -104,6 +121,18 @@ export const mockLeadDetails = {
         timestamp: "2026-05-07T17:05:00Z"
       },
       {
+        type: "outreach_attempt",
+        label: "Email draft copied",
+        detail: "Operator copied the draft into their inbox for manual sending.",
+        timestamp: "2026-05-07T18:10:00Z"
+      },
+      {
+        type: "outreach_outcome",
+        label: "Outcome captured",
+        detail: "Manual outreach outcome recorded as contacted.",
+        timestamp: "2026-05-07T18:20:00Z"
+      },
+      {
         type: "reviewer_correction",
         label: "Crew size corrected",
         detail: "Reviewer suggested keeping 10-12 alongside the original extracted value.",
@@ -121,6 +150,9 @@ export function createLeadDetailScreen({
   viewport = "desktop",
   patchLead = async () => {
     throw new Error("Lead status mutation client is not configured");
+  },
+  logLeadOutreach = async () => {
+    throw new Error("Lead outreach logging client is not configured");
   }
 } = {}) {
   const lead = leadId ? leads[leadId] : undefined;
@@ -193,7 +225,7 @@ export function createLeadDetailScreen({
     sourceEvidence,
     aiEnrichment: createAiEnrichment(lead, sourceEvidence),
     actions: createActions(lead, layout, patchLead),
-    outreach: createOutreach(lead),
+    outreach: createOutreach(lead, logLeadOutreach),
     activity: createActivity(lead)
   };
 }
@@ -288,13 +320,95 @@ function createActions(lead, layout, patchLead) {
   };
 }
 
-function createOutreach(lead) {
+function createOutreach(lead, logLeadOutreach) {
   return {
     recommendedTiming: lead.outreach.recommendedTiming,
+    workspace: createOutreachWorkspace(lead, logLeadOutreach),
     attempts: lead.outreach.attempts.map((attempt) => ({
       ...attempt,
       timestamp: DATE_TIME_FORMATTER.format(new Date(attempt.timestamp))
     }))
+  };
+}
+
+function createOutreachWorkspace(lead, logLeadOutreach) {
+  return {
+    kind: "outreach-workspace",
+    autoSendEnabled: false,
+    contactFields: [
+      createContactField("channel", "Channel"),
+      createContactField("contact", "Contact"),
+      createContactField("draft", "Draft"),
+      createContactField("notes", "Notes"),
+      createContactField("outcome", "Outcome")
+    ],
+    draft: {
+      state: "editable",
+      value: lead.outreach.draft,
+      token: "text-input"
+    },
+    defaultContact: {
+      channel: lead.outreach.contact.channel,
+      value: lead.outreach.contact.value
+    },
+    outcomeOptions: [
+      { value: "contacted", label: "Contacted" },
+      { value: "won", label: "Won" },
+      { value: "lost", label: "Lost" },
+      { value: "no_response", label: "No response" }
+    ],
+    displayStates: [
+      { state: "drafting", label: "Drafting", sendsMessage: false },
+      { state: "copied", label: "Copied", sendsMessage: false },
+      { state: "sent_manually", label: "Sent manually", sendsMessage: false },
+      { state: "logged", label: "Logged", sendsMessage: false }
+    ],
+    actions: [
+      { action: "copy_draft", label: "Copy draft", token: "button-secondary", sendsMessage: false },
+      {
+        action: "mark_sent_manually",
+        label: "Mark sent manually",
+        token: "button-secondary",
+        sendsMessage: false
+      },
+      { action: "log_attempt", label: "Log attempt", token: "button-primary", sendsMessage: false }
+    ],
+    validateLogAttempt,
+    logAttempt: async (attempt) => {
+      const payload = validateLogAttempt(attempt);
+      return logLeadOutreach(lead.id, payload);
+    }
+  };
+}
+
+function createContactField(name, label) {
+  return {
+    name,
+    label,
+    required: true,
+    token: "text-input",
+    minTouchTarget: 44
+  };
+}
+
+function validateLogAttempt(attempt = {}) {
+  const missingFields = ["channel", "contact", "notes", "outcome"].filter(
+    (field) => attempt[field] === undefined || attempt[field] === null || attempt[field] === ""
+  );
+
+  if (missingFields.length > 0) {
+    throw new Error(`Outreach attempt requires ${missingFields.join(", ")}`);
+  }
+
+  if (!["contacted", "won", "lost", "no_response"].includes(attempt.outcome)) {
+    throw new Error("Outreach outcome must be contacted, won, lost, or no_response");
+  }
+
+  return {
+    channel: attempt.channel,
+    contact: attempt.contact,
+    notes: attempt.notes,
+    outcome: attempt.outcome
   };
 }
 

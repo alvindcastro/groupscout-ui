@@ -40,8 +40,18 @@ test("route shell mounts the Phase 3 lead detail evidence workspace for lead rou
   assert.equal(shell.content.summary.items[0][1], "Riverside hotel renovation crew block");
 });
 
-test("non-lead routes remain placeholders without feature workflow content", () => {
+test("route shell mounts the Phase 6 outreach workspace for the Outreach route", () => {
   const shell = createRouteShell("/outreach");
+
+  assert.equal(shell.kind, "operator-workspace-shell");
+  assert.equal(shell.activeRoute.label, "Outreach");
+  assert.equal(shell.content.kind, "outreach-workspace-screen");
+  assert.equal(shell.content.state, "ready");
+  assert.equal(shell.content.sendPolicy.autoSendEmail, false);
+});
+
+test("future non-lead routes remain placeholders without feature workflow content", () => {
+  const shell = createRouteShell("/pipeline");
 
   assert.equal(shell.content.status, "placeholder");
   assert.match(shell.content.description, /future lead-management views/i);

@@ -103,10 +103,90 @@ test("lead detail renders activity history, notes, outreach attempts, and correc
       ["status_history", "Lead created"],
       ["note", "Ops note"],
       ["outreach_attempt", "Initial call queued"],
+      ["outreach_attempt", "Email draft copied"],
+      ["outreach_outcome", "Outcome captured"],
       ["reviewer_correction", "Crew size corrected"]
     ]
   );
   assert.ok(screen.activity.entries.every((entry) => entry.timestamp));
+});
+
+test("lead detail exposes editable outreach draft, contact fields, and manual logging actions", () => {
+  const screen = createLeadDetailScreen({ leadId: "lead_hotel_001" });
+
+  assert.equal(screen.outreach.workspace.kind, "outreach-workspace");
+  assert.equal(screen.outreach.workspace.autoSendEnabled, false);
+  assert.deepEqual(
+    screen.outreach.workspace.contactFields.map((field) => [
+      field.name,
+      field.label,
+      field.required,
+      field.token
+    ]),
+    [
+      ["channel", "Channel", true, "text-input"],
+      ["contact", "Contact", true, "text-input"],
+      ["draft", "Draft", true, "text-input"],
+      ["notes", "Notes", true, "text-input"],
+      ["outcome", "Outcome", true, "text-input"]
+    ]
+  );
+  assert.deepEqual(screen.outreach.workspace.draft.state, "editable");
+  assert.match(screen.outreach.workspace.draft.value, /Riverside hotel renovation/i);
+  assert.deepEqual(
+    screen.outreach.workspace.outcomeOptions.map((option) => option.value),
+    ["contacted", "won", "lost", "no_response"]
+  );
+  assert.deepEqual(
+    screen.outreach.workspace.displayStates.map((state) => [state.state, state.sendsMessage]),
+    [
+      ["drafting", false],
+      ["copied", false],
+      ["sent_manually", false],
+      ["logged", false]
+    ]
+  );
+});
+
+test("lead detail outreach workspace validates contact fields before manual logging", async () => {
+  const logCalls = [];
+  const screen = createLeadDetailScreen({
+    leadId: "lead_hotel_001",
+    logLeadOutreach: async (...args) => {
+      logCalls.push(args);
+      return { ok: true };
+    }
+  });
+
+  assert.throws(
+    () =>
+      screen.outreach.workspace.validateLogAttempt({
+        channel: "email",
+        contact: "",
+        notes: "Copied draft into inbox.",
+        outcome: "contacted"
+      }),
+    /contact/i
+  );
+
+  await screen.outreach.workspace.logAttempt({
+    channel: "email",
+    contact: "manager@riverside.example",
+    notes: "Copied draft into inbox.",
+    outcome: "contacted"
+  });
+
+  assert.deepEqual(logCalls, [
+    [
+      "lead_hotel_001",
+      {
+        channel: "email",
+        contact: "manager@riverside.example",
+        notes: "Copied draft into inbox.",
+        outcome: "contacted"
+      }
+    ]
+  ]);
 });
 
 test("lead detail renders loading, not found, and error states", () => {

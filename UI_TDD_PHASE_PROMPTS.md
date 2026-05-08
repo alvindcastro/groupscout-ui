@@ -350,18 +350,28 @@ Do not implement automated sending or CRM sync in this phase.
 
 ### Tasks
 
-- [ ] Test editable outreach draft behavior.
-- [ ] Test contact field validation.
-- [ ] Test manual logging of channel, contact, notes, and outcome.
-- [ ] Test contacted, won, lost, no-response outcome capture.
-- [ ] Test activity history renders outreach attempts.
-- [ ] Implement after tests fail.
+- [x] Test editable outreach draft behavior.
+- [x] Test contact field validation.
+- [x] Test manual logging of channel, contact, notes, and outcome.
+- [x] Test contacted, won, lost, no-response outcome capture.
+- [x] Test activity history renders outreach attempts.
+- [x] Implement after tests fail.
 
 ### Acceptance Criteria
 
-- [ ] Operators can prepare and log outreach without the UI sending messages.
-- [ ] Outreach history is visible in lead detail activity.
-- [ ] Outcome data can feed later analytics.
+- [x] Operators can prepare and log outreach without the UI sending messages.
+- [x] Outreach history is visible in lead detail activity.
+- [x] Outcome data can feed later analytics.
+
+### Implementation Notes
+
+- Outreach Workspace surface lives in `web/src/app/outreachWorkspace.js` and is mounted from `/outreach` by `web/src/app/shell.js`.
+- Lead Detail embeds a compact manual outreach workspace in `web/src/app/leadDetail.js`.
+- Outreach API reads and writes live in `createApiClient().listLeadOutreach(...)` and `createApiClient().logLeadOutreach(...)`.
+- Tests live in `test/outreach-workspace.test.js`, `test/outreach-client.test.js`, plus Phase 6 route/detail assertions in `test/app-shell.test.js` and `test/lead-detail-screen.test.js`.
+- Red run: `npm test` failed because outreach client methods and Lead Detail outreach workspace behavior did not exist yet; `node test/app-shell.test.js` failed while `/outreach` still returned a placeholder.
+- Green run: `npm test` passes after adding editable outreach drafts, contact validation, manual copied/sent/logged states, outcome capture, outreach history timelines, same-origin `GET/POST /api/leads/{id}/outreach`, and `/outreach` route mounting.
+- Automated sending and CRM sync remain out of scope; Phase 6 display states explicitly set send/sync behavior to false.
 
 ## Phase 7 - Pipeline Monitor And Run Controls
 
@@ -536,7 +546,7 @@ Do not let this phase block or expand the lead-management MVP.
 - [x] Phase 3 - Lead Detail Evidence Workspace
 - [x] Phase 4 - Lead Status Actions And State Model
 - [x] Phase 5 - Verification Queue And Raw Audit Review
-- [ ] Phase 6 - Outreach Workspace And Activity Log
+- [x] Phase 6 - Outreach Workspace And Activity Log
 - [ ] Phase 7 - Pipeline Monitor And Run Controls
 - [ ] Phase 8 - Basic Analytics And Demand Signals
 - [ ] Phase 9 - Session/Auth Wrapper And Same-Origin Deployment

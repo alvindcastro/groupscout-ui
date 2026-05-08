@@ -29,6 +29,8 @@ node --test test/lead-status-state-model.test.js
 node --test test/lead-status-mutation-client.test.js
 node --test test/verification-queue.test.js
 node --test test/raw-audit-client.test.js
+node --test test/outreach-client.test.js
+node --test test/outreach-workspace.test.js
 ```
 
 ## What The Current UI Tests Cover
@@ -40,6 +42,8 @@ node --test test/raw-audit-client.test.js
 - Lead status transition rules, invalid transition blocking, validation, and PATCH mutation intent.
 - Verification queue trigger classification, filters, row actions, raw audit alias links, responsive metadata, and blocked redaction-policy metadata.
 - Raw audit client access through same-origin `GET /api/leads/{id}/raw`.
+- Outreach client access through same-origin `GET/POST /api/leads/{id}/outreach`.
+- Outreach workspace editable drafts, contact validation, manual copied/sent/logged states, outcome capture, activity timelines, responsive metadata, and route mounting.
 - Selected design token exports used by the current screen models.
 
 ## What The Current UI Tests Do Not Cover
@@ -51,6 +55,7 @@ node --test test/raw-audit-client.test.js
 - CSS layout.
 - Live backend compatibility.
 - Raw audit payload redaction behavior beyond the explicit blocked TODO.
+- Real email sending, clipboard behavior, or CRM sync for outreach.
 - Full `DESIGN.md` token-reference resolution.
 
 Before treating a UI feature as production-ready, add browser or component-level coverage once a renderer/framework exists.

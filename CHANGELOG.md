@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Phase 6 - Outreach Workspace And Activity Log
+
+- Added failing-first Phase 6 tests for editable outreach drafts, contact validation, manual copied/sent/logged states, same-origin outreach API reads/writes, outcome capture, Lead Detail activity rows, `/outreach` route mounting, responsive metadata, and `DESIGN.md` token usage.
+- Added `web/src/app/outreachWorkspace.js` with mocked outreach lead data, editable draft/contact field models, manual display states, outcome options, timeline rendering, responsive layouts, and no-auto-send/no-CRM-sync policy metadata.
+- Added `createApiClient().listLeadOutreach(...)` and `createApiClient().logLeadOutreach(...)` for same-origin `GET/POST /api/leads/{id}/outreach`.
+- Embedded a compact manual outreach workspace in Lead Detail and extended the activity log with outreach attempt and outcome entries.
+- Mounted the Outreach Workspace from `createRouteShell("/outreach")`.
+- Added Phase 6 implementation notes in `docs/phase-6-outreach-workspace-activity-log.md`, `README.md`, `docs/testing.md`, and `UI_TDD_PHASE_PROMPTS.md`.
+
 ### Phase 5 - Verification Queue And Raw Audit Review
 
 - Added failing-first Phase 5 tests for verification trigger classification, queue filters/actions, `/verification` route integration, raw audit API alias use, responsive metadata, and `DESIGN.md` token usage.
