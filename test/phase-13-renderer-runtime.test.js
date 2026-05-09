@@ -154,6 +154,7 @@ test("13-C renderer mounts Today, Lead Inbox, and Lead Detail from existing scre
   assert.match(pipeline.html, /id="pipeline-output"/);
   assert.match(pipeline.html, /Slack output preview/);
   assert.match(login.html, /data-admin-login-form/);
+  assert.match(login.html, /class="admin-login-window"/);
   assert.match(login.html, /aria-label="Setup token"/);
   assert.doesNotMatch(login.html, /data-admin-logout/);
   assert.match(loading.html, /role="status"[^>]*>Loading leads for review\./);
