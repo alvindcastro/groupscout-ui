@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 12 D5 - Docker Operations Docs And CI Hooks
+
+- What: Added D5 Docker operations documentation and guardrail coverage for repeatable local tests, containerized tests, dev Compose startup/teardown, backend dependency expectations, required UI Docker env vars, troubleshooting, and future CI hook order.
+- Where: Updated `test/dockerization-contract.test.js`, `docs/ui-dockerization-contract.md`, `docs/phase-12-ui-dockerization.md`, `UI_TDD_PHASE_PROMPTS.md`, `README.md`, `docs/developer-guide.md`, `docs/testing.md`, and `docs/troubleshooting.md`.
+- When: Completed on 2026-05-09 as Phase 12 D5 after D4 production same-origin serving.
+- Why: New developers and CI need a clear Docker operations path that distinguishes UI-only checks from backend-dependent Compose and proxy smoke checks without exposing automation credentials or backend secrets to browser-visible config.
+- How: Followed strict TDD with a red `node test/dockerization-contract.test.js` run, added D5 docs/checklist assertions, documented command lifecycle, env var boundaries, CI order, and troubleshooting splits, then reran the focused Dockerization contract test, `npm test`, Docker test-image build/run, Compose config validation, production image build, and production-container smoke checks for `/healthz`, `/`, and `/assets/app.js`; `/api/system` was left backend-dependent because `localhost:8080` was not reachable.
+
 ### Phase 12 D4 - Same-Origin Proxy Or Static Serving
 
 - What: Added D4 production same-origin serving with a lightweight Node server that serves `web/dist`, exposes `/healthz`, and forwards browser `/api/*` requests server-side to the backend target without exposing automation credentials.

@@ -30,6 +30,8 @@ Use Node `18+` or newer. Tests rely on modern built-in web APIs such as `Respons
 
 ## Daily Commands
 
+Local UI tests:
+
 ```sh
 npm test
 ```
@@ -41,10 +43,13 @@ docker build --target test -t groupscout-ui-test .
 docker run --rm groupscout-ui-test
 ```
 
-Development Compose config validation against the backend stack:
+Development Compose lifecycle against the backend stack:
 
 ```sh
 docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout
+curl -i http://localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}/healthz
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml down
 ```
 
 Production same-origin server: `npm run start:ui`
@@ -115,6 +120,31 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 - Treat `DESIGN.md` as the source design contract; `web/src/design/tokens.js` is a partial implementation used by tests.
 - Update phase docs and README when behavior or scope changes.
 
+## Docker Operations
+
+Required UI Docker env vars:
+
+- `GROUPSCOUT_UI_HOST_PORT` optionally changes the development Compose host port from `3001`. The container still listens on `3000`.
+- `GROUPSCOUT_UI_REPO` optionally changes the Compose build context when the UI repo is not at `/mnt/c/Users/alvin/WebstormProjects/groupscout-ui`.
+- `UI_API_PROXY_TARGET` is server-only. Use `http://groupscout:8080` inside Compose and `http://host.docker.internal:8080` for a standalone production-container smoke against a backend running on the host.
+
+Backend dependency expectations:
+
+- The backend Compose file is expected at `/mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml`.
+- The UI dev service is `groupscout-ui`; the backend service is `groupscout`; both run on `groupscout_net`.
+- Starting `groupscout` also starts `postgres`, `ollama`, and `ollama-init` because of the backend dependency chain.
+- The UI health harness does not require `alertd`, `n8n`, Grafana, Prometheus, Loki, Promtail, or a lead pipeline run.
+
+CI hook order:
+
+1. `npm test`
+2. `docker build --target test -t groupscout-ui-test .`
+3. `docker run --rm groupscout-ui-test`
+4. `docker build --target production -t groupscout-ui-production .`
+5. Optional smoke checks for `/healthz`, `/`, and `/assets/app.js`; smoke `/api/system` only when a backend or CI stub is reachable.
+
+Do not run UI Docker containers with backend `.env` or `--env-file`. Do not pass `API_TOKEN`, provider keys, Slack tokens, Resend/SendGrid keys, database URLs, `OLLAMA_BASE_URL`, or `UI_SESSION_SECRET` into browser-visible config, static assets, Compose output, or CI artifacts. Browser-visible config may only expose relative `/api/*`.
+
 ## Backend Integration Boundary
 
 The backend repo is separate:
@@ -168,7 +198,7 @@ The H0 baseline is [smell-h0-api-client-characterization.md](./smell-h0-api-clie
 
 ## Dockerization Planning
 
-Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phased prompt pack and [UI Dockerization Contract](./ui-dockerization-contract.md) for the D0-D4 decision record. The repo has a minimal `Dockerfile` test target and `.dockerignore`; the test image runs `npm test` without a package install step or backend service.
+Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phased prompt pack and [UI Dockerization Contract](./ui-dockerization-contract.md) for the D0-D5 decision record. The repo has a minimal `Dockerfile` test target and `.dockerignore`; the test image runs `npm test` without a package install step or backend service.
 
 Runtime model: `lightweight-node-server`. D4 implements `npm run start:ui`, container port `3000`, health path `/healthz`, server-owned assets under `web/dist`, and server-side `/api/*` routing to `http://groupscout:8080` by default. Framework selection and the product UI renderer are still not implemented.
 

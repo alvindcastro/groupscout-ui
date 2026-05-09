@@ -452,6 +452,34 @@ test("D4 documentation records production same-origin commands, smoke checks, an
   assert.match(troubleshootingDoc, /## Production UI Runtime Fails/);
 });
 
+test("D5 operations docs record repeatable Docker commands, dependencies, CI notes, and troubleshooting", async () => {
+  const [contract, phaseDoc, developerGuide, testingDoc, troubleshootingDoc] = await Promise.all([
+    readFile(CONTRACT_DOC, "utf8"),
+    readFile(PHASE_DOC, "utf8"),
+    readFile(DEVELOPER_GUIDE, "utf8"),
+    readFile(TESTING_DOC, "utf8"),
+    readFile(TROUBLESHOOTING_DOC, "utf8")
+  ]);
+
+  assert.match(contract, /D5 status: Docker operations docs and CI hooks/i);
+  assert.match(contract, /Local test command: `npm test`/);
+  assert.match(contract, /Containerized test command: `docker run --rm groupscout-ui-test`/);
+  assert.match(contract, /Development Compose startup:/);
+  assert.match(contract, /Development Compose teardown:/);
+  assert.match(contract, /CI order: local Node tests, Docker test-image build\/run, production image build, then optional smoke checks/);
+  assert.match(contract, /CI must not inject `API_TOKEN`, provider keys, Slack tokens, Resend\/SendGrid keys, database URLs, `OLLAMA_BASE_URL`, or `UI_SESSION_SECRET` into browser-visible config or static assets/);
+  assert.match(phaseDoc, /#### D5 Evidence/);
+  assert.match(phaseDoc, /Docker Compose startup: `docker compose -f \/mnt\/c\/Users\/alvin\/GolandProjects\/groupscout\/docker-compose\.yml -f compose\.dev\.yml up --build groupscout-ui groupscout`/);
+  assert.match(developerGuide, /## Docker Operations/);
+  assert.match(developerGuide, /Required UI Docker env vars:/);
+  assert.match(developerGuide, /CI hook order:/);
+  assert.match(testingDoc, /Phase 12 D5 run on 2026-05-09/);
+  assert.match(testingDoc, /Docker operations docs check:/);
+  assert.match(troubleshootingDoc, /## Docker Operations Fail Before Startup/);
+  assert.match(troubleshootingDoc, /## Docker Port Conflicts/);
+  assert.match(troubleshootingDoc, /## UI Proxy Smoke Fails/);
+});
+
 function extractDockerStage(dockerfile, stageName) {
   const stagePattern = new RegExp(`^FROM .+ AS ${stageName}\\n[\\s\\S]*?(?=^FROM .+ AS |(?![\\s\\S]))`, "m");
   const match = dockerfile.match(stagePattern);

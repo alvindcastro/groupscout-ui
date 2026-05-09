@@ -10,6 +10,8 @@ D3 status: development Compose integration. The UI repo now provides a backend C
 
 D4 status: production same-origin serving. The UI repo now provides a lightweight Node production server that serves `web/dist` assets and proxies `/api/*` server-side to the backend target from one browser origin.
 
+D5 status: Docker operations docs and CI hooks. The UI repo now documents repeatable local, container, Compose, production smoke, and future CI commands without adding runtime behavior.
+
 ## Decision
 
 The chosen dockerization path is test image first, browser runtime later.
@@ -18,6 +20,7 @@ The chosen dockerization path is test image first, browser runtime later.
 - D2 defines the browser runtime contract before selecting or wiring a dev server, renderer, proxy, or static-asset serving model.
 - D3 wires development Compose through a UI-repo override that is loaded beside the backend Compose file.
 - D4 wires production same-origin serving through the lightweight Node server path defined in D2.
+- D5 documents the Docker operations path and CI hooks after the real commands exist.
 - No Dockerfile, Compose file, reverse proxy, dev server, renderer, or application runtime is added in D0.
 
 ## D1 Test Image
@@ -110,6 +113,31 @@ curl -i http://localhost:3002/api/system
 
 Browser JavaScript still sees only relative `/api/*` paths. `API_TOKEN`, provider keys, Slack tokens, Resend/SendGrid keys, database URLs, and `UI_SESSION_SECRET` remain server-side and must not enter static assets or public config.
 
+## D5 Operations Docs And CI Hooks
+
+D5 adds operations documentation only. It does not change the Dockerfile, Compose file, production server, static assets, browser runtime contract, or product renderer.
+
+- Local test command: `npm test`
+- Containerized test image build: `docker build --target test -t groupscout-ui-test .`
+- Containerized test command: `docker run --rm groupscout-ui-test`
+- Compose config validation: `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet`
+- Development Compose startup: `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout`
+- Development Compose teardown: `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml down`
+- Production image build: `docker build --target production -t groupscout-ui-production .`
+- Production smoke run: `docker run --rm -p 3002:3000 -e UI_API_PROXY_TARGET=http://host.docker.internal:8080 groupscout-ui-production`
+
+Required UI Docker env vars stay small:
+
+- `GROUPSCOUT_UI_HOST_PORT` optionally changes the D3 development host port from `3001`.
+- `GROUPSCOUT_UI_REPO` optionally changes the build context used by `compose.dev.yml`.
+- `UI_API_PROXY_TARGET` is server-side only. Use `http://groupscout:8080` inside Compose and `http://host.docker.internal:8080` for a standalone production-container smoke against a host backend.
+
+The D3 development smoke path requires the sibling backend repo at `/mnt/c/Users/alvin/GolandProjects/groupscout`. Starting `groupscout` also starts backend dependencies `postgres`, `ollama`, and `ollama-init`; D5 docs do not require `alertd`, `n8n`, Grafana, Prometheus, Loki, Promtail, or a lead pipeline run for the UI health harness.
+
+CI order: local Node tests, Docker test-image build/run, production image build, then optional smoke checks. CI can validate merged Compose config when the backend Compose file is available. Production `/api/system` smoke needs a reachable backend or a CI stub; `/healthz`, `/`, and `/assets/app.js` can run against the UI container alone.
+
+CI must not inject `API_TOKEN`, provider keys, Slack tokens, Resend/SendGrid keys, database URLs, `OLLAMA_BASE_URL`, or `UI_SESSION_SECRET` into browser-visible config or static assets.
+
 ## Backend Contract
 
 When future UI containers run with the backend Compose stack, they must use backend service names and internal network URLs rather than browser-visible backend origins.
@@ -172,8 +200,21 @@ Browser code must not call `http://groupscout:8080` or `http://alertd:8081` dire
 - Docker production build: `docker build --target production -t groupscout-ui-production .`.
 - Smoke checks: `GET /healthz`, `GET /`, `GET /assets/app.js`, and `GET /api/system`.
 
+## D5 Evidence
+
+- Red run: `node test/dockerization-contract.test.js` failed because the D5 operations docs, CI notes, and troubleshooting entries did not exist.
+- Green run: `node --test test/dockerization-contract.test.js`.
+- Full-suite run: `npm test`.
+- Docker test build: `docker build --target test -t groupscout-ui-test .`.
+- Containerized test: `docker run --rm groupscout-ui-test`.
+- Docker Compose config: `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet`.
+- Docker production build: `docker build --target production -t groupscout-ui-production .`.
+- Production smoke checks: `GET /healthz`, `GET /`, and `GET /assets/app.js` against the UI production container passed on host port `3006`.
+- Backend-dependent `GET /api/system` smoke was not counted because `GET http://localhost:8080/health` could not connect; it requires a reachable backend or CI stub.
+
 ## Out Of Scope
 
 - Nginx or Caddy configuration.
 - Browser framework, renderer, or dev server implementation.
 - Role matrices, production identity-provider UI, and direct database access.
+- D5 runtime, Dockerfile, Compose, static asset, and server behavior changes.

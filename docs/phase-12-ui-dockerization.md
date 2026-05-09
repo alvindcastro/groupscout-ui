@@ -1,6 +1,6 @@
 # Phase 12 UI Dockerization Prompt Pack
 
-Phase D0 through D4 are complete. Future phases in this prompt pack still require strict TDD before adding a framework, browser renderer, or broader application runtime code.
+Phase D0 through D5 are complete. Future UI runtime or renderer work still requires strict TDD before adding a framework, browser renderer, or broader application runtime code.
 
 ## Sources Inspected
 
@@ -23,14 +23,14 @@ Phase D0 through D4 are complete. Future phases in this prompt pack still requir
 
 - The backend repo already has a full Docker Compose stack with `groupscout` on `8080`, `alertd` on `8081`, Postgres, n8n, Prometheus, Grafana, Loki, Promtail, Ollama, and `ollama-init`.
 - Backend containers communicate on `groupscout_net`; UI containers should reach the backend as `http://groupscout:8080` when running in the same Compose project or network.
-- The UI repo now has a D1 `Dockerfile` test target, `.dockerignore`, D3 `compose.dev.yml` backend Compose override, and D4 production same-origin Node server; it still has no framework, renderer, browser build, lockfile, or product UI dev server.
+- The UI repo now has a D1 `Dockerfile` test target, `.dockerignore`, D3 `compose.dev.yml` backend Compose override, D4 production same-origin Node server, and D5 Docker operations/CI documentation; it still has no framework, renderer, browser build, lockfile, or product UI dev server.
 - The UI repo is currently a model-level plain JavaScript workspace with Node's built-in `node:test` runner and `npm test`.
 - Browser UI code must use same-origin `/api/*` contracts.
 - `API_TOKEN` is reserved for automation clients and must not be exposed to browser JavaScript.
 
 ## Recommended Direction
 
-The current UI test workspace is containerized. Next, add a browser runtime only after the runtime contract is test-covered. This avoids inventing a runtime target around a UI app that does not exist yet.
+The current UI test workspace and production same-origin static/proxy server are containerized. Next, add a product browser runtime or renderer only after its behavior is test-covered. This avoids inventing UI framework code around a product app that does not exist yet.
 
 Preferred end state:
 
@@ -38,7 +38,7 @@ Preferred end state:
 - A development Compose service for the UI once a dev server exists.
 - A same-origin browser path for `/api/*` through the D4 UI production server.
 - No browser access to automation tokens.
-- Smoke checks that prove the UI development container starts on the backend network and can be extended to proxy/API checks once the runtime and proxy phases exist.
+- Smoke checks that prove the UI development container starts on the backend network and production static/proxy checks can run without exposing browser-visible secrets.
 
 ## Global TDD Rules
 
@@ -342,18 +342,41 @@ Do not add new runtime behavior in this phase unless a failing operations test r
 
 ### Tasks
 
-- [ ] Document local UI tests.
-- [ ] Document containerized UI tests.
-- [ ] Document dev Compose startup and teardown.
-- [ ] Document backend dependency expectations and required env vars.
-- [ ] Document troubleshooting for port conflicts, missing Docker Desktop/WSL integration, and proxy failures.
-- [ ] Add CI job notes for container build and smoke tests.
+- [x] Document local UI tests.
+- [x] Document containerized UI tests.
+- [x] Document dev Compose startup and teardown.
+- [x] Document backend dependency expectations and required env vars.
+- [x] Document troubleshooting for port conflicts, missing Docker Desktop/WSL integration, and proxy failures.
+- [x] Add CI job notes for container build and smoke tests.
 
 ### Acceptance Criteria
 
-- [ ] A new developer can run local tests, container tests, and dev Compose from docs.
-- [ ] CI has a clear future path for UI image build and smoke checks.
-- [ ] Troubleshooting docs distinguish UI container failures from backend stack failures.
+- [x] A new developer can run local tests, container tests, and dev Compose from docs.
+- [x] CI has a clear future path for UI image build and smoke checks.
+- [x] Troubleshooting docs distinguish UI container failures from backend stack failures.
+
+### Implementation Notes
+
+#### D5 Evidence
+
+- D5 changed documentation and guardrail coverage only; it did not change the Dockerfile, Compose file, production server, static assets, browser runtime contract, or product renderer.
+- Documented local tests: `npm test`.
+- Documented containerized tests: `docker build --target test -t groupscout-ui-test .` and `docker run --rm groupscout-ui-test`.
+- Docker Compose config: `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet`.
+- Docker Compose startup: `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout`.
+- Docker Compose teardown: `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml down`.
+- Backend dependency notes: D3 development smoke starts `groupscout-ui` with backend service `groupscout`; backend Compose also starts `postgres`, `ollama`, and `ollama-init`. UI health does not require `alertd`, `n8n`, Grafana, Prometheus, Loki, Promtail, or a pipeline run.
+- Required UI Docker env vars: `GROUPSCOUT_UI_HOST_PORT`, optional `GROUPSCOUT_UI_REPO`, and server-only `UI_API_PROXY_TARGET`.
+- CI hook order: `npm test`, Docker test-image build/run, production image build, then optional smoke checks for `/healthz`, `/`, `/assets/app.js`, and `/api/system` when a backend or CI stub is reachable.
+- D5 docs explicitly prohibit running UI containers with backend `.env` or `--env-file`, and prohibit injecting `API_TOKEN`, provider keys, Slack tokens, Resend/SendGrid keys, database URLs, `OLLAMA_BASE_URL`, or `UI_SESSION_SECRET` into browser-visible config, static assets, Compose output, or CI artifacts.
+- Red run: `node test/dockerization-contract.test.js` failed because the D5 operations docs, CI notes, and troubleshooting entries did not exist.
+- Green run: `node --test test/dockerization-contract.test.js`.
+- Full-suite run: `npm test`.
+- Docker build: `docker build --target test -t groupscout-ui-test .`.
+- Containerized test: `docker run --rm groupscout-ui-test`.
+- Docker production build: `docker build --target production -t groupscout-ui-production .`.
+- Production smoke checks: `GET /healthz`, `GET /`, and `GET /assets/app.js` against the UI production container passed on host port `3006`.
+- Backend-dependent `GET /api/system` smoke was not counted because `GET http://localhost:8080/health` could not connect; it requires a reachable backend or CI stub.
 
 ## Suggested Parallel Agent Prompts
 
@@ -390,5 +413,5 @@ Inspect README.md, docs/developer-guide.md, docs/testing.md, docs/troubleshootin
 - [ ] Should production same-origin behavior use nginx/Caddy, a Node server, or Go static-file serving?
 - [ ] What route should the UI healthcheck use?
 - [ ] What exact `/api/*` endpoints are live enough for smoke tests before the backend implements every planned UI endpoint?
-- [ ] Should CI build the UI test image before or after local `npm test`?
-- [ ] Should Dockerized UI tests run without network access by default?
+- [x] Should CI build the UI test image before or after local `npm test`? D5 documents `npm test` first, then Docker test-image build/run, production image build, and optional smoke checks.
+- [x] Should Dockerized UI tests run without network access by default? D5 keeps the D1 test image independent of backend services and documents no backend `.env` or secret injection for UI containers.

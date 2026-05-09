@@ -101,6 +101,13 @@ D3 adds `compose.dev.yml` as a UI-repo override for the backend Compose file. Va
 docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
 ```
 
+Inspect service state and UI logs:
+
+```sh
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml ps
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml logs groupscout-ui --tail=100
+```
+
 Common causes:
 
 - The backend Compose file path is wrong or the sibling backend repo is not present at `/mnt/c/Users/alvin/GolandProjects/groupscout`.
@@ -110,6 +117,43 @@ Common causes:
 - The `groupscout` backend service is not started. A targeted D3 smoke run should include `groupscout-ui` and `groupscout`; backend Compose also starts `postgres`, `ollama`, and `ollama-init` because `groupscout` depends on them.
 
 D3 healthchecks only `/healthz` on the development health harness. Use the D4 production runtime checks for static serving and `/api/*` proxy forwarding.
+
+## Docker Operations Fail Before Startup
+
+If `docker compose config` cannot connect to the daemon, start Docker Desktop, verify WSL integration for the active distro, and rerun:
+
+```sh
+docker version
+docker compose version
+```
+
+Do not pass the backend `.env` file into UI containers with `--env-file`. UI Docker operations should not receive `API_TOKEN`, provider keys, Slack tokens, Resend/SendGrid keys, database URLs, `OLLAMA_BASE_URL`, or `UI_SESSION_SECRET`.
+
+## Docker Port Conflicts
+
+The backend stack publishes Grafana on host port `3000`, so the UI development Compose service defaults to host port `3001`.
+
+Use another development host port:
+
+```sh
+GROUPSCOUT_UI_HOST_PORT=3005 docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout
+```
+
+Use another standalone production smoke host port:
+
+```sh
+docker run --rm -p 3005:3000 -e UI_API_PROXY_TARGET=http://host.docker.internal:8080 groupscout-ui-production
+```
+
+## UI Proxy Smoke Fails
+
+Interpret `/api/*` smoke failures by status:
+
+- `502`: the backend is unreachable or `UI_API_PROXY_TARGET` points at the wrong host.
+- DNS errors for `groupscout`: the production container is not on the backend Compose network, or it is running with standalone `docker run` and should use `http://host.docker.internal:8080`.
+- `401`: the backend/session auth rejected the request; this is not a UI proxy wiring failure.
+
+Browser-visible code and config should still show relative `/api/*`, never `http://groupscout:8080` or backend secrets.
 
 ## Production UI Runtime Fails
 

@@ -38,7 +38,7 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Phase 10 tests cover read-only alert state rendering, SPS summaries, evidence, room inventory, action history, disabled mutation actions, `/alerts` route mounting, responsive metadata, token usage, and `GET /api/alerts`.
 - Phase 11 tests cover the Today command center, priority lead and aging-work summaries, active alerts, failed jobs, system health, read-only action policy, `/` route mounting, responsive metadata, token usage, and `GET /api/system`.
 - Smell Phase H1 split the growing browser API client module while preserving `createApiClient(...)` and the centralized same-origin `/api/*` guard.
-- Phase 12 dockerization planning lives in `docs/phase-12-ui-dockerization.md`; the D0-D4 contract lives in `docs/ui-dockerization-contract.md`; the test Docker target runs `npm test`, `compose.dev.yml` adds a development `groupscout-ui` service, and the production Docker target serves static assets plus same-origin `/api/*` on container port `3000` while the product renderer remains future work.
+- Phase 12 dockerization planning lives in `docs/phase-12-ui-dockerization.md`; the D0-D5 contract lives in `docs/ui-dockerization-contract.md`; the test Docker target runs `npm test`, `compose.dev.yml` adds a development `groupscout-ui` service, the production Docker target serves static assets plus same-origin `/api/*` on container port `3000`, and D5 documents repeatable Docker operations/CI hooks while the product renderer remains future work.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
@@ -54,10 +54,13 @@ docker build --target test -t groupscout-ui-test .
 docker run --rm groupscout-ui-test
 ```
 
-Development Compose config validation against the backend stack:
+Docker operations:
 
 ```sh
 docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout
+curl -i http://localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}/healthz
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml down
 ```
 
 Production UI runtime:
@@ -71,6 +74,8 @@ curl -i http://localhost:3002/
 curl -i http://localhost:3002/assets/app.js
 curl -i http://localhost:3002/api/system
 ```
+
+The default development UI host port is `3001` because the backend stack publishes Grafana on `3000`; set `GROUPSCOUT_UI_HOST_PORT` to use another host port. The D3 Compose smoke path starts `groupscout-ui` with backend service `groupscout`; the backend dependency chain also starts `postgres`, `ollama`, and `ollama-init`. Do not run UI Docker containers with backend `.env` or `--env-file`, and do not pass `API_TOKEN`, provider keys, Slack tokens, Resend/SendGrid keys, database URLs, `OLLAMA_BASE_URL`, or `UI_SESSION_SECRET` into browser-visible config, static assets, Compose output, or CI artifacts.
 
 ## Developer Docs
 

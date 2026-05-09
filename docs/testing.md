@@ -32,6 +32,8 @@ Phase 12 D3 run on 2026-05-09: `node --test test/dockerization-contract.test.js`
 
 Phase 12 D4 run on 2026-05-09: `node --test test/dockerization-contract.test.js` covered the production same-origin Node server, `web/dist` root and static asset serving, server-side `/api/*` proxy request construction, public-config secret rejection, the `production` Docker target, and D4 docs; `npm test`, `docker build --target test -t groupscout-ui-test .`, `docker run --rm groupscout-ui-test`, and `docker build --target production -t groupscout-ui-production .` passed. Smoke checks cover `GET /healthz`, `GET /`, `GET /assets/app.js`, and `GET /api/system`.
 
+Phase 12 D5 run on 2026-05-09: `node test/dockerization-contract.test.js` first failed because the Docker operations docs, CI notes, and troubleshooting entries were missing. The green docs/checklist run covered local UI tests, containerized UI tests, dev Compose startup/teardown, backend dependency expectations, required UI Docker env vars, CI hook order, and troubleshooting splits; `node --test test/dockerization-contract.test.js`, `npm test`, `docker build --target test -t groupscout-ui-test .`, `docker run --rm groupscout-ui-test`, `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet`, and `docker build --target production -t groupscout-ui-production .` passed. Production container smoke checks for `GET /healthz`, `GET /`, and `GET /assets/app.js` passed on host port `3006`; backend-dependent `GET /api/system` was not counted because `GET http://localhost:8080/health` could not connect.
+
 Optional design-doc lint. This is not an npm script and may use the network through `npx`:
 
 ```sh
@@ -53,6 +55,14 @@ Development Compose config validation:
 docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
 ```
 
+Development Compose startup and teardown:
+
+```sh
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout
+curl -i http://localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}/healthz
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml down
+```
+
 The D3 UI service is `groupscout-ui`. It joins the backend `groupscout_net`, targets `http://groupscout:8080` through server-side metadata, exposes container port `3000` on host `${GROUPSCOUT_UI_HOST_PORT:-3001}`, and healthchecks `/healthz`. A targeted smoke run should start `groupscout-ui` with backend service `groupscout`; the current backend dependency chain also starts `postgres`, `ollama`, and `ollama-init`.
 
 Production UI runtime smoke commands:
@@ -65,6 +75,18 @@ curl -i http://localhost:3002/
 curl -i http://localhost:3002/assets/app.js
 curl -i http://localhost:3002/api/system
 ```
+
+Docker operations docs check:
+
+```sh
+node --test test/dockerization-contract.test.js
+```
+
+## CI Notes
+
+CI should run `npm test`, build and run the D1 test image, then build the production image. If the backend Compose file is available, CI can also run the merged Compose config validation command. Smoke `/healthz`, `/`, and `/assets/app.js` against the production UI container without backend secrets; smoke `/api/system` only when the backend service or a CI stub is reachable.
+
+Do not run CI UI containers with backend `.env` or `--env-file`. Do not inject `API_TOKEN`, provider keys, Slack tokens, Resend/SendGrid keys, database URLs, `OLLAMA_BASE_URL`, or `UI_SESSION_SECRET` into browser-visible config, static assets, Compose output, or CI artifacts.
 
 ## Focused UI Tests
 
