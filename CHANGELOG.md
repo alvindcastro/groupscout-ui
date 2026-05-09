@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 12 D1 - UI Test Container
+
+- What: Added the first Docker implementation target for the UI repo: a deterministic Node test image that runs the current `npm test` suite, plus guardrail coverage for Dockerfile, `.dockerignore`, no-runtime scope, and credential boundaries.
+- Where: Added `Dockerfile` and `.dockerignore`; updated `test/dockerization-contract.test.js`, `docs/ui-dockerization-contract.md`, `docs/phase-12-ui-dockerization.md`, `UI_TDD_PHASE_PROMPTS.md`, `README.md`, `docs/developer-guide.md`, and `docs/testing.md`.
+- When: Completed on 2026-05-09 as Phase 12 D1 after the D0 Dockerization contract.
+- Why: The UI model-level workspace needs a clean containerized test path before any browser runtime, dev server, reverse proxy, or Compose integration is introduced.
+- How: Followed strict TDD with a red `node test/dockerization-contract.test.js` run, added a single `test` Docker target and context exclusions, documented `docker build --target test -t groupscout-ui-test .` plus `docker run --rm groupscout-ui-test`, then reran the focused test, Docker build/container test, and local `npm test`.
+
 ### Phase 12 D0 - Dockerization Contract And Decision Record
 
 - What: Added the documentation-only D0 Dockerization contract and a focused guardrail test that makes the contract testable before Docker files exist.

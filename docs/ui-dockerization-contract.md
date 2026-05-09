@@ -2,6 +2,8 @@
 
 D0 status: documentation-only. This contract records the path for future Docker work before any image, Compose, proxy, dev server, renderer, or browser runtime is added.
 
+D1 status: UI test container. The first Docker target now runs the current model-level `npm test` suite in a clean Node container without adding browser runtime behavior.
+
 ## Decision
 
 The chosen dockerization path is test image first, browser runtime later.
@@ -10,6 +12,19 @@ The chosen dockerization path is test image first, browser runtime later.
 - D2 will define the browser runtime contract before selecting or wiring a dev server, renderer, proxy, or static-asset serving model.
 - D3 and later phases will wire development Compose and same-origin serving only after each behavior has failing tests or validation.
 - No Dockerfile, Compose file, reverse proxy, dev server, renderer, or application runtime is added in D0.
+
+## D1 Test Image
+
+The D1 Dockerfile has one target named `test`.
+
+```sh
+docker build --target test -t groupscout-ui-test .
+docker run --rm groupscout-ui-test
+```
+
+The target uses Node, copies the no-install test inputs, and defaults to `npm test`. It does not expose ports, declare healthchecks, start a dev server, run a proxy, or connect to backend services.
+
+The D1 `.dockerignore` excludes VCS metadata, `node_modules`, logs, IDE files, generated outputs, and local `.env` files so the test-image context stays small and does not include local secrets.
 
 ## Backend Contract
 
@@ -40,10 +55,18 @@ Browser code must not call `http://groupscout:8080` or `http://alertd:8081` dire
 - Green run: `node --test test/dockerization-contract.test.js`.
 - Full-suite run: `npm test`.
 
+## D1 Evidence
+
+- Red run: `node test/dockerization-contract.test.js` failed because `Dockerfile`, `.dockerignore`, and D1 command documentation were not present.
+- Green run: `node test/dockerization-contract.test.js`.
+- Docker build: `docker build --target test -t groupscout-ui-test .`.
+- Container test run: `docker run --rm groupscout-ui-test`.
+- Full-suite run: `npm test`.
+
 ## Out Of Scope
 
-- Dockerfile and `.dockerignore`.
 - Compose files and Compose overrides.
 - Nginx, reverse-proxy, or static-serving config.
 - Browser framework, renderer, dev server, or production app runtime.
-- Docker build, container smoke, and Compose validation commands.
+- Development or production ports and healthchecks.
+- Compose validation commands.

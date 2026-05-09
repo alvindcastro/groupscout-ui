@@ -1,6 +1,6 @@
 # Phase 12 UI Dockerization Prompt Pack
 
-Planning artifact only. Do not implement Docker, Compose, proxy, framework, runtime, or application code from this file during the current brainstorming pass.
+Phase D0 and D1 are complete. Future phases in this prompt pack still require strict TDD before adding Compose, proxy, framework, browser runtime, or application runtime code.
 
 ## Sources Inspected
 
@@ -23,14 +23,14 @@ Planning artifact only. Do not implement Docker, Compose, proxy, framework, runt
 
 - The backend repo already has a full Docker Compose stack with `groupscout` on `8080`, `alertd` on `8081`, Postgres, n8n, Prometheus, Grafana, Loki, Promtail, Ollama, and `ollama-init`.
 - Backend containers communicate on `groupscout_net`; UI containers should reach the backend as `http://groupscout:8080` when running in the same Compose project or network.
-- The UI repo has no `Dockerfile`, `.dockerignore`, Compose file, framework, renderer, browser build, lockfile, or dev server yet.
+- The UI repo now has a D1 `Dockerfile` test target and `.dockerignore`; it still has no Compose file, framework, renderer, browser build, lockfile, or dev server.
 - The UI repo is currently a model-level plain JavaScript workspace with Node's built-in `node:test` runner and `npm test`.
 - Browser UI code must use same-origin `/api/*` contracts.
 - `API_TOKEN` is reserved for automation clients and must not be exposed to browser JavaScript.
 
 ## Recommended Direction
 
-Start by containerizing the current UI test workspace, then add a browser runtime only after the runtime contract is test-covered. This avoids inventing a Docker target around a UI app that does not exist yet.
+The current UI test workspace is containerized. Next, add a browser runtime only after the runtime contract is test-covered. This avoids inventing a runtime target around a UI app that does not exist yet.
 
 Preferred end state:
 
@@ -129,17 +129,31 @@ Do not add a dev server, production web server, reverse proxy, or backend Compos
 
 ### Tasks
 
-- [ ] Add failing coverage for Dockerfile existence and expected test command.
-- [ ] Add failing coverage for `.dockerignore` excluding `.git`, `node_modules`, logs, and local IDE files.
-- [ ] Add the minimal Node image target for `npm test`.
-- [ ] Verify no secret env vars are baked into the image.
-- [ ] Document `docker build` and containerized test commands.
+- [x] Add failing coverage for Dockerfile existence and expected test command.
+- [x] Add failing coverage for `.dockerignore` excluding `.git`, `node_modules`, logs, and local IDE files.
+- [x] Add the minimal Node image target for `npm test`.
+- [x] Verify no secret env vars are baked into the image.
+- [x] Document `docker build` and containerized test commands.
 
 ### Acceptance Criteria
 
-- [ ] The UI test suite runs inside a container.
-- [ ] The image does not require backend services.
-- [ ] The image does not expose browser runtime behavior.
+- [x] The UI test suite runs inside a container.
+- [x] The image does not require backend services.
+- [x] The image does not expose browser runtime behavior.
+
+### Implementation Notes
+
+#### D1 Evidence
+
+- The D1 guardrail coverage lives in `test/dockerization-contract.test.js`.
+- Added `Dockerfile` with a single `test` target that runs `npm test` in Node without an install step.
+- Added `.dockerignore` for `.git`, `node_modules`, logs, IDE files, generated outputs, and local `.env` files.
+- Red run: `node test/dockerization-contract.test.js` failed because `Dockerfile`, `.dockerignore`, and D1 command documentation did not exist yet.
+- Green run: `node test/dockerization-contract.test.js`.
+- Docker build: `docker build --target test -t groupscout-ui-test .`.
+- Containerized test: `docker run --rm groupscout-ui-test`.
+- Full-suite run: `npm test`.
+- D1 did not add a dev server, production web server, reverse proxy, backend Compose wiring, exposed port, healthcheck, or browser runtime.
 
 ## Phase D2 - Browser Runtime Contract
 

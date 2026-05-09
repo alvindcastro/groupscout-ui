@@ -31,6 +31,13 @@ Use Node `18+` or newer. Tests rely on modern built-in web APIs such as `Respons
 npm test
 ```
 
+Containerized test-image run:
+
+```sh
+docker build --target test -t groupscout-ui-test .
+docker run --rm groupscout-ui-test
+```
+
 Optional design-doc lint. This uses `npx` and may fetch the package if it is not already cached:
 
 ```sh
@@ -142,7 +149,9 @@ The H0 baseline is [smell-h0-api-client-characterization.md](./smell-h0-api-clie
 
 ## Dockerization Planning
 
-Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phased prompt pack and [UI Dockerization Contract](./ui-dockerization-contract.md) for the D0 decision record. The current repo has no Dockerfile, Compose file, browser runtime, dev server, framework, lockfile, or static build target yet, so the first Docker implementation phase remains a strict-TDD test-container plan rather than runtime implementation.
+Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phased prompt pack and [UI Dockerization Contract](./ui-dockerization-contract.md) for the D0/D1 decision record. The current repo has a minimal `Dockerfile` test target and `.dockerignore`; the image runs `npm test` without a package install step, backend service, exposed port, healthcheck, proxy, or browser runtime.
+
+Browser runtime, dev server, framework selection, Compose wiring, static serving, and production same-origin proxy behavior are not implemented yet.
 
 ## Current Limitations
 
@@ -151,4 +160,4 @@ Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phase
 - Responsive behavior is represented as layout metadata, not measured DOM layout.
 - Design token tests check selected exports; they do not resolve every nested token reference from `DESIGN.md`.
 - The browser credential guard recursively scans browser-facing `web/src/**/*.js` files while excluding `web/src/server`; keep server-only code in that excluded subtree and keep browser modules free of automation credentials.
-- UI Docker images, Compose integration, static asset serving, and browser runtime behavior are not implemented yet.
+- UI Compose integration, static asset serving, and browser runtime behavior are not implemented yet.

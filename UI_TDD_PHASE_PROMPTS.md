@@ -625,7 +625,7 @@ Do not build Settings, custom dashboards, system mutations, alert mutations, pip
 
 ## Phase 12 - UI Dockerization
 
-> Planning status: D0 contract documented. The detailed prompt pack lives in `docs/phase-12-ui-dockerization.md`, and the D0 decision record lives in `docs/ui-dockerization-contract.md`.
+> Status: D0 contract documented and D1 UI test container implemented. The detailed prompt pack lives in `docs/phase-12-ui-dockerization.md`, and the D0/D1 decision record lives in `docs/ui-dockerization-contract.md`.
 
 ### Prompt
 
@@ -637,7 +637,7 @@ Goal: dockerize the UI in phases without inventing a browser runtime before the 
 Context:
 - The backend Docker stack is in /mnt/c/Users/alvin/GolandProjects/groupscout.
 - Backend Compose runs groupscout on 8080, alertd on 8081, Postgres, n8n, observability, Ollama, and ollama-init on groupscout_net.
-- The UI repo currently has no Dockerfile, .dockerignore, Compose file, renderer, dev server, build tool, lockfile, or browser runtime.
+- The UI repo has a D1 Dockerfile test target and .dockerignore, but no Compose file, renderer, dev server, build tool, lockfile, or browser runtime.
 - The UI repo currently runs model-level JavaScript tests with npm test -> node --test.
 - Browser code must use same-origin /api/* contracts.
 - API_TOKEN and provider secrets must not be exposed to browser JavaScript, static assets, generated config, or public image layers.
@@ -656,7 +656,7 @@ Do not add Dockerfile, Compose, nginx/proxy config, browser framework, dev serve
 ### Phase Tasks
 
 - [x] D0 - Dockerization Contract And Decision Record
-- [ ] D1 - UI Test Container
+- [x] D1 - UI Test Container
 - [ ] D2 - Browser Runtime Contract
 - [ ] D3 - Development Compose Integration
 - [ ] D4 - Same-Origin Proxy Or Static Serving
@@ -664,7 +664,7 @@ Do not add Dockerfile, Compose, nginx/proxy config, browser framework, dev serve
 
 ### Acceptance Criteria
 
-- [ ] The first Docker implementation target is a deterministic UI test image.
+- [x] The first Docker implementation target is a deterministic UI test image.
 - [ ] A browser runtime is added only after its contract is test-covered.
 - [ ] Development Compose reaches the backend by service name, `http://groupscout:8080`, from inside the Docker network.
 - [ ] Browser-visible code and config never contain `API_TOKEN`, provider keys, Slack tokens, Resend keys, or database URLs.
@@ -673,8 +673,10 @@ Do not add Dockerfile, Compose, nginx/proxy config, browser framework, dev serve
 
 ### Implementation Notes
 
-- Current pass created the D0 documentation-only contract and guardrail test only.
+- D0 created the documentation-only contract and guardrail test.
 - D0 evidence: `node --test test/dockerization-contract.test.js` failed before `docs/ui-dockerization-contract.md` and its links existed, then passed after the contract and Markdown references were added.
+- D1 added `Dockerfile`, `.dockerignore`, and guardrail coverage for a Node test image that runs `npm test` without ports, healthchecks, backend wiring, proxy config, or browser runtime.
+- D1 evidence: `node test/dockerization-contract.test.js` failed before Docker files and D1 docs existed, then passed after implementation; `docker build --target test -t groupscout-ui-test .`, `docker run --rm groupscout-ui-test`, and `npm test` passed.
 - Do not mark Phase 12 complete until Docker files or runtime code are added through strict TDD and verified.
 - Backend constraints inspected: `/mnt/c/Users/alvin/GolandProjects/groupscout/Dockerfile`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/guides/DOCKER.md`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/guides/TESTING.md`, and `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/API_CONFIG.md`.
 

@@ -24,13 +24,22 @@ Smell H1 split run on 2026-05-09: focused API-client split coverage passed 9 tes
 
 Phase 12 D0 run on 2026-05-09: `node --test test/dockerization-contract.test.js` covered the documentation-only Dockerization contract before any Docker files were added, and `npm test` passed all 23 test files.
 
+Phase 12 D1 run on 2026-05-09: `node test/dockerization-contract.test.js` covered the UI test-container Dockerfile, `.dockerignore`, no-runtime scope, and D1 docs; `docker build --target test -t groupscout-ui-test .`, `docker run --rm groupscout-ui-test`, and `npm test` passed.
+
 Optional design-doc lint. This is not an npm script and may use the network through `npx`:
 
 ```sh
 npx @google/design.md lint DESIGN.md
 ```
 
-UI Dockerization is planning-only today. See [Phase 12 UI Dockerization Prompt Pack](./phase-12-ui-dockerization.md) and [UI Dockerization Contract](./ui-dockerization-contract.md) for the future strict-TDD sequence before adding Dockerfile, Compose, proxy, or browser runtime behavior.
+The D1 Docker target runs the current UI test suite in a clean Node container:
+
+```sh
+docker build --target test -t groupscout-ui-test .
+docker run --rm groupscout-ui-test
+```
+
+Compose, proxy/static serving, and browser runtime behavior remain future strict-TDD phases. See [Phase 12 UI Dockerization Prompt Pack](./phase-12-ui-dockerization.md) and [UI Dockerization Contract](./ui-dockerization-contract.md).
 
 ## Focused UI Tests
 
@@ -99,7 +108,7 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 - CSS layout.
 - Live backend compatibility.
 - Real cookie signing, browser session issuance, reverse-proxy behavior, and production CORS headers.
-- UI Docker image builds, Compose integration, proxy/static serving behavior, and container smoke tests.
+- Compose integration, proxy/static serving behavior, and browser runtime container smoke tests.
 - Raw audit payload redaction behavior beyond the explicit blocked TODO.
 - Real email sending, clipboard behavior, or CRM sync for outreach.
 - Real pipeline execution, worker polling, Grafana rendering, or log viewer integration.
