@@ -312,6 +312,7 @@ test("D3 documentation records Compose commands, constraints, and evidence", asy
 test("D4 production server serves assets and forwards /api/* through one origin", async () => {
   const {
     PRODUCTION_SERVING_CONTRACT,
+    cacheControlForStaticPath,
     createApiProxyRequest,
     createProductionHealthPayload
   } = await import(PRODUCTION_SERVER);
@@ -356,7 +357,8 @@ test("D4 production server serves assets and forwards /api/* through one origin"
       sameOrigin: true
     }
   });
-  assert.match(indexHtml, /<script type="module" src="\/assets\/app\.js"><\/script>/);
+  assert.match(indexHtml, /<link rel="stylesheet" href="\/assets\/styles\.css\?v=pipeline-output-4">/);
+  assert.match(indexHtml, /<script type="module" src="\/assets\/app\.js\?v=pipeline-output-4"><\/script>/);
   assert.match(appJs, /fetchImpl\("\/api\/system"/);
   assert.equal(proxyRequest.url.href, "http://groupscout:8080/api/system?scope=smoke");
   assert.equal(proxyRequest.method, "GET");
@@ -365,6 +367,8 @@ test("D4 production server serves assets and forwards /api/* through one origin"
   assert.equal(proxyRequest.headers["x-api-key"], undefined);
   assert.equal(proxyRequest.headers["x-api-token"], undefined);
   assert.equal(proxyRequest.headers.host, undefined);
+  assert.equal(cacheControlForStaticPath("/assets/app.js"), "public, max-age=31536000, immutable");
+  assert.equal(cacheControlForStaticPath("/src/renderer/domRenderer.js"), "no-store");
 });
 
 test("D4 public config and static assets reject browser-visible secrets", async () => {

@@ -27,7 +27,7 @@ Rows are included only when at least one trigger is present.
 - Controls: trigger, source, owner, minimum score, and clear filters.
 - Table columns: score, lead, trigger, source, owner, raw audit, and updated.
 - Row actions: verify, correct, dismiss, and return to lead.
-- Responsive behavior: desktop verification table, tablet table with lower-priority columns hidden, and mobile verification cards.
+- Responsive behavior: desktop verification table, tablet table with lower-priority columns hidden, and mobile verification cards. The renderer uses the mobile card model directly, so mobile output keeps the queue count, lead title, trigger, raw audit link, and row actions visible even though desktop table rows are intentionally empty in mobile mode.
 - Loading, empty, and error states are represented in the screen model.
 
 ## Raw Audit Access
@@ -62,6 +62,7 @@ The queue uses existing documented `DESIGN.md` component tokens:
 - Red run: `node --test test/verification-queue.test.js test/raw-audit-client.test.js test/app-shell.test.js test/lead-detail-screen.test.js` failed on missing `web/src/app/verificationQueue.js`, missing `createApiClient().getLeadRawAudit(...)`, placeholder `/verification` routing, and the legacy Lead Detail raw audit path.
 - Targeted green run: `node --test test/verification-queue.test.js test/raw-audit-client.test.js test/app-shell.test.js test/lead-detail-screen.test.js`.
 - Full-suite green run: `npm test`.
+- Renderer review refresh on 2026-05-09: `node --test test/verification-queue.test.js test/phase-13-renderer-runtime.test.js` covered the mobile Verification Queue card model and rendered mobile route output.
 
 ## Out Of Scope
 

@@ -10,6 +10,8 @@ Detailed copy-paste prompts and tickable future tasks live in [Phase 13 Product 
 - The D1 Docker `test` target runs `npm test` without installing dependencies or contacting backend services.
 - The Phase 13 `compose.dev.yml` service is now a product dev server on `groupscout_net`; it still maps `${GROUPSCOUT_UI_HOST_PORT:-3001}` to container port `3000`.
 - The D4 production server still runs with `npm run start:ui`, serves `web/dist`, exposes `/healthz`, forwards `/api/*` server-side to `UI_API_PROXY_TARGET` or `http://groupscout:8080`, and now falls back to `index.html` for app routes such as `/leads/{id}`.
+- Static app navigation intercepts only first-party app routes. Same-origin `/api/*` links, `/assets/*`, copied `/src/*` modules, file-extension URLs, download links, target links, external links, and modified clicks keep normal browser behavior.
+- Copied source modules under `web/dist/src` are served with `cache-control: no-store`; immutable caching remains limited to versioned static assets under `/assets/*`.
 - Browser-facing API code must keep relative same-origin `/api/*` paths and `credentials: "same-origin"`.
 - Automation credentials, provider keys, Slack tokens, Resend/SendGrid keys, database URLs, `OLLAMA_BASE_URL`, and `UI_SESSION_SECRET` must stay out of browser-visible config and static assets.
 
@@ -19,7 +21,7 @@ Detailed copy-paste prompts and tickable future tasks live in [Phase 13 Product 
 - Browser/component harness: dependency-free rendered HTML smoke tests in `test/phase-13-renderer-runtime.test.js`.
 - Production serving: D4 Node static/proxy server remains the production boundary.
 - Development serving: `compose.dev.yml` now starts `node web/src/server/productDevServer.js`.
-- Build output: `npm run build` writes `web/dist/index.html` and `web/dist/assets/app.js`.
+- Build output: `npm run build` writes `web/dist/index.html`, `web/dist/assets/app.js`, `web/dist/assets/styles.css`, and copied dependency-free modules under `web/dist/src`.
 - Public config: `UI_PUBLIC_API_PATH` is the only allowlisted public config key; secret-like names fail the Phase 13 guardrail.
 - Backend compatibility: `web/src/server/backendCompatibilitySmoke.js` classifies proxy failure, backend route drift, auth requirements, schema drift, compatible responses, and backend errors.
 
@@ -28,6 +30,7 @@ Detailed copy-paste prompts and tickable future tasks live in [Phase 13 Product 
 - Red run: `node test/phase-13-renderer-runtime.test.js` failed because Phase 13 modules were missing, `npm run build` was absent, the Compose command still used the D3 health harness, and static route fallback was not implemented.
 - Green run: `node --test test/phase-13-renderer-runtime.test.js` passed after adding the Phase 13 runtime contract, harness decision, minimal renderer, static build, product dev server, Compose update, backend smoke classifier, and D4 route fallback.
 - Broader run: `npm test` covers Phase 13 plus the existing model/API/runtime guardrails.
+- Review-fix run on 2026-05-09: `node --test test/phase-13-renderer-runtime.test.js test/dockerization-contract.test.js` covered raw-audit-safe click interception and the `/src/*` `no-store` cache policy.
 
 ## Runtime Options
 

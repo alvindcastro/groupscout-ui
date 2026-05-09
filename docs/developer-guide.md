@@ -12,6 +12,7 @@ This repo is currently a plain JavaScript UI workspace for GroupScout operator s
 - `web/src/server/productDevServer.js` owns the Phase 13 product dev server for the `groupscout-ui` Compose service.
 - `web/src/server/productionServer.js` owns the D4 production same-origin server for `web/dist` static assets, `/healthz`, whitelist-only public config, and server-side `/api/*` proxying.
 - `web/src/renderer/domRenderer.js` owns the first dependency-free rendered route mapping.
+- `web/src/renderer/staticAppEntry.js` owns the browser static entrypoint, app-route-only click interception, and dynamic loading of copied renderer modules.
 - `web/src/renderer/browserUxHardening.js` owns the Phase 15 deterministic browser UX hardening report until a real browser harness is added.
 - `web/src/renderer/buildStaticApp.js` owns the static product build into `web/dist`.
 - `web/src/app/todayCommandCenter.js` owns the mocked Today command center, operational priority summaries, system health metadata, and read-only routing policy.
@@ -84,6 +85,12 @@ docker build --target production -t groupscout-ui-production .
 docker run --rm -p 3002:3000 -e UI_API_PROXY_TARGET=http://host.docker.internal:8080 groupscout-ui-production
 ```
 
+Production cache and navigation rules:
+
+- `/assets/*` files are treated as immutable versioned assets.
+- `/src/*` copied renderer modules are served with `cache-control: no-store` because they are unbundled and may be imported transitively without a query string.
+- Static app click interception is limited to first-party app routes. `/api/*` raw audit links, `/assets/*`, `/src/*`, file-extension URLs, download links, target links, external links, and modified clicks keep normal browser behavior.
+
 Optional design-doc lint. This uses `npx` and may fetch the package if it is not already cached:
 
 ```sh
@@ -129,6 +136,7 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 ## Development Rules
 
 - Keep browser requests behind same-origin `/api/*` paths.
+- Keep same-origin `/api/*` links outside SPA route interception so raw audit and other API links reach the production proxy normally.
 - Keep browser auth session-based. Do not repurpose automation credentials for operator browser sessions.
 - Keep `API_TOKEN` out of browser runtime/config modules.
 - Keep `UI_API_PROXY_TARGET` server-only; browser code and public config may only expose relative `/api/*`.

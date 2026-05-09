@@ -8,11 +8,13 @@ const RENDERER = new URL("../web/src/renderer/domRenderer.js", import.meta.url);
 const PRODUCT_DEV_SERVER = new URL("../web/src/server/productDevServer.js", import.meta.url);
 const BACKEND_SMOKE = new URL("../web/src/server/backendCompatibilitySmoke.js", import.meta.url);
 const PRODUCTION_SERVER = new URL("../web/src/server/productionServer.js", import.meta.url);
+const STATIC_APP_ENTRY = new URL("../web/src/renderer/staticAppEntry.js", import.meta.url);
 const PACKAGE_JSON = new URL("../package.json", import.meta.url);
 const COMPOSE_DEV = new URL("../compose.dev.yml", import.meta.url);
 const STATIC_ROOT = new URL("../web/dist/", import.meta.url);
 const STATIC_INDEX = new URL("../web/dist/index.html", import.meta.url);
 const STATIC_APP = new URL("../web/dist/assets/app.js", import.meta.url);
+const STATIC_STYLE = new URL("../web/dist/assets/styles.css", import.meta.url);
 
 test("13-A renderer runtime contract preserves D4 production and secret-free public config", async () => {
   const {
@@ -94,6 +96,7 @@ test("13-C renderer mounts Today, Lead Inbox, and Lead Detail from existing scre
   const today = renderRouteToHtml("/");
   const leads = renderRouteToHtml("/leads");
   const detail = renderRouteToHtml("/leads/lead_hotel_001");
+  const pipeline = renderRouteToHtml("/pipeline");
   const loading = renderRouteToHtml("/leads", { screenState: "loading" });
   const empty = renderRouteToHtml("/leads", { leads: [] });
   const error = renderRouteToHtml("/leads", { screenState: "error", errorMessage: "API unavailable" });
@@ -110,6 +113,10 @@ test("13-C renderer mounts Today, Lead Inbox, and Lead Detail from existing scre
   assert.match(detail.html, /Source Evidence/);
   assert.match(detail.html, /AI Enrichment/);
   assert.match(detail.html, /Riverside hotel renovation crew block/);
+  assert.match(pipeline.html, /data-pipeline-action="start"/);
+  assert.match(pipeline.html, /id="pipeline-run-feedback"/);
+  assert.match(pipeline.html, /id="pipeline-output"/);
+  assert.match(pipeline.html, /Slack output preview/);
   assert.match(loading.html, /role="status"[^>]*>Loading leads for review\./);
   assert.match(empty.html, /No leads available/);
   assert.match(error.html, /role="alert"[^>]*>API unavailable/);
@@ -118,20 +125,44 @@ test("13-C renderer mounts Today, Lead Inbox, and Lead Detail from existing scre
   assert.doesNotMatch(JSON.stringify(leads.props), /API_TOKEN|DATABASE_URL|UI_SESSION_SECRET/);
 });
 
+test("13-C renderer renders mobile verification queue cards from mobile model data", async () => {
+  const { renderRouteToHtml } = await import(RENDERER);
+
+  const verification = renderRouteToHtml("/verification", { viewport: "mobile" });
+
+  assert.equal(verification.responsiveMode, "mobile-verification-cards");
+  assert.equal(verification.props.content.table.rows.length, 0);
+  assert.ok(verification.props.content.mobileCards.length > 0);
+  assert.match(verification.html, /5 leads need review/);
+  assert.match(verification.html, /Hotel wing renovation with inferred crew need/);
+  assert.match(verification.html, /High score with weak rationale/);
+  assert.match(verification.html, /href="\/api\/leads\/lead_weak_rationale\/raw"/);
+  assert.match(verification.html, /Open raw audit evidence/);
+  assert.match(verification.html, />Verify</);
+  assert.match(verification.html, />Correct</);
+  assert.match(verification.html, />Dismiss</);
+  assert.match(verification.html, />Return to lead</);
+});
+
 test("13-D static product build output is present, route-safe, and secret-free", async () => {
-  const [{ createStaticAssetResponsePlan }, packageJsonSource, indexHtml, appJs] = await Promise.all([
+  const [{ createStaticAssetResponsePlan }, packageJsonSource, indexHtml, appJs, styleCss] = await Promise.all([
     import(PRODUCTION_SERVER),
     readFile(PACKAGE_JSON, "utf8"),
     readFile(STATIC_INDEX, "utf8"),
-    readFile(STATIC_APP, "utf8")
+    readFile(STATIC_APP, "utf8"),
+    readFile(STATIC_STYLE, "utf8")
   ]);
   const packageJson = JSON.parse(packageJsonSource);
 
   assert.equal(packageJson.scripts.build, "node web/src/renderer/buildStaticApp.js");
-  assert.match(indexHtml, /<main id="app" aria-label="GroupScout operator workspace"><\/main>/);
-  assert.match(indexHtml, /<script type="module" src="\/assets\/app\.js"><\/script>/);
+  assert.match(indexHtml, /<div id="app"><\/div>/);
+  assert.match(indexHtml, /<link rel="stylesheet" href="\/assets\/styles\.css\?v=pipeline-output-4">/);
+  assert.match(indexHtml, /<script type="module" src="\/assets\/app\.js\?v=pipeline-output-4"><\/script>/);
   assert.match(appJs, /GroupScout operator workspace/);
+  assert.match(appJs, /pipelineRuntime\.js\?v=pipeline-output-4/);
   assert.match(appJs, /createApiClient|\/api\/system/);
+  assert.match(styleCss, /\.lead-inbox-table/);
+  assert.match(styleCss, /\.pipeline-output/);
 
   for (const asset of await listStaticFiles(STATIC_ROOT)) {
     const source = await readFile(new URL(asset, STATIC_ROOT), "utf8");
@@ -149,6 +180,31 @@ test("13-D static product build output is present, route-safe, and secret-free",
   assert.equal(fallback.statusCode, 200);
   assert.match(fallback.contentType, /text\/html/);
   assert.equal(fallback.filePath.endsWith("web/dist/index.html"), true);
+
+  const copiedModule = await createStaticAssetResponsePlan({
+    requestPath: "/src/renderer/domRenderer.js",
+    publicRoot: STATIC_ROOT
+  });
+
+  assert.equal(copiedModule.statusCode, 200);
+  assert.equal(copiedModule.cacheControl, "no-store");
+});
+
+test("13-G static app intercepts only browser app-route navigation", async () => {
+  const { shouldInterceptAppNavigation } = await import(STATIC_APP_ENTRY);
+  const location = new URL("https://groupscout.test/leads");
+
+  assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/leads/lead_hotel_001"), location), true);
+  assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/pipeline?tab=runs#latest"), location), true);
+  assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/api/leads/lead_hotel_001/raw"), location), false);
+  assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/assets/app.js?v=pipeline-output-4"), location), false);
+  assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/src/renderer/domRenderer.js"), location), false);
+  assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/exports/leads.csv"), location), false);
+  assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("https://api.groupscout.test/leads"), location), false);
+  assert.equal(shouldInterceptAppNavigation(clickEvent({ ctrlKey: true }), anchor("/leads"), location), false);
+  assert.equal(shouldInterceptAppNavigation(clickEvent({ button: 1 }), anchor("/leads"), location), false);
+  assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/leads", { target: "_blank" }), location), false);
+  assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/leads.csv", { download: true }), location), false);
 });
 
 test("13-E product dev server and Compose keep backend discovery server-side", async () => {
@@ -231,4 +287,26 @@ async function listStaticFiles(rootUrl, relativeDir = ".") {
   }
 
   return files;
+}
+
+function clickEvent(overrides = {}) {
+  return {
+    altKey: false,
+    button: 0,
+    ctrlKey: false,
+    defaultPrevented: false,
+    metaKey: false,
+    shiftKey: false,
+    ...overrides
+  };
+}
+
+function anchor(href, { target = "", download = false } = {}) {
+  return {
+    href: new URL(href, "https://groupscout.test").href,
+    target,
+    hasAttribute(name) {
+      return name === "download" ? download : false;
+    }
+  };
 }

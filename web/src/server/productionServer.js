@@ -271,9 +271,17 @@ export async function createStaticAssetResponsePlan({ requestPath, publicRoot })
   return {
     statusCode: 200,
     filePath: resolvedPath,
-    cacheControl: requestPath === "/" ? "no-store" : "public, max-age=31536000, immutable",
+    cacheControl: cacheControlForStaticPath(requestPath),
     contentType: contentTypeForPath(resolvedPath)
   };
+}
+
+export function cacheControlForStaticPath(requestPath) {
+  if (requestPath === "/" || requestPath.startsWith("/src/")) {
+    return "no-store";
+  }
+
+  return "public, max-age=31536000, immutable";
 }
 
 async function createAppFallbackPlan({ requestPath, publicRoot }) {

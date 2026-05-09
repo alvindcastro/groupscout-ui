@@ -16,7 +16,9 @@ node --test
 
 There is still no package install requirement.
 
-Current verification refresh on 2026-05-09: `npm test` passed all 26 test files after the production session-gate, Phase 15 renderer-evidence, and design-token guardrail updates.
+Current verification refresh on 2026-05-09: `npm test` passed all 26 test files after the renderer runtime review fixes for raw-audit-safe SPA navigation, `/src/*` cache policy, and mobile Verification Queue rendering.
+
+Renderer runtime review fix on 2026-05-09: `node --test test/phase-13-renderer-runtime.test.js test/dockerization-contract.test.js test/verification-queue.test.js` covered app-route-only click interception, normal `/api/*` raw audit link behavior, copied `/src/*` module `no-store` caching, and mobile Verification Queue cards.
 
 Housekeeping run on 2026-05-08: `npm test` passed all 22 test files.
 
@@ -171,13 +173,14 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 - D2 browser runtime contract metadata for the reserved start command, port, health path, static asset boundary, `/api/*` server/proxy target, and forbidden browser public config keys.
 - D3/Phase 13 development Compose metadata for the UI service, backend network attachment, backend service dependency, port mapping, healthcheck command, no-secret Compose boundary, and product dev-server health payload.
 - D4 production same-origin server metadata, static asset presence, app-route fallback, server-side `/api/*` proxy request construction, public-config secret rejection, and production Docker target.
-- Phase 13 renderer/runtime contract, rendered route smoke for Today/Leads/Lead Detail, static product build output, public asset secret scans, product dev server metadata, and backend compatibility smoke classification.
+- Phase 13 renderer/runtime contract, rendered route smoke for Today/Leads/Lead Detail/Pipeline/mobile Verification, static product build output, app-route-only SPA navigation, public asset secret scans, copied `/src/*` module cache policy, product dev server metadata, and backend compatibility smoke classification.
 - Phase 15 deterministic browser UX hardening for primary navigation, main landmarks, route-specific focus labels, accessible-name metadata, rendered desktop/tablet/mobile modes, stable loading/error/empty states, text-containment policy, and same-origin API metadata.
 - Recursive browser-source checks that `API_TOKEN` is not referenced in browser-facing `web/src/**/*.js` modules outside `web/src/server`.
 - Lead inbox query serialization, blank-filter elision, sort overrides, and response adaptation.
 - Lead detail client access through same-origin `GET /api/leads/{id}`, encoded lead IDs, evidence workspace fields, source evidence, AI enrichment, reviewer corrections, and activity rows.
 - Lead inbox mocked table, filters, states, responsive metadata, and accessibility metadata.
 - Lead detail sections, source evidence, raw audit link intent, AI enrichment metadata, corrections, timeline, and states.
+- Verification Queue desktop/tablet table models, mobile card rendering, raw audit links, and review actions.
 - Lead status transition rules, invalid transition blocking, validation, and PATCH mutation intent.
 - Verification queue trigger classification, filters, row actions, raw audit alias links, responsive metadata, and blocked redaction-policy metadata.
 - Raw audit client access through same-origin `GET /api/leads/{id}/raw`, encoded lead IDs, and raw policy defaults.

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Renderer Runtime Review Fixes
+
+- What: Fixed review findings in the dependency-free browser runtime by limiting SPA click interception to app routes, preserving normal `/api/*` raw audit link navigation, serving copied `/src/*` static modules with `no-store`, rendering mobile Verification Queue cards from mobile model data, and removing `.idea` line-ending churn from the worktree.
+- Where: Updated `web/src/renderer/staticAppEntry.js`, `web/src/server/productionServer.js`, `web/src/renderer/domRenderer.js`, `test/phase-13-renderer-runtime.test.js`, `test/dockerization-contract.test.js`, `test/verification-queue.test.js`, `docs/phase-13-product-renderer-runtime.md`, `docs/phase-5-verification-queue-raw-audit-review.md`, `docs/testing.md`, and `docs/developer-guide.md`.
+- When: Completed on 2026-05-09 during beads task `groupscout-ui-b4l`.
+- Why: Raw audit links must reach the same-origin API proxy instead of being swallowed by client-side routing, unbundled copied source modules must not remain stale across deploys, and mobile verification rendering must show the same actionable queue data as the screen model.
+- How: Ran parallel worker agents for static-runtime and mobile-verification fixes, added focused renderer/runtime and Docker contract assertions, regenerated static assets, and reran targeted plus full quality gates.
+
 ### Phase Prompt Completion Verification
 
 - What: Rechecked `docs/web-app-phase-prompts.md` Phase 0-15 in sequential order, confirmed the implemented UI baseline still covers every phase through tests and runtime/docs artifacts, closed the production `/api/*` session-gate gap, strengthened deterministic Phase 15 route evidence, corrected Phase 1 token drift, and marked the older supporting prompt checklist as complete.

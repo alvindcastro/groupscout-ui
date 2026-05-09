@@ -124,9 +124,19 @@ test("verification queue renders loading empty error and responsive states", () 
   assert.match(error.errorState.message, /verification api unavailable/i);
 
   const mobile = createVerificationQueueScreen({ viewport: "mobile" });
+  const weakRationaleCard = mobile.mobileCards.find((card) => card.id === "lead_weak_rationale");
+
   assert.equal(mobile.layout.mode, "mobile-verification-cards");
   assert.equal(mobile.table.rows.length, 0);
   assert.ok(mobile.mobileCards.length > 0);
+  assert.equal(weakRationaleCard.title, "Hotel wing renovation with inferred crew need");
+  assert.equal(weakRationaleCard.trigger, "High score with weak rationale");
+  assert.deepEqual(weakRationaleCard.meta, ["permit feed", "Unowned", "Available"]);
+  assert.equal(weakRationaleCard.rawAuditLink.href, "/api/leads/lead_weak_rationale/raw");
+  assert.deepEqual(
+    weakRationaleCard.actions.map((action) => action.label),
+    ["Verify", "Correct", "Dismiss", "Return to lead"]
+  );
 });
 
 test("verification queue uses documented DESIGN.md component tokens", () => {

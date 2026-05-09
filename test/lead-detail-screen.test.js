@@ -5,6 +5,7 @@ import {
   createLeadDetailScreen,
   mockLeadDetails
 } from "../web/src/app/leadDetail.js";
+import { mockLeadInboxLeads } from "../web/src/app/leadInbox.js";
 import { designTokens } from "../web/src/design/tokens.js";
 
 test("lead detail renders all Phase 3 evidence workspace sections", () => {
@@ -337,7 +338,14 @@ test("lead detail uses documented DESIGN.md component tokens", () => {
 });
 
 test("phase 3 mock detail data stays aligned with the inbox selected lead", () => {
-  assert.equal(mockLeadDetails.lead_hotel_001.id, "lead_hotel_001");
-  assert.equal(mockLeadDetails.lead_hotel_001.summary.score, 96);
-  assert.equal(mockLeadDetails.lead_hotel_001.summary.propertyFit, "hotel");
+  for (const inboxLead of mockLeadInboxLeads) {
+    const detail = mockLeadDetails[inboxLead.id];
+    const screen = createLeadDetailScreen({ leadId: inboxLead.id });
+
+    assert.equal(detail.id, inboxLead.id);
+    assert.equal(detail.summary.title, inboxLead.title);
+    assert.equal(detail.summary.score, inboxLead.score);
+    assert.equal(detail.summary.propertyFit, inboxLead.propertyFit);
+    assert.equal(screen.state, "ready");
+  }
 });
