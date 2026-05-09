@@ -22,6 +22,7 @@ export const appNavigation = [
 export function createRouteShell(pathname = "/", options = {}) {
   const activeRoute = findActiveRoute(pathname);
   const content = createRouteContent(pathname, activeRoute, options);
+  const navigationDisabled = activeRoute.hidden === true;
 
   return {
     kind: "operator-workspace-shell",
@@ -36,7 +37,8 @@ export function createRouteShell(pathname = "/", options = {}) {
     },
     sections: appNavigation.map((route) => ({
       ...route,
-      active: route.path === activeRoute.path
+      active: route.path === activeRoute.path,
+      disabled: navigationDisabled
     })),
     content
   };

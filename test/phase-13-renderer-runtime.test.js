@@ -156,6 +156,8 @@ test("13-C renderer mounts Today, Lead Inbox, and Lead Detail from existing scre
   assert.match(login.html, /data-admin-login-form/);
   assert.match(login.html, /class="admin-login-window"/);
   assert.match(login.html, /aria-label="Setup token"/);
+  assert.match(login.html, /aria-disabled="true"/);
+  assert.doesNotMatch(login.html, /<nav[^>]*>[\s\S]*<a\s/i);
   assert.doesNotMatch(login.html, /data-admin-logout/);
   assert.match(loading.html, /role="status"[^>]*>Loading leads for review\./);
   assert.match(empty.html, /No leads available/);

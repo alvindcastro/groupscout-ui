@@ -69,6 +69,7 @@ test("route shell mounts the admin setup-token login route outside primary navig
   assert.equal(shell.activeRoute.label, "Admin Login");
   assert.equal(shell.sections.length, expectedRoutes.length);
   assert.equal(shell.sections.some((section) => section.active), false);
+  assert.equal(shell.sections.every((section) => section.disabled), true);
   assert.equal(shell.content.kind, "admin-login-screen");
   assert.equal(shell.content.form.action, "/api/auth/login");
   assert.equal(shell.content.form.fields[0].name, "token");

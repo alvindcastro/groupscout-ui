@@ -52,7 +52,8 @@ nav[aria-label="Primary"]::before {
   font-weight: 750;
 }
 
-nav[aria-label="Primary"] a {
+nav[aria-label="Primary"] a,
+nav[aria-label="Primary"] .nav-disabled {
   display: block;
   padding: 10px 12px;
   border-radius: 6px;
@@ -62,7 +63,10 @@ nav[aria-label="Primary"] a {
   font-weight: 650;
 }
 
-nav[aria-label="Primary"] a + a {
+nav[aria-label="Primary"] a + a,
+nav[aria-label="Primary"] a + .nav-disabled,
+nav[aria-label="Primary"] .nav-disabled + a,
+nav[aria-label="Primary"] .nav-disabled + .nav-disabled {
   margin-top: 4px;
 }
 
@@ -70,6 +74,11 @@ nav[aria-label="Primary"] a:hover,
 nav[aria-label="Primary"] a[aria-current="page"] {
   background: #263142;
   color: #ffffff;
+}
+
+nav[aria-label="Primary"] .nav-disabled {
+  color: #94a3b8;
+  cursor: default;
 }
 
 .app-shell > main {

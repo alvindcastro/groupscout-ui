@@ -95,6 +95,10 @@ function renderNavigation(shell) {
   const links = shell.sections.map((section) => {
     const ariaCurrent = section.active ? ' aria-current="page"' : "";
 
+    if (section.disabled) {
+      return `<span class="nav-disabled" role="link" aria-disabled="true">${escapeHtml(section.label)}</span>`;
+    }
+
     return `<a href="${escapeHtml(section.href ?? section.path)}"${ariaCurrent}>${escapeHtml(section.label)}</a>`;
   });
 
@@ -725,7 +729,9 @@ function scoreBand(score) {
 function collectFocusableLabels(shell) {
   const controls = shell.content.controls?.map((control) => control.ariaLabel ?? control.label) ?? [];
   const routeActions = collectActionLabels(shell.content);
-  const links = shell.sections.map((section) => section.label);
+  const links = shell.sections
+    .filter((section) => !section.disabled)
+    .map((section) => section.label);
 
   const routeFocusableLabels = [...controls, ...routeActions].filter(Boolean);
 
