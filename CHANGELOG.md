@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 12 D3 - Development Compose Integration
+
+- What: Added the D3 development Compose override and server-only health harness for a `groupscout-ui` service that joins the backend network, uses container port `3000`, healthchecks `/healthz`, and carries the internal `http://groupscout:8080` API target metadata without exposing browser or image secrets.
+- Where: Added `compose.dev.yml` and `web/src/server/devComposeHealthServer.js`; updated `Dockerfile`, `test/dockerization-contract.test.js`, `docs/ui-dockerization-contract.md`, `docs/phase-12-ui-dockerization.md`, `UI_TDD_PHASE_PROMPTS.md`, `README.md`, `docs/developer-guide.md`, `docs/testing.md`, and `docs/troubleshooting.md`.
+- When: Completed on 2026-05-09 as Phase 12 D3 after the D2 browser runtime contract.
+- Why: Developers need a validated UI Compose integration point beside the backend stack before production same-origin proxying, static asset serving, or a rendered browser runtime is introduced.
+- How: Followed strict TDD with a red `node test/dockerization-contract.test.js` run, added the Compose override plus D3 health metadata, documented commands and scope boundaries, then reran the focused Dockerization contract test, `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet`, local `npm test`, `docker build --target test -t groupscout-ui-test .`, and `docker run --rm groupscout-ui-test`.
+
 ### Phase 12 D2 - Browser Runtime Contract
 
 - What: Added the D2 browser runtime contract for a future lightweight Node UI server, including reserved `npm run start:ui`, container port `3000`, `/healthz`, static asset boundary metadata, same-origin `/api/*` routing expectations, and forbidden browser public config checks.

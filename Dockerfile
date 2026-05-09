@@ -10,5 +10,6 @@ COPY web ./web
 COPY test ./test
 COPY Dockerfile ./
 COPY .dockerignore ./
+COPY compose.dev.yml ./
 
 CMD ["npm", "test"]

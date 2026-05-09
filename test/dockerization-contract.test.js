@@ -4,12 +4,15 @@ import { test } from "node:test";
 
 const DOCKERFILE = new URL("../Dockerfile", import.meta.url);
 const DOCKERIGNORE = new URL("../.dockerignore", import.meta.url);
+const COMPOSE_DEV = new URL("../compose.dev.yml", import.meta.url);
 const PACKAGE_JSON = new URL("../package.json", import.meta.url);
 const RUNTIME_CONTRACT = new URL("../web/src/server/browserRuntimeContract.js", import.meta.url);
+const DEV_COMPOSE_SERVER = new URL("../web/src/server/devComposeHealthServer.js", import.meta.url);
 const CONTRACT_DOC = new URL("../docs/ui-dockerization-contract.md", import.meta.url);
 const PHASE_DOC = new URL("../docs/phase-12-ui-dockerization.md", import.meta.url);
 const DEVELOPER_GUIDE = new URL("../docs/developer-guide.md", import.meta.url);
 const TESTING_DOC = new URL("../docs/testing.md", import.meta.url);
+const TROUBLESHOOTING_DOC = new URL("../docs/troubleshooting.md", import.meta.url);
 
 test("D0 dockerization contract documents the chosen path before Docker files exist", async () => {
   const contract = await readFile(CONTRACT_DOC, "utf8");
@@ -66,6 +69,7 @@ test("D1 Dockerfile defines only a Node test target for npm test", async () => {
   assert.match(dockerfile, /^COPY package\.json \.\/$/m);
   assert.match(dockerfile, /^COPY web \.\/web$/m);
   assert.match(dockerfile, /^COPY test \.\/test$/m);
+  assert.match(dockerfile, /^COPY compose\.dev\.yml \.\/$/m);
   assert.match(dockerfile, /^CMD \["npm", "test"\]$/m);
   assert.equal(packageJson.scripts.test, "node --test");
   assert.doesNotMatch(dockerfile, /\bnpm\s+(ci|install)\b/);
@@ -209,4 +213,94 @@ test("D2 documentation records runtime contract, red-green evidence, and future 
   assert.match(phaseDoc, /Green run: `node --test test\/dockerization-contract\.test\.js`/);
   assert.match(developerGuide, /Runtime model: `lightweight-node-server`/);
   assert.match(testingDoc, /Phase 12 D2 run on 2026-05-09/);
+});
+
+test("D3 Compose override wires the UI service to the backend network without secrets", async () => {
+  const compose = await readFile(COMPOSE_DEV, "utf8");
+
+  assert.match(compose, /^services:\n  groupscout-ui:/m);
+  assert.match(compose, /context: \$\{GROUPSCOUT_UI_REPO:-\/mnt\/c\/Users\/alvin\/WebstormProjects\/groupscout-ui\}/);
+  assert.match(compose, /dockerfile: Dockerfile/);
+  assert.match(compose, /target: test/);
+  assert.match(compose, /command: \["node", "web\/src\/server\/devComposeHealthServer\.js"\]/);
+  assert.match(compose, /"\$\{GROUPSCOUT_UI_HOST_PORT:-3001\}:3000"/);
+  assert.match(compose, /UI_API_PROXY_TARGET: "http:\/\/groupscout:8080"/);
+  assert.match(compose, /UI_PUBLIC_API_PATH: "\/api\/\*"/);
+  assert.match(compose, /UI_HEALTH_PATH: "\/healthz"/);
+  assert.match(compose, /networks:\n      - groupscout_net/);
+  assert.match(compose, /depends_on:\n      groupscout:\n        condition: service_started/);
+  assert.match(compose, /healthcheck:\n      test: \["CMD-SHELL", "node -e \\"fetch\('http:\/\/127\.0\.0\.1:3000\/healthz'\)/);
+  assert.doesNotMatch(compose, /API_TOKEN|DATABASE_URL|SLACK|RESEND|OPENAI|ANTHROPIC|CLAUDE|OLLAMA|UI_SESSION_SECRET/i);
+});
+
+test("D3 dev Compose health harness matches the D2 runtime contract", async () => {
+  const {
+    DEV_COMPOSE_CONTRACT,
+    createDevComposeHealthPayload
+  } = await import(DEV_COMPOSE_SERVER);
+
+  assert.deepEqual(DEV_COMPOSE_CONTRACT, {
+    phase: "D3",
+    status: "development-compose",
+    composeFile: "compose.dev.yml",
+    serviceName: "groupscout-ui",
+    backendServiceName: "groupscout",
+    backendNetwork: "groupscout_net",
+    backendTarget: "http://groupscout:8080",
+    browserApiPath: "/api/*",
+    healthPath: "/healthz",
+    containerPort: 3000,
+    hostPortEnv: "GROUPSCOUT_UI_HOST_PORT",
+    defaultHostPort: 3001,
+    smokeRequiresBackendServices: ["groupscout", "postgres", "ollama", "ollama-init"]
+  });
+
+  assert.deepEqual(
+    createDevComposeHealthPayload({
+      UI_API_PROXY_TARGET: "http://groupscout:8080",
+      UI_PUBLIC_API_PATH: "/api/*"
+    }),
+    {
+      status: "ok",
+      phase: "D3",
+      service: "groupscout-ui",
+      healthPath: "/healthz",
+      api: {
+        browserPath: "/api/*",
+        internalTarget: "http://groupscout:8080",
+        sameOrigin: true
+      }
+    }
+  );
+  assert.doesNotThrow(() =>
+    createDevComposeHealthPayload({
+      API_TOKEN: "must-not-leak",
+      UI_API_PROXY_TARGET: "http://groupscout:8080"
+    })
+  );
+  assert.doesNotMatch(
+    JSON.stringify(createDevComposeHealthPayload({ API_TOKEN: "must-not-leak" })),
+    /must-not-leak|API_TOKEN/
+  );
+});
+
+test("D3 documentation records Compose commands, constraints, and evidence", async () => {
+  const [contract, phaseDoc, developerGuide, testingDoc, troubleshootingDoc] = await Promise.all([
+    readFile(CONTRACT_DOC, "utf8"),
+    readFile(PHASE_DOC, "utf8"),
+    readFile(DEVELOPER_GUIDE, "utf8"),
+    readFile(TESTING_DOC, "utf8"),
+    readFile(TROUBLESHOOTING_DOC, "utf8")
+  ]);
+
+  assert.match(contract, /D3 status: development Compose integration/i);
+  assert.match(contract, /Compose override: `compose\.dev\.yml`/);
+  assert.match(contract, /UI service: `groupscout-ui`/);
+  assert.match(contract, /Host port: `\$\{GROUPSCOUT_UI_HOST_PORT:-3001\}` maps to container port `3000`/);
+  assert.match(contract, /D3 still does not add production same-origin proxying, static asset serving, or a product UI renderer/);
+  assert.match(phaseDoc, /#### D3 Evidence/);
+  assert.match(phaseDoc, /Docker Compose config: `docker compose -f \/mnt\/c\/Users\/alvin\/GolandProjects\/groupscout\/docker-compose\.yml -f compose\.dev\.yml config --quiet`/);
+  assert.match(developerGuide, /Development Compose override: `compose\.dev\.yml`/);
+  assert.match(testingDoc, /Phase 12 D3 run on 2026-05-09/);
+  assert.match(troubleshootingDoc, /## UI Development Compose Fails/);
 });

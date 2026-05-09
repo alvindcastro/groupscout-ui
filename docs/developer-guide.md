@@ -8,6 +8,7 @@ This repo is currently a no-build, model-level UI workspace for GroupScout opera
 - `web/src/app/shell.js` owns route-shell selection.
 - `web/src/server/uiDeployment.js` owns model-level UI deployment settings, base-path mounting, session-cookie API authorization, and development-only CORS metadata.
 - `web/src/server/browserRuntimeContract.js` owns the D2 browser runtime contract metadata for the future lightweight Node server, reserved port, health path, static asset boundary, `/api/*` routing expectation, and forbidden browser public config keys.
+- `web/src/server/devComposeHealthServer.js` owns the D3 development Compose health harness for the `groupscout-ui` service.
 - `web/src/app/todayCommandCenter.js` owns the mocked Today command center, operational priority summaries, system health metadata, and read-only routing policy.
 - `web/src/app/leadInbox.js` owns the mocked Lead Inbox screen model.
 - `web/src/app/leadDetail.js` owns the mocked Lead Detail Evidence Workspace.
@@ -37,6 +38,12 @@ Containerized test-image run:
 ```sh
 docker build --target test -t groupscout-ui-test .
 docker run --rm groupscout-ui-test
+```
+
+Development Compose config validation against the backend stack:
+
+```sh
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
 ```
 
 Optional design-doc lint. This uses `npx` and may fetch the package if it is not already cached:
@@ -150,9 +157,19 @@ The H0 baseline is [smell-h0-api-client-characterization.md](./smell-h0-api-clie
 
 ## Dockerization Planning
 
-Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phased prompt pack and [UI Dockerization Contract](./ui-dockerization-contract.md) for the D0-D2 decision record. The current repo has a minimal `Dockerfile` test target and `.dockerignore`; the image runs `npm test` without a package install step, backend service, exposed port, healthcheck, proxy, or browser runtime.
+Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phased prompt pack and [UI Dockerization Contract](./ui-dockerization-contract.md) for the D0-D3 decision record. The current repo has a minimal `Dockerfile` test target and `.dockerignore`; the image runs `npm test` without a package install step, backend service, exposed port, healthcheck, proxy, or browser runtime.
 
-Runtime model: `lightweight-node-server`. The D2 contract reserves `npm run start:ui`, container port `3000`, health path `/healthz`, server-owned generated assets under `web/dist`, and server/proxy-side `/api/*` routing to `http://groupscout:8080`. These are contract metadata only: `package.json` has no `start:ui` script yet, and dev server, framework selection, Compose wiring, static serving, and production same-origin proxy behavior are not implemented yet.
+Runtime model: `lightweight-node-server`. The D2 contract reserves `npm run start:ui`, container port `3000`, health path `/healthz`, server-owned generated assets under `web/dist`, and server/proxy-side `/api/*` routing to `http://groupscout:8080`. These are contract metadata only: `package.json` has no `start:ui` script yet, and framework selection, static serving, production same-origin proxy behavior, and the product UI runtime are not implemented yet.
+
+Development Compose override: `compose.dev.yml`. Use it beside the backend Compose file so the UI service joins the backend `groupscout_net` network and can target backend service `groupscout` at `http://groupscout:8080`:
+
+```sh
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
+```
+
+The D3 service is `groupscout-ui`. It builds the existing D1 `test` target, overrides the command with `node web/src/server/devComposeHealthServer.js`, maps `${GROUPSCOUT_UI_HOST_PORT:-3001}` to container port `3000`, and healthchecks `/healthz`. The default host port is `3001` because the backend full stack already uses host port `3000` for Grafana.
+
+For a targeted D3 smoke path, bring up `groupscout-ui` with backend service `groupscout`; the backend Compose dependency chain also starts `postgres`, `ollama`, and `ollama-init`. The UI health harness does not require `alertd`, `n8n`, Grafana, Prometheus, Loki, Promtail, or a lead pipeline run.
 
 ## Current Limitations
 
@@ -161,4 +178,4 @@ Runtime model: `lightweight-node-server`. The D2 contract reserves `npm run star
 - Responsive behavior is represented as layout metadata, not measured DOM layout.
 - Design token tests check selected exports; they do not resolve every nested token reference from `DESIGN.md`.
 - The browser credential guard recursively scans browser-facing `web/src/**/*.js` files while excluding `web/src/server`; keep server-only code in that excluded subtree and keep browser modules free of automation credentials.
-- UI Compose integration, static asset serving, and browser runtime behavior are contract-only or not implemented yet.
+- Production static asset serving, browser `/api/*` proxy behavior, framework rendering, and the `npm run start:ui` runtime remain future strict-TDD phases.

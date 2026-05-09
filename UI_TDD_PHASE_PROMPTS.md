@@ -625,7 +625,7 @@ Do not build Settings, custom dashboards, system mutations, alert mutations, pip
 
 ## Phase 12 - UI Dockerization
 
-> Status: D0 contract documented, D1 UI test container implemented, and D2 browser runtime contract test-covered. The detailed prompt pack lives in `docs/phase-12-ui-dockerization.md`, and the D0-D2 decision record lives in `docs/ui-dockerization-contract.md`.
+> Status: D0 contract documented, D1 UI test container implemented, D2 browser runtime contract test-covered, and D3 development Compose integration added. The detailed prompt pack lives in `docs/phase-12-ui-dockerization.md`, and the D0-D3 decision record lives in `docs/ui-dockerization-contract.md`.
 
 ### Prompt
 
@@ -637,7 +637,7 @@ Goal: dockerize the UI in phases without inventing a browser runtime before the 
 Context:
 - The backend Docker stack is in /mnt/c/Users/alvin/GolandProjects/groupscout.
 - Backend Compose runs groupscout on 8080, alertd on 8081, Postgres, n8n, observability, Ollama, and ollama-init on groupscout_net.
-- The UI repo has a D1 Dockerfile test target and .dockerignore, but no Compose file, renderer, dev server, build tool, lockfile, or browser runtime.
+- The UI repo has a D1 Dockerfile test target, .dockerignore, and D3 compose.dev.yml backend Compose override, but no renderer, dev server, build tool, lockfile, production proxy/static serving, or product browser runtime.
 - The UI repo currently runs model-level JavaScript tests with npm test -> node --test.
 - Browser code must use same-origin /api/* contracts.
 - API_TOKEN and provider secrets must not be exposed to browser JavaScript, static assets, generated config, or public image layers.
@@ -658,7 +658,7 @@ Do not add Dockerfile, Compose, nginx/proxy config, browser framework, dev serve
 - [x] D0 - Dockerization Contract And Decision Record
 - [x] D1 - UI Test Container
 - [x] D2 - Browser Runtime Contract
-- [ ] D3 - Development Compose Integration
+- [x] D3 - Development Compose Integration
 - [ ] D4 - Same-Origin Proxy Or Static Serving
 - [ ] D5 - Docker Operations Docs And CI Hooks
 
@@ -666,7 +666,7 @@ Do not add Dockerfile, Compose, nginx/proxy config, browser framework, dev serve
 
 - [x] The first Docker implementation target is a deterministic UI test image.
 - [x] A browser runtime is added only after its contract is test-covered.
-- [ ] Development Compose reaches the backend by service name, `http://groupscout:8080`, from inside the Docker network.
+- [x] Development Compose reaches the backend by service name, `http://groupscout:8080`, from inside the Docker network.
 - [x] Browser-visible code and config never contain `API_TOKEN`, provider keys, Slack tokens, Resend keys, or database URLs.
 - [ ] Production serves browser assets and `/api/*` from one origin.
 - [ ] README, developer, testing, and troubleshooting docs are updated only when real commands exist.
@@ -679,6 +679,8 @@ Do not add Dockerfile, Compose, nginx/proxy config, browser framework, dev serve
 - D1 evidence: `node test/dockerization-contract.test.js` failed before Docker files and D1 docs existed, then passed after implementation; `docker build --target test -t groupscout-ui-test .`, `docker run --rm groupscout-ui-test`, and `npm test` passed.
 - D2 added `web/src/server/browserRuntimeContract.js` and guardrail coverage for a future lightweight Node server contract: reserved `npm run start:ui`, port `3000`, `/healthz`, server-owned assets under `web/dist`, same-origin `/api/*` server/proxy routing to `http://groupscout:8080`, and forbidden browser public config keys.
 - D2 evidence: `node --test test/dockerization-contract.test.js` failed before runtime contract metadata and D2 docs existed, then passed after implementation; `npm test` passed.
+- D3 added `compose.dev.yml` and `web/src/server/devComposeHealthServer.js` for a development `groupscout-ui` service that joins `groupscout_net`, depends on backend service `groupscout`, maps `${GROUPSCOUT_UI_HOST_PORT:-3001}` to container port `3000`, healthchecks `/healthz`, and carries `UI_API_PROXY_TARGET=http://groupscout:8080` metadata without secrets.
+- D3 evidence: `node test/dockerization-contract.test.js` failed before the Compose override, health harness, and D3 docs existed, then passed after implementation; `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet`, `npm test`, `docker build --target test -t groupscout-ui-test .`, and `docker run --rm groupscout-ui-test` passed.
 - Do not mark Phase 12 complete until Docker files or runtime code are added through strict TDD and verified.
 - Backend constraints inspected: `/mnt/c/Users/alvin/GolandProjects/groupscout/Dockerfile`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/guides/DOCKER.md`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/guides/TESTING.md`, and `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/API_CONFIG.md`.
 
@@ -693,7 +695,7 @@ Do not add Dockerfile, Compose, nginx/proxy config, browser framework, dev serve
 - [ ] What raw audit payloads can operators view, and what must be redacted before display? Phase 5 keeps this blocked explicitly before inline raw payload rendering.
 - [ ] Should v1 ship Slack quick actions, the admin UI, or both together?
 - [x] Should the first real UI runtime be static assets, a lightweight Node server, or backend-served assets? D2 chose a lightweight Node server contract.
-- [ ] Should UI Compose live in the UI repo, the backend repo, or as a cross-repo override?
+- [x] Should UI Compose live in the UI repo, the backend repo, or as a cross-repo override? D3 chose a UI-repo `compose.dev.yml` override used beside the backend Compose file.
 - [ ] Should production same-origin behavior use a proxy container or Go static-file serving?
 
 ## Suggested Phase Order

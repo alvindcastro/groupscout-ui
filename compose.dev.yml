@@ -1,0 +1,27 @@
+services:
+  groupscout-ui:
+    build:
+      context: ${GROUPSCOUT_UI_REPO:-/mnt/c/Users/alvin/WebstormProjects/groupscout-ui}
+      dockerfile: Dockerfile
+      target: test
+    image: groupscout-ui-dev
+    command: ["node", "web/src/server/devComposeHealthServer.js"]
+    environment:
+      NODE_ENV: "development"
+      UI_API_PROXY_TARGET: "http://groupscout:8080"
+      UI_PUBLIC_API_PATH: "/api/*"
+      UI_HEALTH_PATH: "/healthz"
+      UI_PORT: "3000"
+    ports:
+      - "${GROUPSCOUT_UI_HOST_PORT:-3001}:3000"
+    networks:
+      - groupscout_net
+    depends_on:
+      groupscout:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/healthz').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s

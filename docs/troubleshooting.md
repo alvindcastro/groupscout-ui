@@ -93,6 +93,24 @@ Common causes:
 
 Note: D2 reserves `npm run start:ui`, port `3000`, and `/healthz` as contract metadata only. There is not a runnable UI server for those values yet.
 
+## UI Development Compose Fails
+
+D3 adds `compose.dev.yml` as a UI-repo override for the backend Compose file. Validate the merged config from the UI repo:
+
+```sh
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
+```
+
+Common causes:
+
+- The backend Compose file path is wrong or the sibling backend repo is not present at `/mnt/c/Users/alvin/GolandProjects/groupscout`.
+- Docker Desktop or WSL integration is not running, so `docker compose` cannot inspect or build services.
+- Host port `3001` is already in use. Set `GROUPSCOUT_UI_HOST_PORT` to another host port; the container still listens on `3000`.
+- The UI service cannot resolve `groupscout` because the override was run without the backend Compose file or without the `groupscout_net` network definition.
+- The `groupscout` backend service is not started. A targeted D3 smoke run should include `groupscout-ui` and `groupscout`; backend Compose also starts `postgres`, `ollama`, and `ollama-init` because `groupscout` depends on them.
+
+D3 healthchecks only `/healthz` on the development health harness. It does not prove production static serving, rendered UI behavior, or `/api/*` proxy forwarding yet.
+
 ## Backend Health Check Fails
 
 Run backend commands from:

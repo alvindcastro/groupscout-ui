@@ -1,6 +1,6 @@
 # GroupScout UI
 
-Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls. Phase 8 adds basic explainable analytics and demand signals. Phase 9 adds a minimal session/auth and same-origin deployment wrapper. Phase 10 adds a later read-only Alertd console while keeping Slack as the interrupt channel. Phase 11 adds the Today command center and read-only system health summary. Phase 12 adds the first Docker target for the model-level UI test suite and a tested browser runtime contract for later Compose/runtime phases.
+Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls. Phase 8 adds basic explainable analytics and demand signals. Phase 9 adds a minimal session/auth and same-origin deployment wrapper. Phase 10 adds a later read-only Alertd console while keeping Slack as the interrupt channel. Phase 11 adds the Today command center and read-only system health summary. Phase 12 adds the first Docker target for the model-level UI test suite, a tested browser runtime contract, and a development Compose override for backend-network UI wiring.
 
 ## Current Scope
 
@@ -37,7 +37,7 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Phase 10 tests cover read-only alert state rendering, SPS summaries, evidence, room inventory, action history, disabled mutation actions, `/alerts` route mounting, responsive metadata, token usage, and `GET /api/alerts`.
 - Phase 11 tests cover the Today command center, priority lead and aging-work summaries, active alerts, failed jobs, system health, read-only action policy, `/` route mounting, responsive metadata, token usage, and `GET /api/system`.
 - Smell Phase H1 split the growing browser API client module while preserving `createApiClient(...)` and the centralized same-origin `/api/*` guard.
-- Phase 12 dockerization planning lives in `docs/phase-12-ui-dockerization.md`; the D0-D2 contract lives in `docs/ui-dockerization-contract.md`; the current Docker target runs `npm test` in a clean Node container, and the browser runtime is contract-only without a runnable server, proxy, Compose service, or backend dependency.
+- Phase 12 dockerization planning lives in `docs/phase-12-ui-dockerization.md`; the D0-D3 contract lives in `docs/ui-dockerization-contract.md`; the current Docker target runs `npm test` in a clean Node container, and `compose.dev.yml` adds a development `groupscout-ui` service with `/healthz` on container port `3000` while production proxy/static serving and the product renderer remain future work.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
@@ -51,6 +51,12 @@ Containerized UI test run:
 ```sh
 docker build --target test -t groupscout-ui-test .
 docker run --rm groupscout-ui-test
+```
+
+Development Compose config validation against the backend stack:
+
+```sh
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
 ```
 
 ## Developer Docs

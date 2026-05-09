@@ -6,13 +6,16 @@ D1 status: UI test container. The first Docker target now runs the current model
 
 D2 status: browser runtime contract. The future browser runtime shape is now test-covered as contract metadata without adding a runnable server, framework, dev server, proxy, or Compose wiring.
 
+D3 status: development Compose integration. The UI repo now provides a backend Compose override and health harness for development container wiring without adding production proxy/static serving or a product renderer.
+
 ## Decision
 
 The chosen dockerization path is test image first, browser runtime later.
 
 - D1 will add the first Docker target: a deterministic Node image that runs the current `npm test` suite.
 - D2 defines the browser runtime contract before selecting or wiring a dev server, renderer, proxy, or static-asset serving model.
-- D3 and later phases will wire development Compose and same-origin serving only after each behavior has failing tests or validation.
+- D3 wires development Compose through a UI-repo override that is loaded beside the backend Compose file.
+- D4 and later phases will wire same-origin serving only after each behavior has failing tests or validation.
 - No Dockerfile, Compose file, reverse proxy, dev server, renderer, or application runtime is added in D0.
 
 ## D1 Test Image
@@ -42,6 +45,32 @@ The D2 runtime contract lives in `web/src/server/browserRuntimeContract.js`.
 - API proxy target: `http://groupscout:8080` for future server/proxy-side routing.
 
 No framework, dev server, renderer, Compose service, or runnable UI server is added in D2. `package.json` intentionally does not define `start`, `dev`, or `start:ui` until a later phase implements the runtime.
+
+## D3 Development Compose Integration
+
+The D3 Compose override lives in `compose.dev.yml`.
+
+- Compose override: `compose.dev.yml`
+- UI service: `groupscout-ui`
+- Backend service dependency: `groupscout`
+- Shared backend network: `groupscout_net`
+- Backend internal target: `http://groupscout:8080`
+- Browser API path metadata: `/api/*`
+- Health path: `/healthz`
+- Host port: `${GROUPSCOUT_UI_HOST_PORT:-3001}` maps to container port `3000`
+- Container command: `node web/src/server/devComposeHealthServer.js`
+
+The D3 service builds the existing D1 `test` target and overrides the command with a server-only health harness. It is a development Compose integration point, not the production serving model.
+
+Use the override beside the backend Compose file:
+
+```sh
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
+```
+
+The basic D3 smoke path targets `groupscout-ui` and the minimum backend services needed by the current backend `groupscout` dependency chain: `groupscout`, `postgres`, `ollama`, and `ollama-init`. It does not require `alertd`, `n8n`, `grafana`, `prometheus`, `loki`, `promtail`, or a lead pipeline run.
+
+D3 still does not add production same-origin proxying, static asset serving, or a product UI renderer. `package.json` still intentionally has no `start`, `dev`, or `start:ui` script.
 
 ## Backend Contract
 
@@ -86,9 +115,17 @@ Browser code must not call `http://groupscout:8080` or `http://alertd:8081` dire
 - Green run: `node --test test/dockerization-contract.test.js`.
 - Full-suite run: `npm test`.
 
+## D3 Evidence
+
+- Red run: `node test/dockerization-contract.test.js` failed because `compose.dev.yml`, `web/src/server/devComposeHealthServer.js`, and D3 documentation did not exist.
+- Green run: `node --test test/dockerization-contract.test.js`.
+- Docker Compose config: `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet`.
+- Full-suite run: `npm test`.
+- Docker build: `docker build --target test -t groupscout-ui-test .`.
+- Containerized test: `docker run --rm groupscout-ui-test`.
+
 ## Out Of Scope
 
-- Compose files and Compose overrides.
 - Nginx, reverse-proxy, or static-serving config.
 - Browser framework, renderer, dev server, or production app runtime implementation.
-- Compose validation commands.
+- Browser API proxy behavior beyond D3 metadata.

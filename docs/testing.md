@@ -28,6 +28,8 @@ Phase 12 D1 run on 2026-05-09: `node test/dockerization-contract.test.js` covere
 
 Phase 12 D2 run on 2026-05-09: `node --test test/dockerization-contract.test.js` covered the browser runtime contract metadata, reserved start command, port `3000`, `/healthz`, static asset boundary, same-origin `/api/*` routing to `http://groupscout:8080`, forbidden browser public config keys, and D2 docs; `npm test` passed.
 
+Phase 12 D3 run on 2026-05-09: `node --test test/dockerization-contract.test.js` covered the `compose.dev.yml` backend Compose override, `groupscout-ui` service, `groupscout_net` attachment, host `${GROUPSCOUT_UI_HOST_PORT:-3001}` to container `3000` port mapping, `/healthz` health harness, `http://groupscout:8080` internal target metadata, no-secret Compose boundary, and D3 docs; `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet`, `npm test`, `docker build --target test -t groupscout-ui-test .`, and `docker run --rm groupscout-ui-test` passed.
+
 Optional design-doc lint. This is not an npm script and may use the network through `npx`:
 
 ```sh
@@ -41,7 +43,15 @@ docker build --target test -t groupscout-ui-test .
 docker run --rm groupscout-ui-test
 ```
 
-The D2 browser runtime contract reserves a future lightweight Node server with `npm run start:ui`, container port `3000`, and `/healthz`, but no runnable server or package script exists yet. Compose, proxy/static serving, and browser runtime implementation remain future strict-TDD phases. See [Phase 12 UI Dockerization Prompt Pack](./phase-12-ui-dockerization.md) and [UI Dockerization Contract](./ui-dockerization-contract.md).
+The D2 browser runtime contract reserves a future lightweight Node server with `npm run start:ui`, container port `3000`, and `/healthz`, but no package script exists yet. D3 adds a development Compose health harness, not the production browser runtime. Proxy/static serving and browser runtime implementation remain future strict-TDD phases. See [Phase 12 UI Dockerization Prompt Pack](./phase-12-ui-dockerization.md) and [UI Dockerization Contract](./ui-dockerization-contract.md).
+
+Development Compose config validation:
+
+```sh
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
+```
+
+The D3 UI service is `groupscout-ui`. It joins the backend `groupscout_net`, targets `http://groupscout:8080` through server-side metadata, exposes container port `3000` on host `${GROUPSCOUT_UI_HOST_PORT:-3001}`, and healthchecks `/healthz`. A targeted smoke run should start `groupscout-ui` with backend service `groupscout`; the current backend dependency chain also starts `postgres`, `ollama`, and `ollama-init`.
 
 ## Focused UI Tests
 
@@ -83,6 +93,7 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 - Session-cookie enforcement metadata for UI `/api/*` access.
 - `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, and development-only `CORS_ALLOWED_ORIGINS` deployment behavior.
 - D2 browser runtime contract metadata for the reserved start command, port, health path, static asset boundary, `/api/*` server/proxy target, and forbidden browser public config keys.
+- D3 development Compose metadata for the UI service, backend network attachment, backend service dependency, port mapping, healthcheck command, no-secret Compose boundary, and health harness payload.
 - Recursive browser-source checks that `API_TOKEN` is not referenced in browser-facing `web/src/**/*.js` modules outside `web/src/server`.
 - Lead inbox query serialization, blank-filter elision, sort overrides, and response adaptation.
 - Lead inbox mocked table, filters, states, responsive metadata, and accessibility metadata.
@@ -111,7 +122,7 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 - CSS layout.
 - Live backend compatibility.
 - Real cookie signing, browser session issuance, reverse-proxy behavior, and production CORS headers.
-- Compose integration, proxy/static serving behavior, and browser runtime container smoke tests.
+- Production proxy/static serving behavior and product browser runtime container smoke tests.
 - Raw audit payload redaction behavior beyond the explicit blocked TODO.
 - Real email sending, clipboard behavior, or CRM sync for outreach.
 - Real pipeline execution, worker polling, Grafana rendering, or log viewer integration.
@@ -120,7 +131,7 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 - Live alertd contract compatibility, Slack delivery behavior, and alert acknowledgement/resolution workflows.
 - Live `/api/system` compatibility or real system-health aggregation accuracy.
 - Full `DESIGN.md` token-reference resolution.
-- The D2 `npm run start:ui` command, port `3000`, and `/healthz` are contract metadata only; there is no running browser server to smoke test yet.
+- The D2 `npm run start:ui` command remains contract metadata only; D3 has a development `/healthz` harness, not a rendered browser app or production same-origin proxy.
 
 Before treating a UI feature as production-ready, add browser or component-level coverage once a renderer/framework exists.
 

@@ -1,6 +1,6 @@
 # Phase 12 UI Dockerization Prompt Pack
 
-Phase D0 and D1 are complete. Future phases in this prompt pack still require strict TDD before adding Compose, proxy, framework, browser runtime, or application runtime code.
+Phase D0 through D3 are complete. Future phases in this prompt pack still require strict TDD before adding production proxy/static serving, framework, browser renderer, or application runtime code.
 
 ## Sources Inspected
 
@@ -23,7 +23,7 @@ Phase D0 and D1 are complete. Future phases in this prompt pack still require st
 
 - The backend repo already has a full Docker Compose stack with `groupscout` on `8080`, `alertd` on `8081`, Postgres, n8n, Prometheus, Grafana, Loki, Promtail, Ollama, and `ollama-init`.
 - Backend containers communicate on `groupscout_net`; UI containers should reach the backend as `http://groupscout:8080` when running in the same Compose project or network.
-- The UI repo now has a D1 `Dockerfile` test target and `.dockerignore`; it still has no Compose file, framework, renderer, browser build, lockfile, or dev server.
+- The UI repo now has a D1 `Dockerfile` test target, `.dockerignore`, and D3 `compose.dev.yml` backend Compose override; it still has no framework, renderer, browser build, lockfile, production proxy/static serving, or product UI dev server.
 - The UI repo is currently a model-level plain JavaScript workspace with Node's built-in `node:test` runner and `npm test`.
 - Browser UI code must use same-origin `/api/*` contracts.
 - `API_TOKEN` is reserved for automation clients and must not be exposed to browser JavaScript.
@@ -38,7 +38,7 @@ Preferred end state:
 - A development Compose service for the UI once a dev server exists.
 - A same-origin browser path for `/api/*`, either through a UI proxy container or by serving built assets from the backend.
 - No browser access to automation tokens.
-- Smoke checks that prove the UI container, API proxy, and backend health path work together.
+- Smoke checks that prove the UI development container starts on the backend network and can be extended to proxy/API checks once the runtime and proxy phases exist.
 
 ## Global TDD Rules
 
@@ -232,18 +232,35 @@ Do not require Ollama, n8n, Grafana, or the full observability stack for basic U
 
 ### Tasks
 
-- [ ] Decide whether UI Compose lives in this repo or as an override beside the backend Compose file.
-- [ ] Attach the UI service to the backend Docker network.
-- [ ] Point internal API/proxy traffic at `http://groupscout:8080`.
-- [ ] Add a healthcheck for the UI service.
-- [ ] Add `docker compose config` validation to docs or scripts.
-- [ ] Document which backend services are required for UI smoke tests.
+- [x] Decide whether UI Compose lives in this repo or as an override beside the backend Compose file.
+- [x] Attach the UI service to the backend Docker network.
+- [x] Point internal API/proxy traffic at `http://groupscout:8080`.
+- [x] Add a healthcheck for the UI service.
+- [x] Add `docker compose config` validation to docs or scripts.
+- [x] Document which backend services are required for UI smoke tests.
 
 ### Acceptance Criteria
 
-- [ ] Developers can run the UI container alongside the backend.
-- [ ] Compose config validates without requiring secrets in the UI image.
-- [ ] The basic UI path does not require the full lead pipeline to run.
+- [x] Developers can run the UI development container alongside the backend Compose stack.
+- [x] Compose config validates without requiring secrets in the UI image.
+- [x] The basic UI development health path does not require n8n, Grafana, Prometheus, Loki, Promtail, or the full lead pipeline to run.
+
+### Implementation Notes
+
+#### D3 Evidence
+
+- The D3 Compose override lives in `compose.dev.yml` and is intended to be used with the backend Compose file: `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml ...`.
+- The UI service is `groupscout-ui`; it builds the existing D1 `test` target, runs `node web/src/server/devComposeHealthServer.js`, attaches to `groupscout_net`, and depends on backend service `groupscout`.
+- The UI development container uses container port `3000`, host port `${GROUPSCOUT_UI_HOST_PORT:-3001}`, and healthcheck path `/healthz`.
+- Internal future server/proxy traffic is configured as `UI_API_PROXY_TARGET=http://groupscout:8080`, while browser-facing API metadata remains `/api/*`.
+- Minimum backend services for the D3 smoke path are `groupscout`, `postgres`, `ollama`, and `ollama-init` because the current backend Compose `groupscout` service depends on them. D3 does not require `alertd`, `n8n`, `grafana`, `prometheus`, `loki`, or `promtail` for the UI health harness.
+- Red run: `node test/dockerization-contract.test.js` failed because `compose.dev.yml`, `web/src/server/devComposeHealthServer.js`, and D3 documentation did not exist yet.
+- Green run: `node --test test/dockerization-contract.test.js`.
+- Docker Compose config: `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet`.
+- Full-suite run: `npm test`.
+- Docker build: `docker build --target test -t groupscout-ui-test .`.
+- Containerized test: `docker run --rm groupscout-ui-test`.
+- D3 did not add production same-origin proxying, static asset serving, a browser framework, a renderer, generated public config, or an implemented `npm run start:ui` package script.
 
 ## Phase D4 - Same-Origin Proxy Or Static Serving
 
