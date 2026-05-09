@@ -134,6 +134,8 @@ Required UI Docker env vars stay small:
 
 The D3 development smoke path requires the sibling backend repo at `/mnt/c/Users/alvin/GolandProjects/groupscout`. Starting `groupscout` also starts backend dependencies `postgres`, `ollama`, and `ollama-init`; D5 docs do not require `alertd`, `n8n`, Grafana, Prometheus, Loki, Promtail, or a lead pipeline run for the UI health harness.
 
+For a concise comparison of the D1 test image, D3 development health harness, and D4 production server, see [Docker Runtime Matrix](./docker-runtime-matrix.md).
+
 CI order: local Node tests, Docker test-image build/run, production image build, then optional smoke checks. CI can validate merged Compose config when the backend Compose file is available. Production `/api/system` smoke needs a reachable backend or a CI stub; `/healthz`, `/`, and `/assets/app.js` can run against the UI container alone.
 
 CI must not inject `API_TOKEN`, provider keys, Slack tokens, Resend/SendGrid keys, database URLs, `OLLAMA_BASE_URL`, or `UI_SESSION_SECRET` into browser-visible config or static assets.

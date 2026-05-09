@@ -9,11 +9,12 @@ The UI repo is intentionally lightweight right now. It models contracts and scre
 
 ## No Install Step Yet
 
-`package.json` only defines:
+`package.json` currently defines a no-install test command and the lightweight production UI server command:
 
 ```json
 {
   "scripts": {
+    "start:ui": "node web/src/server/productionServer.js",
     "test": "node --test"
   }
 }
@@ -73,6 +74,14 @@ It is not wired into `package.json` yet. Treat it as an optional design-doc chec
 Backend startup notes in this repo are convenience notes for UI work, not the backend source of truth.
 
 When backend examples disagree, prefer the backend repo's current `.env.example`, `config/config.go`, `docker-compose.yml`, and `Makefile`.
+
+## Docker Modes Are Different
+
+The UI repo has more than one Docker mode. D3 `compose.dev.yml` runs a backend-network health harness on `localhost:3001`; it does not serve the product static assets and does not proxy `/api/*`. D4 `groupscout-ui-production` runs the static/proxy server on container port `3000`; it can be attached manually to `groupscout_groupscout_net` and pointed at `http://groupscout:8080` for backend plus UI smoke checks.
+
+Use `docker compose -p groupscout` when combining backend and UI Compose files if you need the network name to be predictably `groupscout_groupscout_net` for a later D4 `docker run --network groupscout_groupscout_net ...` smoke.
+
+There is not yet a product renderer or a dedicated production Compose override for the D4 runtime. A `404` from `/api/system` or `/api/leads` through D4 means the proxy reached the current backend, but the backend does not yet expose those UI-modeled `/api/*` routes.
 
 ## Backend Docker Service Names
 

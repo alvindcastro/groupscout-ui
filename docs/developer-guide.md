@@ -47,10 +47,30 @@ Development Compose lifecycle against the backend stack:
 
 ```sh
 docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
-docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout
+docker compose -p groupscout -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout
 curl -i http://localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}/healthz
-docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml down
+docker compose -p groupscout -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml down
 ```
+
+`compose.dev.yml` is intentionally an override, not a standalone Compose file. Use it with the backend Compose file because backend service `groupscout` and network `groupscout_net` are defined in the sibling backend repo.
+
+Choosing a backend plus UI Docker workflow:
+
+- Use D3 development Compose when you want to prove that the UI container can build, join `groupscout_groupscout_net`, depend on backend service `groupscout`, and expose `/healthz` on `localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}`.
+- Use D4 production runtime when you want an actual browser origin that serves `web/dist` and forwards same-origin `/api/*` requests from the UI container to the backend container.
+- There is not yet a dedicated Compose override that runs the D4 production target beside the backend. For now, run the production container manually on the backend Compose network:
+
+```sh
+docker build --target production -t groupscout-ui-production .
+docker run --rm -d --name groupscout-ui-production-smoke --network groupscout_groupscout_net -p 3002:3000 -e UI_API_PROXY_TARGET=http://groupscout:8080 groupscout-ui-production
+curl -i http://localhost:3002/healthz
+curl -i http://localhost:3002/
+curl -i http://localhost:3002/assets/app.js
+curl -i http://localhost:3002/api/system
+docker stop groupscout-ui-production-smoke
+```
+
+Interpret the checks separately. `GET /healthz`, `GET /`, and `GET /assets/app.js` prove the production UI container. `GET /api/system` proves proxy reachability only if the backend implements that route; as of the 2026-05-08 smoke run, the live backend returned `404` for `/api/system` and `/api/leads`.
 
 Production same-origin server: `npm run start:ui`
 
@@ -198,15 +218,19 @@ The H0 baseline is [smell-h0-api-client-characterization.md](./smell-h0-api-clie
 
 ## Dockerization Planning
 
-Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phased prompt pack and [UI Dockerization Contract](./ui-dockerization-contract.md) for the D0-D5 decision record. The repo has a minimal `Dockerfile` test target and `.dockerignore`; the test image runs `npm test` without a package install step or backend service.
+Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phased prompt pack, [UI Dockerization Contract](./ui-dockerization-contract.md) for the D0-D5 decision record, and [Docker Runtime Matrix](./docker-runtime-matrix.md) when deciding which container mode to run. The repo has a minimal `Dockerfile` test target and `.dockerignore`; the test image runs `npm test` without a package install step or backend service.
 
 Runtime model: `lightweight-node-server`. D4 implements `npm run start:ui`, container port `3000`, health path `/healthz`, server-owned assets under `web/dist`, and server-side `/api/*` routing to `http://groupscout:8080` by default. Framework selection and the product UI renderer are still not implemented.
+
+The next planning surface is [Phase 13 Product Renderer Runtime Brainstorm](./phase-13-product-renderer-runtime.md). It treats renderer/framework choice, development-server behavior, browser-level tests, and Docker smoke coverage as one decision set so the D0-D5 Docker contract remains stable.
 
 Development Compose override: `compose.dev.yml`. Use it beside the backend Compose file so the UI service joins the backend `groupscout_net` network and can target backend service `groupscout` at `http://groupscout:8080`:
 
 ```sh
 docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
 ```
+
+Use `-p groupscout` on backend-plus-UI Compose runs when you also plan to attach the D4 production container to `groupscout_groupscout_net`.
 
 The D3 service is `groupscout-ui`. It builds the existing D1 `test` target, overrides the command with `node web/src/server/devComposeHealthServer.js`, maps `${GROUPSCOUT_UI_HOST_PORT:-3001}` to container port `3000`, and healthchecks `/healthz`. The default host port is `3001` because the backend full stack already uses host port `3000` for Grafana.
 

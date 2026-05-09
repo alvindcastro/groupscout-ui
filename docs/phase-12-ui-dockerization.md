@@ -406,12 +406,8 @@ Inspect browser-facing UI modules and deployment/session docs. Do not edit files
 Inspect README.md, docs/developer-guide.md, docs/testing.md, docs/troubleshooting.md, and UI_TDD_PHASE_PROMPTS.md. Do not edit files. Recommend the smallest Markdown updates needed after each Dockerization phase, keeping all task lists tickable and strict-TDD aligned.
 ```
 
-## Open Decisions
+## Resolved Decisions And Remaining Brainstorm
 
-- [ ] Should the first real browser runtime be static assets, a lightweight Node server, or backend-served assets?
-- [ ] Should UI Compose live in the UI repo, the backend repo, or as a documented override file across both?
-- [ ] Should production same-origin behavior use nginx/Caddy, a Node server, or Go static-file serving?
-- [ ] What route should the UI healthcheck use?
-- [ ] What exact `/api/*` endpoints are live enough for smoke tests before the backend implements every planned UI endpoint?
-- [x] Should CI build the UI test image before or after local `npm test`? D5 documents `npm test` first, then Docker test-image build/run, production image build, and optional smoke checks.
-- [x] Should Dockerized UI tests run without network access by default? D5 keeps the D1 test image independent of backend services and documents no backend `.env` or secret injection for UI containers.
+D2-D5 resolved the original Dockerization decisions: the runtime model is a lightweight Node server, development Compose lives in this UI repo as `compose.dev.yml`, production same-origin behavior uses the D4 Node static/proxy server, the UI healthcheck route is `/healthz`, CI runs `npm test` before Docker image checks, and Dockerized UI tests stay backend-independent by default.
+
+The remaining planning question is no longer basic Dockerization. It is how to introduce a product renderer, browser framework, and development server without weakening the D0-D5 container, same-origin, and credential boundaries. See [Phase 13 Product Renderer Runtime Brainstorm](./phase-13-product-renderer-runtime.md).

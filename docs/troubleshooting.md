@@ -87,11 +87,11 @@ Check `web/src/server/browserRuntimeContract.js` behavior through `test/dockeriz
 
 Common causes:
 
-- The D2 contract was changed away from the lightweight Node server model before a later phase added runtime implementation.
+- The D2 contract was changed away from the lightweight Node server model that D4 now implements for production static serving and server-side `/api/*` proxying.
 - The reserved UI port, health path, or same-origin `/api/*` routing target no longer matches `docs/ui-dockerization-contract.md`.
 - Browser public config includes automation credentials, provider keys, database URLs, or `UI_SESSION_SECRET`.
 
-Note: D2 reserves `npm run start:ui`, port `3000`, and `/healthz` as contract metadata only. There is not a runnable UI server for those values yet.
+Note: D2 originally reserved `npm run start:ui`, port `3000`, and `/healthz` as contract metadata. D4 now provides the runnable production static/proxy server for those values; the product renderer, browser framework, and product development server are still future work.
 
 ## UI Development Compose Fails
 
@@ -99,6 +99,14 @@ D3 adds `compose.dev.yml` as a UI-repo override for the backend Compose file. Va
 
 ```sh
 docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
+```
+
+Do not validate or start `compose.dev.yml` by itself. It depends on backend-defined service `groupscout` and network `groupscout_net`.
+
+Use `-p groupscout` when you need the generated network name to be `groupscout_groupscout_net` for the D4 production smoke container:
+
+```sh
+docker compose -p groupscout -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout
 ```
 
 Inspect service state and UI logs:
@@ -111,6 +119,7 @@ docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.ym
 Common causes:
 
 - The backend Compose file path is wrong or the sibling backend repo is not present at `/mnt/c/Users/alvin/GolandProjects/groupscout`.
+- The override was run by itself instead of being merged with `/mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml`.
 - Docker Desktop or WSL integration is not running, so `docker compose` cannot inspect or build services.
 - Host port `3001` is already in use. Set `GROUPSCOUT_UI_HOST_PORT` to another host port; the container still listens on `3000`.
 - The UI service cannot resolve `groupscout` because the override was run without the backend Compose file or without the `groupscout_net` network definition.
@@ -150,10 +159,34 @@ docker run --rm -p 3005:3000 -e UI_API_PROXY_TARGET=http://host.docker.internal:
 Interpret `/api/*` smoke failures by status:
 
 - `502`: the backend is unreachable or `UI_API_PROXY_TARGET` points at the wrong host.
+- `404`: the proxy reached the backend, but the backend does not implement that `/api/*` route.
 - DNS errors for `groupscout`: the production container is not on the backend Compose network, or it is running with standalone `docker run` and should use `http://host.docker.internal:8080`.
 - `401`: the backend/session auth rejected the request; this is not a UI proxy wiring failure.
 
 Browser-visible code and config should still show relative `/api/*`, never `http://groupscout:8080` or backend secrets.
+
+## Backend And UI Docker Mode Mismatch
+
+D3 and D4 are different modes:
+
+- D3 `compose.dev.yml` runs `node web/src/server/devComposeHealthServer.js`; it only serves `/healthz`.
+- D4 `groupscout-ui-production` runs `npm run start:ui`; it serves `web/dist` and proxies `/api/*`.
+
+If `http://localhost:3001/api/system` fails, that is expected because port `3001` is the D3 health harness. Use D4 on port `3002` for static/proxy smoke checks.
+
+If D4 is run with standalone `docker run`, use a host backend target:
+
+```sh
+docker run --rm -p 3002:3000 -e UI_API_PROXY_TARGET=http://host.docker.internal:8080 groupscout-ui-production
+```
+
+If D4 is run on the backend Compose network, use the backend service name:
+
+```sh
+docker run --rm -d --name groupscout-ui-production-smoke --network groupscout_groupscout_net -p 3002:3000 -e UI_API_PROXY_TARGET=http://groupscout:8080 groupscout-ui-production
+```
+
+On 2026-05-08, `/api/system` and `/api/leads` returned backend `404` through the D4 proxy. That means the production UI container could reach the backend container, but the live backend routes did not match the UI repo's `/api/*` model contracts yet.
 
 ## Production UI Runtime Fails
 

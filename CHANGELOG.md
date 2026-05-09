@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Docs - Backend Plus Frontend Docker E2E
+
+- What: Clarified the current docs-only backend plus frontend Docker smoke path, including stable Compose project naming for the backend network and the distinction between D3 health harness and D4 static/proxy runtime.
+- Where: Updated `docs/nice-to-knows.md`, `docs/how-to-run-backend.md`, `docs/docker-runtime-matrix.md`, `docs/developer-guide.md`, `docs/testing.md`, and `docs/troubleshooting.md`.
+- When: Documented on 2026-05-09 while cross-checking backend planning docs and UI Docker files.
+- Why: Developers need one predictable path for attaching `groupscout-ui-production` to `groupscout_groupscout_net` after starting the backend stack.
+- How: Kept the pass documentation-only, added `-p groupscout` guidance, corrected the current `package.json` script summary, and preserved the no-secrets browser boundary.
+
+### Docs - Docker Runtime Brainstorm
+
+- What: Added a docs-only brainstorm for the next product renderer/runtime phase and a Docker runtime matrix that distinguishes the D1 test image, D3 development health harness, and D4 production static/proxy server.
+- Where: Added `docs/phase-13-product-renderer-runtime.md` and `docs/docker-runtime-matrix.md`; updated `README.md`, `docs/developer-guide.md`, `docs/testing.md`, `docs/troubleshooting.md`, `docs/ui-dockerization-contract.md`, and `docs/phase-12-ui-dockerization.md`.
+- When: Documented on 2026-05-09 after reviewing current Markdown, `Dockerfile`, `compose.dev.yml`, and Dockerization contract coverage.
+- Why: Future renderer and Docker work needs a clearer planning surface without confusing the test image, Compose health harness, and production server behaviors.
+- How: Kept the pass documentation-only, clarified stale D2/D4 wording, made the backend-Compose override requirement explicit, and captured future parallel-agent prompts for renderer fit, Docker impact, browser tests, and security boundaries.
+
 ### Phase 12 D5 - Docker Operations Docs And CI Hooks
 
 - What: Added D5 Docker operations documentation and guardrail coverage for repeatable local tests, containerized tests, dev Compose startup/teardown, backend dependency expectations, required UI Docker env vars, troubleshooting, and future CI hook order.

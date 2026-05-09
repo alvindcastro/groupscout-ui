@@ -55,15 +55,19 @@ Development Compose config validation:
 docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
 ```
 
+`compose.dev.yml` must be merged with the backend Compose file. It is intentionally not standalone because backend service `groupscout` and network `groupscout_net` come from `/mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml`.
+
 Development Compose startup and teardown:
 
 ```sh
-docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout
+docker compose -p groupscout -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout
 curl -i http://localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}/healthz
-docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml down
+docker compose -p groupscout -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml down
 ```
 
 The D3 UI service is `groupscout-ui`. It joins the backend `groupscout_net`, targets `http://groupscout:8080` through server-side metadata, exposes container port `3000` on host `${GROUPSCOUT_UI_HOST_PORT:-3001}`, and healthchecks `/healthz`. A targeted smoke run should start `groupscout-ui` with backend service `groupscout`; the current backend dependency chain also starts `postgres`, `ollama`, and `ollama-init`.
+
+Use `-p groupscout` when the D3 run will be followed by a D4 production-container smoke that attaches to `groupscout_groupscout_net`.
 
 Production UI runtime smoke commands:
 
@@ -75,6 +79,27 @@ curl -i http://localhost:3002/
 curl -i http://localhost:3002/assets/app.js
 curl -i http://localhost:3002/api/system
 ```
+
+Split these checks by dependency:
+
+- Backend-independent UI runtime checks: `GET /healthz`, `GET /`, and `GET /assets/app.js`.
+- Backend-dependent proxy checks: `GET /api/system` or another UI-modeled `/api/*` route.
+
+Backend plus UI Docker smoke run on 2026-05-08:
+
+```sh
+docker compose -p groupscout -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up -d --build groupscout-ui groupscout
+curl -i http://localhost:8080/health
+curl -i http://localhost:3001/healthz
+docker build --target production -t groupscout-ui-production .
+docker run --rm -d --name groupscout-ui-production-smoke --network groupscout_groupscout_net -p 3002:3000 -e UI_API_PROXY_TARGET=http://groupscout:8080 groupscout-ui-production
+curl -i http://localhost:3002/healthz
+curl -i http://localhost:3002/
+curl -i http://localhost:3002/assets/app.js
+curl -i http://localhost:3002/api/system
+```
+
+Observed results: backend `/health` returned `200`; D3 UI `/healthz` returned `200`; D4 `/healthz`, `/`, and `/assets/app.js` returned `200`; D4 `/api/system` and `/api/leads` returned backend `404`. Treat that as live API route drift, not as a Docker-network failure. The current UI tests still prove model contracts and proxy construction, not live backend compatibility.
 
 Docker operations docs check:
 

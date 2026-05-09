@@ -8,7 +8,7 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - The route shell lives in `web/src/app/shell.js` and mounts Today, Leads, Verification, Outreach, Pipeline, Analytics, Alerts, and a Settings placeholder.
 - Browser API access still enters through `web/src/api/client.js`, with same-origin `/api/*` transport centralized in `web/src/api/transport.js` and feature adapters split across focused `web/src/api/*` modules.
 - UI deployment/session rules live in `web/src/server/uiDeployment.js` and cover `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, development-only `CORS_ALLOWED_ORIGINS`, and session-cookie `/api/*` access.
-- Browser runtime contract metadata lives in `web/src/server/browserRuntimeContract.js` and reserves a future lightweight Node server on port `3000`, health path `/healthz`, and same-origin `/api/*` routing to server-side `http://groupscout:8080` without exposing automation credentials.
+- Browser runtime contract metadata lives in `web/src/server/browserRuntimeContract.js`; D4 now implements the lightweight production Node server on port `3000` with `/healthz` and same-origin `/api/*` routing to server-side `http://groupscout:8080` without exposing automation credentials.
 - Production same-origin serving lives in `web/src/server/productionServer.js`; `npm run start:ui` serves `web/dist` and forwards `/api/*` server-side to `UI_API_PROXY_TARGET` or `http://groupscout:8080`.
 - Lead inbox reads use `createApiClient().listLeads(...)` for `GET /api/leads` query serialization, pagination cursors, default priority ordering, and response field adaptation.
 - Lead status writes use `createApiClient().patchLead(...)` for `PATCH /api/leads/{id}` payloads covering status, owner, notes, snooze date, correction reason, and safe field corrections.
@@ -63,6 +63,23 @@ curl -i http://localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}/healthz
 docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml down
 ```
 
+Backend plus UI Docker smoke:
+
+```sh
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up -d --build groupscout-ui groupscout
+curl -i http://localhost:8080/health
+curl -i http://localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}/healthz
+docker build --target production -t groupscout-ui-production .
+docker run --rm -d --name groupscout-ui-production-smoke --network groupscout_groupscout_net -p 3002:3000 -e UI_API_PROXY_TARGET=http://groupscout:8080 groupscout-ui-production
+curl -i http://localhost:3002/healthz
+curl -i http://localhost:3002/
+curl -i http://localhost:3002/assets/app.js
+curl -i http://localhost:3002/api/system
+docker stop groupscout-ui-production-smoke
+```
+
+The merged Compose service on port `3001` is the D3 health harness only. It proves backend-network wiring but does not serve static assets or proxy `/api/*`. The production container on port `3002` is the current same-origin static/proxy runtime. On 2026-05-08, `/healthz`, `/`, and `/assets/app.js` returned `200` from that runtime on the backend Compose network, while `/api/system` and `/api/leads` reached the backend and returned `404` because the live backend exposes older non-`/api` routes such as `/health`, `/run`, `/digest`, and `/leads/{id}/raw`.
+
 Production UI runtime:
 
 ```sh
@@ -102,6 +119,8 @@ The default development UI host port is `3001` because the backend stack publish
 - [Phase 11 Today Command Center And System Health Summary](./docs/phase-11-today-command-center-system-health.md)
 - [Phase 12 UI Dockerization Prompt Pack](./docs/phase-12-ui-dockerization.md)
 - [UI Dockerization Contract](./docs/ui-dockerization-contract.md)
+- [Docker Runtime Matrix](./docs/docker-runtime-matrix.md)
+- [Phase 13 Product Renderer Runtime Brainstorm](./docs/phase-13-product-renderer-runtime.md)
 
 ## Phase 0 Guardrails
 

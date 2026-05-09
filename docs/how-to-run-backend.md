@@ -130,6 +130,46 @@ If that fails, inspect service names:
 docker compose ps
 ```
 
+## Run Backend With UI Docker
+
+From the UI repo, merge the backend Compose file with the UI development override:
+
+```sh
+cd /mnt/c/Users/alvin/WebstormProjects/groupscout-ui
+docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up -d --build groupscout-ui groupscout
+curl -i http://localhost:8080/health
+curl -i http://localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}/healthz
+```
+
+For a stable Docker network name used by the production UI smoke container, prefer pinning the Compose project:
+
+```sh
+docker compose -p groupscout -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up -d --build groupscout-ui groupscout
+```
+
+Expected endpoints:
+
+- Backend API: `http://localhost:8080`
+- Backend health: `http://localhost:8080/health`
+- Backend Grafana, when the full stack is started: `http://localhost:3000`
+- UI development health harness: `http://localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}/healthz`
+
+The UI service in `compose.dev.yml` is a D3 health harness. It does not serve product UI static assets and does not proxy `/api/*`.
+
+For a same-origin UI runtime against the backend container, build and run the D4 production image on the backend Compose network:
+
+```sh
+docker build --target production -t groupscout-ui-production .
+docker run --rm -d --name groupscout-ui-production-smoke --network groupscout_groupscout_net -p 3002:3000 -e UI_API_PROXY_TARGET=http://groupscout:8080 groupscout-ui-production
+curl -i http://localhost:3002/healthz
+curl -i http://localhost:3002/
+curl -i http://localhost:3002/assets/app.js
+curl -i http://localhost:3002/api/system
+docker stop groupscout-ui-production-smoke
+```
+
+On the 2026-05-08 smoke run, backend `/health` returned `200`, UI D3 `/healthz` returned `200`, and D4 static checks returned `200`. D4 `/api/system` and `/api/leads` returned backend `404`, which means proxy networking worked but the live backend did not expose those UI-modeled `/api/*` routes yet.
+
 ## Alertd
 
 Run the airport disruption monitor locally:
