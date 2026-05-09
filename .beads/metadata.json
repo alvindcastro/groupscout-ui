@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "groupscout_ui",
+  "project_id": "5e279b99-cdce-4d66-82af-2f258428dd3b"
+}
