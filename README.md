@@ -10,8 +10,8 @@ Phase 0-15 now follows the canonical `UI_TDD_PHASE_PROMPTS.md` order: baseline r
 - UI deployment/session rules live in `web/src/server/uiDeployment.js` and cover `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, development-only `CORS_ALLOWED_ORIGINS`, and session-cookie `/api/*` access.
 - Browser runtime contract metadata lives in `web/src/server/browserRuntimeContract.js`; D4 now implements the lightweight production Node server on port `3000` with `/healthz` and same-origin `/api/*` routing to server-side `http://groupscout:8080` without exposing automation credentials.
 - Phase 13 renderer/runtime metadata lives in `web/src/server/productRendererRuntime.js`; the first rendered-route smoke coverage lives in `test/phase-13-renderer-runtime.test.js`.
-- Phase 15 browser UX hardening metadata lives in `web/src/renderer/browserUxHardening.js`; deterministic focus, accessible-name, responsive, state-region, text-containment, and same-origin checks live in `test/browser-ux-hardening.test.js`.
-- Production same-origin serving lives in `web/src/server/productionServer.js`; `npm run start:ui` serves `web/dist`, falls back to `index.html` for app routes, and forwards `/api/*` server-side to `UI_API_PROXY_TARGET` or `http://groupscout:8080`.
+- Phase 15 browser UX hardening metadata lives in `web/src/renderer/browserUxHardening.js`; deterministic route-specific focus, accessible-name, rendered responsive-mode, state-region, text-containment, and same-origin checks live in `test/browser-ux-hardening.test.js`.
+- Production same-origin serving lives in `web/src/server/productionServer.js`; `npm run start:ui` serves `web/dist`, falls back to `index.html` for app routes, gates `/api/*` with `groupscout_session`, applies browser security headers, and forwards authorized API requests server-side to `UI_API_PROXY_TARGET` or `http://groupscout:8080`.
 - Static product assets are generated with `npm run build` from `web/src/renderer/buildStaticApp.js`; the first renderer mapping lives in `web/src/renderer/domRenderer.js`.
 - Product dev serving lives in `web/src/server/productDevServer.js`; `compose.dev.yml` runs that server on container port `3000` and host `${GROUPSCOUT_UI_HOST_PORT:-3001}`.
 - Backend compatibility smoke classification lives in `web/src/server/backendCompatibilitySmoke.js` and distinguishes proxy failure, backend route drift, auth, schema drift, compatible responses, and backend errors.
@@ -70,16 +70,16 @@ docker run --rm groupscout-ui-test
 Docker operations:
 
 ```sh
-docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
-docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout
+docker compose -p groupscout -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
+docker compose -p groupscout -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout
 curl -i http://localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}/healthz
-docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml down
+docker compose -p groupscout -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml down
 ```
 
 Backend plus UI Docker smoke:
 
 ```sh
-docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up -d --build groupscout-ui groupscout
+docker compose -p groupscout -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up -d --build groupscout-ui groupscout
 curl -i http://localhost:8080/health
 curl -i http://localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}/healthz
 docker build --target production -t groupscout-ui-production .
@@ -91,7 +91,7 @@ curl -i http://localhost:3002/api/system
 docker stop groupscout-ui-production-smoke
 ```
 
-The merged Compose service on port `3001` now runs the Phase 13 product dev server. It proves backend-network wiring, serves the static product assets, and preserves server-side backend discovery. The production container on port `3002` remains the same-origin static/proxy runtime. On 2026-05-08, `/healthz`, `/`, and `/assets/app.js` returned `200` from that runtime on the backend Compose network, while `/api/system` and `/api/leads` reached the backend and returned `404` because the live backend exposes older non-`/api` routes such as `/health`, `/run`, `/digest`, and `/leads/{id}/raw`.
+The merged Compose service on port `3001` now runs the Phase 13 product dev server. It proves backend-network wiring, serves the static product assets, and preserves server-side backend discovery. The production container on port `3002` remains the same-origin static/proxy runtime. On 2026-05-08, `/healthz`, `/`, and `/assets/app.js` returned `200` from that runtime on the backend Compose network, while `/api/system` and `/api/leads` reached the backend and returned `404` because the live backend exposes older non-`/api` routes such as `/health`, `/run`, `/digest`, and `/leads/{id}/raw`. After the 2026-05-09 session-gate refresh, unauthenticated `/api/*` smoke requests are expected to return `401` before proxying.
 
 Production UI runtime:
 
@@ -142,6 +142,7 @@ The default development UI host port is `3001` because the backend stack publish
 
 - Browser-facing source must not reference automation credentials.
 - Browser requests must stay behind explicit `/api/*` contracts.
+- Production `/api/*` proxy requests require a valid `groupscout_session` before the backend is contacted.
 - The shell reserves navigation for Today, Leads, Verification, Outreach, Pipeline, Analytics, Alerts, and Settings.
 - Historically, Phase 0 kept feature screens, real API calls, auth, analytics, and deployment behavior out of scope. Later phases now add model-level screens, browser API clients, analytics, session/deployment metadata, and read-only system surfaces.
 

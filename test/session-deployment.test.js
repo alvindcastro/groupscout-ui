@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { Writable } from "node:stream";
 import { test } from "node:test";
 
 import {
@@ -8,6 +9,7 @@ import {
   createUiDeploymentConfig,
   resolveUiMount
 } from "../web/src/server/uiDeployment.js";
+import { createProductionRequestHandler } from "../web/src/server/productionServer.js";
 
 test("UI API requests require a valid operator session cookie", () => {
   const config = createUiDeploymentConfig({
@@ -142,3 +144,97 @@ test("CORS allow-list is development-only for the operator UI", () => {
     /development-only CORS/
   );
 });
+
+test("production request handler gates /api proxying behind the UI session contract", async () => {
+  const handler = createProductionRequestHandler({
+    env: {
+      UI_ENABLED: "true",
+      UI_SESSION_SECRET: "0123456789abcdef0123456789abcdef",
+      UI_API_PROXY_TARGET: "http://backend.example.test"
+    },
+    sessions: new Set(["valid-session"]),
+    fetchImpl: async (url, init) => Response.json({
+      path: new URL(url).pathname + new URL(url).search,
+      cookie: init.headers.cookie ?? ""
+    })
+  });
+
+  const missing = await dispatchProductionRequest(handler, { url: "/api/system" });
+  assert.equal(missing.statusCode, 401);
+  assert.equal(missing.headers["www-authenticate"], "GroupScoutSession");
+  assert.equal(JSON.parse(missing.body).reason, "missing-session");
+
+  const invalid = await dispatchProductionRequest(handler, {
+    url: "/api/system",
+    headers: { cookie: `${SESSION_COOKIE_NAME}=expired-session` }
+  });
+  assert.equal(invalid.statusCode, 401);
+  assert.equal(JSON.parse(invalid.body).reason, "invalid-session");
+
+  const valid = await dispatchProductionRequest(handler, {
+    url: "/api/system?scope=smoke",
+    headers: { cookie: `${SESSION_COOKIE_NAME}=valid-session` }
+  });
+  assert.equal(valid.statusCode, 200);
+  assert.deepEqual(JSON.parse(valid.body), {
+    path: "/api/system?scope=smoke",
+    cookie: `${SESSION_COOKIE_NAME}=valid-session`
+  });
+});
+
+test("production request handler applies browser security headers to health and static responses", async () => {
+  const handler = createProductionRequestHandler({
+    env: {
+      UI_ENABLED: "true",
+      UI_SESSION_SECRET: "0123456789abcdef0123456789abcdef"
+    }
+  });
+  const health = await dispatchProductionRequest(handler, { url: "/healthz" });
+  const app = await dispatchProductionRequest(handler, { url: "/" });
+
+  for (const response of [health, app]) {
+    assert.equal(response.headers["x-content-type-options"], "nosniff");
+    assert.equal(response.headers["x-frame-options"], "DENY");
+    assert.equal(response.headers["referrer-policy"], "same-origin");
+    assert.match(response.headers["content-security-policy"], /default-src 'self'/);
+    assert.match(response.headers["content-security-policy"], /frame-ancestors 'none'/);
+  }
+});
+
+async function dispatchProductionRequest(handler, { url, method = "GET", headers = {} }) {
+  const chunks = [];
+  const response = new Writable({
+    write(chunk, _encoding, callback) {
+      chunks.push(Buffer.from(chunk));
+      callback();
+    }
+  });
+  response.statusCode = undefined;
+  response.headers = undefined;
+  response.writeHead = function writeHead(statusCode, responseHeaders) {
+    this.statusCode = statusCode;
+    this.headers = normalizeHeaderObject(responseHeaders);
+  };
+  const finished = new Promise((resolve, reject) => {
+    response.once("finish", resolve);
+    response.once("error", reject);
+  });
+
+  await handler({ url, method, headers }, response);
+
+  if (!response.writableEnded) {
+    await finished;
+  }
+
+  return {
+    statusCode: response.statusCode,
+    headers: response.headers,
+    body: Buffer.concat(chunks).toString("utf8")
+  };
+}
+
+function normalizeHeaderObject(headers = {}) {
+  return Object.fromEntries(
+    Object.entries(headers).map(([name, value]) => [name.toLowerCase(), value])
+  );
+}

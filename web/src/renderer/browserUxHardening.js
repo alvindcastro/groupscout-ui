@@ -40,6 +40,9 @@ export function createBrowserUxHardeningReport({
 
 function createRouteUxEvidence(path) {
   const rendered = renderRouteToHtml(path);
+  const variantRenders = BROWSER_UX_HARDENING_CONTRACT.requirements.responsiveVariants.map((viewport) =>
+    renderRouteToHtml(path, { viewport })
+  );
   const loading = path === "/leads" ? renderRouteToHtml(path, { screenState: "loading" }) : undefined;
   const error = path === "/leads" ? renderRouteToHtml(path, { screenState: "error" }) : undefined;
   const empty = path === "/leads" ? renderRouteToHtml(path, { leads: [] }) : undefined;
@@ -49,8 +52,10 @@ function createRouteUxEvidence(path) {
     hasPrimaryNavigation: /<nav[^>]+aria-label="Primary"/.test(rendered.html),
     hasMainLandmark: /<main[^>]+aria-label="GroupScout operator workspace"/.test(rendered.html),
     focusableLabels: rendered.focusableLabels,
+    routeFocusableLabels: rendered.routeFocusableLabels,
     accessibleNamesMissing: rendered.focusableLabels.filter((label) => !String(label).trim()),
     responsiveVariants: BROWSER_UX_HARDENING_CONTRACT.requirements.responsiveVariants,
+    renderedModes: variantRenders.map((variant) => variant.responsiveMode),
     textContainment: {
       maxLineLength: maxTextSegmentLength(rendered.html),
       usesStableControls: hasStableInteractiveMarkup(rendered.html)

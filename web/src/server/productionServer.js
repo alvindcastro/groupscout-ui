@@ -5,6 +5,10 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { BROWSER_RUNTIME_CONTRACT } from "./browserRuntimeContract.js";
+import {
+  authorizeUiApiRequest,
+  createUiDeploymentConfig
+} from "./uiDeployment.js";
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PUBLIC_ROOT = path.resolve(MODULE_DIR, "../../dist");
@@ -56,6 +60,13 @@ const BLOCKED_PROXY_HEADERS = new Set([
   "x-api-key",
   "x-api-token"
 ]);
+
+const PRODUCTION_SECURITY_HEADERS = Object.freeze({
+  "content-security-policy": "default-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; base-uri 'self'; frame-ancestors 'none'",
+  "referrer-policy": "same-origin",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY"
+});
 
 export const PRODUCTION_SERVING_CONTRACT = Object.freeze({
   phase: "D4",
@@ -110,12 +121,26 @@ export function assertProductionPublicConfigSafe(value) {
 
 export function createProductionServer({
   env = process.env,
-  publicRoot = DEFAULT_PUBLIC_ROOT
+  publicRoot = DEFAULT_PUBLIC_ROOT,
+  sessions,
+  fetchImpl = fetch
+} = {}) {
+  const handler = createProductionRequestHandler({ env, publicRoot, sessions, fetchImpl });
+
+  return http.createServer(handler);
+}
+
+export function createProductionRequestHandler({
+  env = process.env,
+  publicRoot = DEFAULT_PUBLIC_ROOT,
+  sessions,
+  fetchImpl = fetch
 } = {}) {
   const resolvedPublicRoot = path.resolve(publicRoot instanceof URL ? fileURLToPath(publicRoot) : publicRoot);
   const backendTarget = env.UI_API_PROXY_TARGET || DEFAULT_BACKEND_TARGET;
+  const uiConfig = createUiDeploymentConfig(env);
 
-  return http.createServer(async (request, response) => {
+  return async (request, response) => {
     const url = new URL(request.url || "/", "http://127.0.0.1");
 
     if (url.pathname === DEFAULT_HEALTH_PATH) {
@@ -124,7 +149,25 @@ export function createProductionServer({
     }
 
     if (url.pathname.startsWith("/api/")) {
-      await proxyApiRequest({ request, response, targetBaseUrl: backendTarget });
+      const authorization = authorizeUiApiRequest(
+        {
+          pathname: url.pathname,
+          headers: request.headers ?? {}
+        },
+        { config: uiConfig, sessions }
+      );
+
+      if (!authorization.allowed) {
+        sendJson(
+          response,
+          authorization.status ?? 401,
+          { error: "unauthorized", reason: authorization.reason },
+          authorization.headers
+        );
+        return;
+      }
+
+      await proxyApiRequest({ request, response, targetBaseUrl: backendTarget, fetchImpl });
       return;
     }
 
@@ -133,7 +176,7 @@ export function createProductionServer({
       response,
       publicRoot: resolvedPublicRoot
     });
-  });
+  };
 }
 
 export function startProductionServer({ env = process.env } = {}) {
@@ -145,7 +188,7 @@ export function startProductionServer({ env = process.env } = {}) {
   return server;
 }
 
-async function proxyApiRequest({ request, response, targetBaseUrl }) {
+async function proxyApiRequest({ request, response, targetBaseUrl, fetchImpl = fetch }) {
   try {
     const proxyRequest = createApiProxyRequest({
       requestUrl: request.url || "/",
@@ -164,9 +207,9 @@ async function proxyApiRequest({ request, response, targetBaseUrl }) {
       init.duplex = "half";
     }
 
-    const upstreamResponse = await fetch(proxyRequest.url, init);
+    const upstreamResponse = await fetchImpl(proxyRequest.url, init);
 
-    response.writeHead(upstreamResponse.status, filterProxyResponseHeaders(upstreamResponse.headers));
+    response.writeHead(upstreamResponse.status, withSecurityHeaders(filterProxyResponseHeaders(upstreamResponse.headers)));
 
     if (upstreamResponse.body) {
       for await (const chunk of upstreamResponse.body) {
@@ -197,6 +240,7 @@ async function serveStaticAsset({ requestPath, response, publicRoot }) {
   }
 
   response.writeHead(200, {
+    ...PRODUCTION_SECURITY_HEADERS,
     "cache-control": plan.cacheControl,
     "content-type": plan.contentType
   });
@@ -289,12 +333,20 @@ function filterProxyResponseHeaders(headers) {
   return nextHeaders;
 }
 
-function sendJson(response, statusCode, payload) {
-  response.writeHead(statusCode, {
+function sendJson(response, statusCode, payload, headers = {}) {
+  response.writeHead(statusCode, withSecurityHeaders({
     "cache-control": "no-store",
-    "content-type": "application/json"
-  });
+    "content-type": "application/json",
+    ...headers
+  }));
   response.end(JSON.stringify(payload));
+}
+
+function withSecurityHeaders(headers = {}) {
+  return {
+    ...PRODUCTION_SECURITY_HEADERS,
+    ...headers
+  };
 }
 
 function contentTypeForPath(filePath) {

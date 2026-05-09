@@ -125,6 +125,11 @@ export const designTokens = {
       border: "1px solid {colors.hairline}",
       height: "40px"
     },
+    "text-input-focused": {
+      backgroundColor: "{colors.canvas}",
+      textColor: "{colors.ink}",
+      border: "2px solid {colors.brand-green}"
+    },
     "search-pill": {
       backgroundColor: "{colors.surface}",
       textColor: "{colors.steel}",
@@ -195,7 +200,7 @@ export const designTokens = {
       border: "1px solid {colors.hairline}"
     },
     "property-row": {
-      backgroundColor: "{colors.canvas}",
+      backgroundColor: "transparent",
       textColor: "{colors.ink}",
       typography: "{typography.body-sm}",
       padding: "{spacing.md} 0",

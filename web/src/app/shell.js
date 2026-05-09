@@ -18,9 +18,9 @@ export const appNavigation = [
   { label: "Settings", path: "/settings" }
 ];
 
-export function createRouteShell(pathname = "/") {
+export function createRouteShell(pathname = "/", options = {}) {
   const activeRoute = findActiveRoute(pathname);
-  const content = createRouteContent(pathname, activeRoute);
+  const content = createRouteContent(pathname, activeRoute, options);
 
   return {
     kind: "operator-workspace-shell",
@@ -33,10 +33,10 @@ export function createRouteShell(pathname = "/") {
   };
 }
 
-export function createMountedRouteShell(pathname = "/", { basePath = "/" } = {}) {
+export function createMountedRouteShell(pathname = "/", { basePath = "/", viewport = "desktop" } = {}) {
   const normalizedBasePath = normalizeBasePath(basePath);
   const shellPath = stripBasePath(pathname, normalizedBasePath);
-  const shell = createRouteShell(shellPath);
+  const shell = createRouteShell(shellPath, { viewport });
 
   return {
     ...shell,
@@ -56,43 +56,43 @@ function findActiveRoute(pathname) {
   return appNavigation.find((route) => route.path === pathname) ?? appNavigation[0];
 }
 
-function createRouteContent(pathname, activeRoute) {
+function createRouteContent(pathname, activeRoute, { viewport = "desktop" } = {}) {
   if (pathname.startsWith("/leads/")) {
-    return createLeadDetailScreen({ leadId: pathname.slice("/leads/".length) });
+    return createLeadDetailScreen({ leadId: pathname.slice("/leads/".length), viewport });
   }
 
   if (activeRoute.path === "/") {
-    return createTodayCommandCenterScreen();
+    return createTodayCommandCenterScreen({ viewport });
   }
 
   if (activeRoute.path === "/leads") {
-    return createLeadInboxScreen();
+    return createLeadInboxScreen({ viewport });
   }
 
   if (activeRoute.path === "/verification") {
-    return createVerificationQueueScreen();
+    return createVerificationQueueScreen({ viewport });
   }
 
   if (activeRoute.path === "/outreach") {
-    return createOutreachWorkspaceScreen({ leadId: "lead_hotel_001" });
+    return createOutreachWorkspaceScreen({ leadId: "lead_hotel_001", viewport });
   }
 
   if (activeRoute.path === "/pipeline") {
-    return createPipelineMonitorScreen();
+    return createPipelineMonitorScreen({ viewport });
   }
 
   if (activeRoute.path === "/analytics") {
-    return createAnalyticsDashboardScreen();
+    return createAnalyticsDashboardScreen({ viewport });
   }
 
   if (activeRoute.path === "/alerts") {
-    return createAlertdConsoleScreen();
+    return createAlertdConsoleScreen({ viewport });
   }
 
   return {
     status: "placeholder",
     description:
-      "Phase 0 reserves navigation slots for future lead-management views while product workflows remain unimplemented."
+      "Settings remains reserved for operator configuration; core workbench routes are implemented in the current model-level UI."
   };
 }
 

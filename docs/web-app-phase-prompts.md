@@ -4,15 +4,15 @@
 
 ## Red-Green-Refactor Checklist
 
-- [ ] Read the relevant docs and current code before editing.
-- [ ] Create or claim a beads issue.
-- [ ] Write the smallest failing test first.
-- [ ] Run the focused command and capture the expected red failure.
-- [ ] Implement only enough to pass.
-- [ ] Rerun the focused command.
-- [ ] Run the relevant broader suite.
-- [ ] Update the phase notes with red evidence, green evidence, changed files, and residual risk.
-- [ ] Close or update beads issue status.
+- [x] Read the relevant docs and current code before editing.
+- [x] Create or claim a beads issue.
+- [x] Write the smallest failing test first.
+- [x] Run the focused command and capture the expected red failure.
+- [x] Implement only enough to pass.
+- [x] Rerun the focused command.
+- [x] Run the relevant broader suite.
+- [x] Update the phase notes with red evidence, green evidence, changed files, and residual risk.
+- [x] Close or update beads issue status.
 
 ## Parallel Agent Starters
 
@@ -48,112 +48,112 @@ Implementation note, 2026-05-09: the canonical Phase 0-15 sequence in `../UI_TDD
 
 ### 0. Baseline Reconciliation
 
-- [ ] Prompt: reconcile current checkout with Phase 13 UI baseline without product changes.
-- [ ] Red tests: package scripts, test runner, renderer/runtime metadata, route shell metadata, secret scan.
-- [ ] Green target: runnable minimal harness or explicitly documented docs-only baseline.
-- [ ] Verification: focused baseline test plus `git status`.
+- [x] Prompt: reconcile current checkout with Phase 13 UI baseline without product changes.
+- [x] Red tests: package scripts, test runner, renderer/runtime metadata, route shell metadata, secret scan.
+- [x] Green target: runnable minimal harness or explicitly documented docs-only baseline.
+- [x] Verification: focused baseline test plus `git status`.
 
 ### 1. Product Contract And UX Guardrails
 
-- [ ] Prompt: add tested IA, token, and UX guardrails.
-- [ ] Red tests: navigation routes, token map, component token names, no browser secrets.
-- [ ] Green target: shell placeholders, token exports, UX contract docs.
-- [ ] Verification: focused shell/design tests.
+- [x] Prompt: add tested IA, token, and UX guardrails.
+- [x] Red tests: navigation routes, token map, component token names, no browser secrets.
+- [x] Green target: shell placeholders, token exports, UX contract docs.
+- [x] Verification: focused shell/design tests.
 
 ### 2. Backend Compatibility Smoke
 
-- [ ] Prompt: classify live `/api/*` compatibility before wiring screens.
-- [ ] Red tests: `/api/system`, `/api/leads`, `/api/pipeline/runs`, `/api/stats`, `/api/alerts`, `/api/leads/{id}/raw`.
-- [ ] Green target: compatibility classifier and docs, not backend fixes.
-- [ ] Verification: classifier tests with live backend or documented stub.
+- [x] Prompt: classify live `/api/*` compatibility before wiring screens.
+- [x] Red tests: `/api/system`, `/api/leads`, `/api/pipeline/runs`, `/api/stats`, `/api/alerts`, `/api/leads/{id}/raw`.
+- [x] Green target: compatibility classifier and docs, not backend fixes.
+- [x] Verification: classifier tests with live backend or documented stub.
 
 ### 3. API Client Contracts
 
-- [ ] Prompt: centralize typed client contracts.
-- [ ] Red tests: query serialization, response adaptation, pagination, mutation validation, error classification, no secret headers.
-- [ ] Green target: single browser API boundary with feature adapters.
-- [ ] Verification: API client tests.
+- [x] Prompt: centralize typed client contracts.
+- [x] Red tests: query serialization, response adaptation, pagination, mutation validation, error classification, no secret headers.
+- [x] Green target: single browser API boundary with feature adapters.
+- [x] Verification: API client tests.
 
 ### 4. Today Command Center
 
-- [ ] Prompt: build read-only priority command center.
-- [ ] Red tests: priority leads, aging work, verification problems, active alerts, failed jobs, health, route links.
-- [ ] Green target: Today screen model/component.
-- [ ] Verification: screen tests and route shell tests.
+- [x] Prompt: build read-only priority command center.
+- [x] Red tests: priority leads, aging work, verification problems, active alerts, failed jobs, health, route links.
+- [x] Green target: Today screen model/component.
+- [x] Verification: screen tests and route shell tests.
 
 ### 5. Lead Inbox
 
-- [ ] Prompt: build dense lead triage.
-- [ ] Red tests: filters, columns, states, keyboard row activation, responsive modes.
-- [ ] Green target: inbox screen with mocked client data and query state.
-- [ ] Verification: inbox tests and token/accessibility assertions.
+- [x] Prompt: build dense lead triage.
+- [x] Red tests: filters, columns, states, keyboard row activation, responsive modes.
+- [x] Green target: inbox screen with mocked client data and query state.
+- [x] Verification: inbox tests and token/accessibility assertions.
 
 ### 6. Lead Detail Evidence
 
-- [ ] Prompt: build evidence-first lead detail.
-- [ ] Red tests: summary, source evidence, AI enrichment, raw audit link, corrections, activity, responsive layout.
-- [ ] Green target: read-only detail workspace.
-- [ ] Verification: detail tests.
+- [x] Prompt: build evidence-first lead detail.
+- [x] Red tests: summary, source evidence, AI enrichment, raw audit link, corrections, activity, responsive layout.
+- [x] Green target: read-only detail workspace.
+- [x] Verification: detail tests.
 
 ### 7. Status, Ownership, Corrections
 
-- [ ] Prompt: add state transition model and auditable mutations.
-- [ ] Red tests: allowed/disallowed transitions, visible actions, mutation payloads, required reasons.
-- [ ] Green target: transition helpers, action controls, API mutation adapter.
-- [ ] Verification: state model, detail action, and client mutation tests.
+- [x] Prompt: add state transition model and auditable mutations.
+- [x] Red tests: allowed/disallowed transitions, visible actions, mutation payloads, required reasons.
+- [x] Green target: transition helpers, action controls, API mutation adapter.
+- [x] Verification: state model, detail action, and client mutation tests.
 
 ### 8. Verification Queue
 
-- [ ] Prompt: add focused source/AI review queue.
-- [ ] Red tests: trigger classification, filters, actions, raw audit alias, redaction blocked state.
-- [ ] Green target: verification queue and raw audit client link.
-- [ ] Verification: queue and raw audit tests.
+- [x] Prompt: add focused source/AI review queue.
+- [x] Red tests: trigger classification, filters, actions, raw audit alias, redaction blocked state.
+- [x] Green target: verification queue and raw audit client link.
+- [x] Verification: queue and raw audit tests.
 
 ### 9. Outreach Workspace
 
-- [ ] Prompt: add manual outreach draft/log/outcome workflow.
-- [ ] Red tests: editable fields, validation, copied/sent/logged states, history, no auto-send.
-- [ ] Green target: outreach workspace and activity integration.
-- [ ] Verification: outreach screen/client tests.
+- [x] Prompt: add manual outreach draft/log/outcome workflow.
+- [x] Red tests: editable fields, validation, copied/sent/logged states, history, no auto-send.
+- [x] Green target: outreach workspace and activity integration.
+- [x] Verification: outreach screen/client tests.
 
 ### 10. Pipeline Monitor
 
-- [ ] Prompt: expose pipeline health and queued manual run controls.
-- [ ] Red tests: run history, collector health, LLM health, delivery failures, queued start.
-- [ ] Green target: pipeline monitor and client endpoints.
-- [ ] Verification: pipeline tests.
+- [x] Prompt: expose pipeline health and queued manual run controls.
+- [x] Red tests: run history, collector health, LLM health, delivery failures, queued start.
+- [x] Green target: pipeline monitor and client endpoints.
+- [x] Verification: pipeline tests.
 
 ### 11. Analytics
 
-- [ ] Prompt: add explainable demand and lead quality analytics.
-- [ ] Red tests: distributions, denominators, date ranges, source yield, aging, verification quality.
-- [ ] Green target: analytics dashboard.
-- [ ] Verification: stats client and analytics tests.
+- [x] Prompt: add explainable demand and lead quality analytics.
+- [x] Red tests: distributions, denominators, date ranges, source yield, aging, verification quality.
+- [x] Green target: analytics dashboard.
+- [x] Verification: stats client and analytics tests.
 
 ### 12. Alertd Console
 
-- [ ] Prompt: add read-only disruption alert visibility.
-- [ ] Red tests: alert state, SPS, evidence, room inventory, action history, disabled mutations.
-- [ ] Green target: read-only alert console.
-- [ ] Verification: alert tests.
+- [x] Prompt: add read-only disruption alert visibility.
+- [x] Red tests: alert state, SPS, evidence, room inventory, action history, disabled mutations.
+- [x] Green target: read-only alert console.
+- [x] Verification: alert tests.
 
 ### 13. Auth And Runtime
 
-- [ ] Prompt: add same-origin session-safe runtime.
-- [ ] Red tests: session cookies, base path, dev CORS, deployment readiness, browser secret scan.
-- [ ] Green target: runtime/session helpers and same-origin API enforcement.
-- [ ] Verification: deployment/session tests.
+- [x] Prompt: add same-origin session-safe runtime.
+- [x] Red tests: session cookies, base path, dev CORS, deployment readiness, browser secret scan.
+- [x] Green target: runtime/session helpers and same-origin API enforcement.
+- [x] Verification: deployment/session tests.
 
 ### 14. Docker E2E
 
-- [ ] Prompt: validate UI with backend Docker stack.
-- [ ] Red tests: Docker targets, Compose override, healthchecks, ports, backend target, secret-free assets/config.
-- [ ] Green target: test image, dev server, production static/proxy smoke.
-- [ ] Verification: Docker config, container tests, `/healthz`, `/`, `/assets/app.js`, `/api/*` classifier.
+- [x] Prompt: validate UI with backend Docker stack.
+- [x] Red tests: Docker targets, Compose override, healthchecks, ports, backend target, secret-free assets/config.
+- [x] Green target: test image, dev server, production static/proxy smoke.
+- [x] Verification: Docker config, container tests, `/healthz`, `/`, `/assets/app.js`, `/api/*` classifier.
 
 ### 15. Browser UX Hardening
 
-- [ ] Prompt: prove the app works in a browser, not just models.
-- [ ] Red tests: focus, labels, keyboard flows, responsive screenshots, text overflow, no overlapping UI, same-origin API calls.
-- [ ] Green target: browser-tested primary routes and UX fixes.
-- [ ] Verification: browser/component tests and screenshot checks.
+- [x] Prompt: prove the app works in a browser, not just models.
+- [x] Red tests: focus, labels, keyboard flows, responsive screenshots, text overflow, no overlapping UI, same-origin API calls.
+- [x] Green target: browser-tested primary routes and UX fixes.
+- [x] Verification: browser/component tests and screenshot checks at the current deterministic renderer level; real screenshot/pixel checks remain blocked until a browser harness is introduced.

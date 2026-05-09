@@ -11,7 +11,7 @@ export const RENDERER_BROWSER_ENTRY_CONTRACT = Object.freeze({
 
 export function renderRouteToHtml(pathname = "/", options = {}) {
   const shell = createRenderableShell(pathname, options);
-  const focusableLabels = collectFocusableLabels(shell);
+  const { focusableLabels, routeFocusableLabels } = collectFocusableLabels(shell);
   const html = [
     '<div class="app-shell" data-renderer="vanilla-dom">',
     renderNavigation(shell),
@@ -23,6 +23,7 @@ export function renderRouteToHtml(pathname = "/", options = {}) {
     html,
     props: shell,
     focusableLabels,
+    routeFocusableLabels,
     responsiveMode: shell.content.layout?.mode ?? "unknown"
   };
 }
@@ -41,7 +42,7 @@ export function mountRoute(root, {
 }
 
 function createRenderableShell(pathname, options) {
-  const shell = createRouteShell(pathname);
+  const shell = createRouteShell(pathname, { viewport: options.viewport ?? "desktop" });
 
   if (pathname === "/leads" && hasLeadInboxOverrides(options)) {
     return {
@@ -124,7 +125,7 @@ function renderState(screen) {
     return renderLeadDetail(screen);
   }
 
-  return `<section><h1>${escapeHtml(screen.heading ?? "GroupScout")}</h1></section>`;
+  return renderGenericScreen(screen);
 }
 
 function renderToday(screen) {
@@ -176,11 +177,135 @@ function renderLeadDetail(screen) {
   ].join("");
 }
 
+function renderGenericScreen(screen) {
+  return [
+    `<section data-layout="${escapeHtml(screen.layout?.mode ?? "generic")}">`,
+    `<h1>${escapeHtml(screen.heading ?? "GroupScout")}</h1>`,
+    ...renderControls(screen.controls ?? []),
+    ...renderSummaryItems(screen.summary?.items ?? []),
+    ...renderGenericTables(screen),
+    ...renderGenericActions(screen),
+    renderStatusFallback(screen),
+    "</section>"
+  ].join("");
+}
+
+function renderControls(controls) {
+  return controls.map((control) => {
+    if (control.type === "button") {
+      return `<button type="button" aria-label="${escapeHtml(control.ariaLabel ?? control.label)}">${escapeHtml(control.label)}</button>`;
+    }
+
+    return `<label>${escapeHtml(control.label)}<input aria-label="${escapeHtml(control.ariaLabel ?? control.label)}" name="${escapeHtml(control.name)}"></label>`;
+  });
+}
+
+function renderSummaryItems(items) {
+  return items.map((item) => {
+    if (Array.isArray(item)) {
+      return `<p>${escapeHtml(item[0])} ${escapeHtml(item[1])}</p>`;
+    }
+
+    return `<p>${escapeHtml(item.label)} ${escapeHtml(item.value)}</p>`;
+  });
+}
+
+function renderGenericTables(screen) {
+  return Object.values(screen)
+    .filter((value) => value && typeof value === "object" && Array.isArray(value.columns) && Array.isArray(value.rows))
+    .map(renderTableModel);
+}
+
+function renderTableModel(table) {
+  const headers = table.columns.map((column) => `<th>${escapeHtml(column.label ?? column.key)}</th>`);
+  const rows = table.rows.map((row) => {
+    const cells = row.cells
+      ? Object.values(row.cells)
+      : Object.entries(row)
+        .filter(([key]) => !["id", "href", "actions"].includes(key))
+        .map(([, value]) => value);
+
+    return `<tr>${cells.map((value) => `<td>${escapeHtml(formatCellValue(value))}</td>`).join("")}</tr>`;
+  });
+
+  return `<table><thead><tr>${headers.join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`;
+}
+
+function renderGenericActions(screen) {
+  const labels = collectActionLabels(screen);
+
+  return labels.map((label) => `<button type="button" aria-label="${escapeHtml(label)}">${escapeHtml(label)}</button>`);
+}
+
+function renderStatusFallback(screen) {
+  if (screen.emptyState?.title) {
+    return `<p>${escapeHtml(screen.emptyState.title)}</p>`;
+  }
+
+  if (screen.errorState?.message) {
+    return `<p>${escapeHtml(screen.errorState.message)}</p>`;
+  }
+
+  if (screen.notFoundState?.message) {
+    return `<p>${escapeHtml(screen.notFoundState.message)}</p>`;
+  }
+
+  return "";
+}
+
 function collectFocusableLabels(shell) {
   const controls = shell.content.controls?.map((control) => control.ariaLabel ?? control.label) ?? [];
+  const routeActions = collectActionLabels(shell.content);
   const links = shell.sections.map((section) => section.label);
 
-  return [...controls, ...links];
+  const routeFocusableLabels = [...controls, ...routeActions].filter(Boolean);
+
+  return {
+    routeFocusableLabels,
+    focusableLabels: [...routeFocusableLabels, ...links]
+  };
+}
+
+function collectActionLabels(screen) {
+  const labels = [];
+
+  if (screen.runControl?.label) {
+    labels.push(screen.runControl.label);
+  }
+
+  if (screen.sourceEvidence?.rawAuditLink?.label) {
+    labels.push(screen.sourceEvidence.rawAuditLink.label);
+  }
+
+  for (const action of screen.actions?.items ?? []) {
+    labels.push(action.label);
+  }
+
+  for (const action of screen.outreach?.actions ?? []) {
+    labels.push(action.label);
+  }
+
+  for (const action of screen.actionPolicy?.disabledActions ?? []) {
+    labels.push(action.label);
+  }
+
+  return labels.filter(Boolean);
+}
+
+function formatCellValue(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(formatCellValue).join(" ");
+  }
+
+  if (typeof value === "object") {
+    return Object.values(value).map(formatCellValue).join(" ");
+  }
+
+  return value;
 }
 
 function escapeHtml(value) {

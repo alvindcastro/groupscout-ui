@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase Prompt Completion Verification
+
+- What: Rechecked `docs/web-app-phase-prompts.md` Phase 0-15 in sequential order, confirmed the implemented UI baseline still covers every phase through tests and runtime/docs artifacts, closed the production `/api/*` session-gate gap, strengthened deterministic Phase 15 route evidence, corrected Phase 1 token drift, and marked the older supporting prompt checklist as complete.
+- Where: Updated `docs/web-app-phase-prompts.md`, `docs/ui-tdd-phase-0-15-implementation.md`, `docs/phase-9-session-auth-wrapper-same-origin-deployment.md`, `docs/phase-15-browser-ux-hardening.md`, `docs/docker-runtime-matrix.md`, `docs/testing.md`, `README.md`, `test/session-deployment.test.js`, `test/browser-ux-hardening.test.js`, `test/app-shell.test.js`, `test/design-tokens.test.js`, `web/src/server/productionServer.js`, `web/src/renderer/domRenderer.js`, `web/src/renderer/browserUxHardening.js`, `web/src/app/shell.js`, and `web/src/design/tokens.js`.
+- When: Verified on 2026-05-09 during beads task `groupscout-ui-561`.
+- Why: The phase prompt pack still displayed unchecked supporting checklist items even though the canonical Phase 0-15 implementation and documentation were already present, and the audits found that production proxying needed to enforce the documented session boundary while Phase 15 route evidence could pass too much through navigation-only rendering.
+- How: Claimed a beads issue, ran parallel read-only agent audits, added red-first tests for production request-handler session gating/security headers, route-specific Phase 15 evidence, and token drift, implemented the smallest server/renderer/token updates, reran focused tests, reran `npm test` and `npm run build`, confirmed `web/dist` had no tracked diff after build, updated Markdown status, and preserved the documented Phase 15 residual risk around real-browser screenshot/pixel checks.
+
 ### Phases 0-15 - GroupScout Web App Baseline And Browser Hardening
 
 - What: Reconciled the checkout to the tracked UI baseline, completed the canonical Phase 0-15 prompt order, added backend compatibility coverage for `/api/leads/{id}/raw`, added the read-only lead detail client contract, and added deterministic Phase 15 browser UX hardening metadata for focus labels, accessible names, responsive variants, stable states, text containment, and same-origin API calls.

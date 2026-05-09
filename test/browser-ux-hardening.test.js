@@ -41,8 +41,10 @@ test("Phase 15 hardening report exposes deterministic UX evidence for primary ro
     assert.equal(route.hasPrimaryNavigation, true, route.path);
     assert.equal(route.hasMainLandmark, true, route.path);
     assert.equal(route.focusableLabels.length > 0, true, route.path);
+    assert.equal(route.routeFocusableLabels.length > 0, true, route.path);
     assert.equal(route.accessibleNamesMissing.length, 0, route.path);
     assert.deepEqual(route.responsiveVariants, ["desktop", "tablet", "mobile"], route.path);
+    assert.equal(new Set(route.renderedModes).size, 3, route.path);
     assert.equal(route.textContainment.maxLineLength <= 96, true, route.path);
     assert.equal(route.textContainment.usesStableControls, true, route.path);
   }
@@ -53,4 +55,13 @@ test("Phase 15 hardening report exposes deterministic UX evidence for primary ro
   assert.equal(leads.states.loading.hasStatusRole, true);
   assert.equal(leads.states.error.hasAlertRole, true);
   assert.equal(leads.states.empty.isStable, true);
+
+  const routeSpecificLabels = Object.fromEntries(
+    report.routes.map((route) => [route.path, route.routeFocusableLabels])
+  );
+  assert.ok(routeSpecificLabels["/verification"].includes("Trigger"));
+  assert.ok(routeSpecificLabels["/outreach"].includes("Copy draft"));
+  assert.ok(routeSpecificLabels["/pipeline"].includes("Start run"));
+  assert.ok(routeSpecificLabels["/analytics"].includes("Refresh analytics"));
+  assert.ok(routeSpecificLabels["/alerts"].includes("Alert state"));
 });

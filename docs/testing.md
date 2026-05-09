@@ -16,6 +16,8 @@ node --test
 
 There is still no package install requirement.
 
+Current verification refresh on 2026-05-09: `npm test` passed all 26 test files after the production session-gate, Phase 15 renderer-evidence, and design-token guardrail updates.
+
 Housekeeping run on 2026-05-08: `npm test` passed all 22 test files.
 
 Smell H0 baseline run on 2026-05-09: focused API-client characterization passed 9 test files, and `npm test` passed all 22 test files.
@@ -37,6 +39,12 @@ Phase 12 D5 run on 2026-05-09: `node test/dockerization-contract.test.js` first 
 Phase 13 run on 2026-05-09: `node test/phase-13-renderer-runtime.test.js` first failed because Phase 13 contract/renderer/dev-server/backend-smoke modules were missing, `npm run build` was absent, `compose.dev.yml` still used the D3 health harness, and D4 did not have app-route fallback. The green run covered the vanilla DOM renderer contract, dependency-free rendered route harness, Today/Leads/Lead Detail route rendering, static build output, public asset secret scan, D4 route fallback, product dev server Compose command, and backend compatibility smoke classification; `node --test test/phase-13-renderer-runtime.test.js`, `node --test test/dockerization-contract.test.js`, `npm run build`, and `npm test` passed.
 
 Canonical Phase 0-15 run on 2026-05-09: `node test/baseline-reconciliation.test.js` first failed because the UI baseline files were locally deleted, then passed after restoring the tracked Phase 13 baseline. Focused red/green additions covered `/api/leads/{id}/raw` in backend compatibility smoke, `createApiClient().getLead(...)` for `GET /api/leads/{id}`, and Phase 15 deterministic browser UX hardening. `node --test test/baseline-reconciliation.test.js test/api-boundary.test.js test/lead-inbox-client.test.js test/phase-13-renderer-runtime.test.js test/browser-ux-hardening.test.js`, `npm run build`, `npm test`, Docker test-image build/run, production image build, and production-container smoke checks for `/healthz`, `/`, and `/assets/app.js` passed.
+
+Production session-gate refresh on 2026-05-09: `node --test test/session-deployment.test.js` first failed because `web/src/server/productionServer.js` did not expose a request handler that authorized `/api/*` before proxying. It passed after `createProductionRequestHandler(...)` rejected missing/invalid `groupscout_session`, forwarded valid sessions to the backend target, and applied CSP, `x-content-type-options`, `x-frame-options`, and `referrer-policy` headers.
+
+Phase 15 renderer-evidence refresh on 2026-05-09: `node --test test/browser-ux-hardening.test.js` first failed because route-specific focus labels and rendered responsive modes were not reported for every primary route. It passed after the route shell accepted viewport options and the dependency-free renderer emitted controls/actions and desktop/tablet/mobile modes for Today, Leads, Lead Detail, Verification, Outreach, Pipeline, Analytics, and Alerts.
+
+Phase 1 token refresh on 2026-05-09: `node --test test/design-tokens.test.js` first failed because `text-input-focused` was missing from the exported token map and `property-row` background drifted from `DESIGN.md`. It passed after the token export matched the documented component contracts.
 
 Optional design-doc lint. This is not an npm script and may use the network through `npx`:
 
@@ -87,7 +95,7 @@ curl -i http://localhost:3002/api/system
 Split these checks by dependency:
 
 - Backend-independent UI runtime checks: `GET /healthz`, `GET /`, and `GET /assets/app.js`.
-- Backend-dependent proxy checks: `GET /api/system` or another UI-modeled `/api/*` route.
+- Backend-dependent proxy checks: authorized `GET /api/system` or another UI-modeled `/api/*` route. Unauthenticated `/api/*` requests should return `401` from the UI session gate.
 
 Backend plus UI Docker smoke run on 2026-05-08:
 
@@ -158,12 +166,13 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 
 - Same-origin `/api/*` browser request boundary, public API-client facade shape, split adapter module ownership, request defaults, and invalid-route pre-fetch rejection.
 - Session-cookie enforcement metadata for UI `/api/*` access.
+- Production request-handler enforcement that rejects missing/invalid `groupscout_session` before `/api/*` proxying and applies baseline browser security headers.
 - `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, and development-only `CORS_ALLOWED_ORIGINS` deployment behavior.
 - D2 browser runtime contract metadata for the reserved start command, port, health path, static asset boundary, `/api/*` server/proxy target, and forbidden browser public config keys.
 - D3/Phase 13 development Compose metadata for the UI service, backend network attachment, backend service dependency, port mapping, healthcheck command, no-secret Compose boundary, and product dev-server health payload.
 - D4 production same-origin server metadata, static asset presence, app-route fallback, server-side `/api/*` proxy request construction, public-config secret rejection, and production Docker target.
 - Phase 13 renderer/runtime contract, rendered route smoke for Today/Leads/Lead Detail, static product build output, public asset secret scans, product dev server metadata, and backend compatibility smoke classification.
-- Phase 15 deterministic browser UX hardening for primary navigation, main landmarks, focus labels, accessible-name metadata, responsive variants, stable loading/error/empty states, text-containment policy, and same-origin API metadata.
+- Phase 15 deterministic browser UX hardening for primary navigation, main landmarks, route-specific focus labels, accessible-name metadata, rendered desktop/tablet/mobile modes, stable loading/error/empty states, text-containment policy, and same-origin API metadata.
 - Recursive browser-source checks that `API_TOKEN` is not referenced in browser-facing `web/src/**/*.js` modules outside `web/src/server`.
 - Lead inbox query serialization, blank-filter elision, sort overrides, and response adaptation.
 - Lead detail client access through same-origin `GET /api/leads/{id}`, encoded lead IDs, evidence workspace fields, source evidence, AI enrichment, reviewer corrections, and activity rows.
@@ -193,6 +202,7 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 - CSS layout.
 - Live backend compatibility.
 - Real cookie signing, browser session issuance, reverse-proxy behavior, and production CORS headers.
+- A production CLI session store or login flow for creating valid `groupscout_session` cookies.
 - Product browser runtime container smoke tests beyond the D4 health/static/proxy path and Phase 13 dependency-free rendered HTML smoke.
 - Raw audit payload redaction behavior beyond the explicit blocked TODO.
 - Real email sending, clipboard behavior, or CRM sync for outreach.

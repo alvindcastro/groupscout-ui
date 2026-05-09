@@ -51,11 +51,11 @@ test("route shell mounts the Phase 6 outreach workspace for the Outreach route",
   assert.equal(shell.content.sendPolicy.autoSendEmail, false);
 });
 
-test("future non-lead routes remain placeholders without feature workflow content", () => {
+test("settings route remains a placeholder without feature workflow content", () => {
   const shell = createRouteShell("/settings");
 
   assert.equal(shell.content.status, "placeholder");
-  assert.match(shell.content.description, /future lead-management views/i);
+  assert.match(shell.content.description, /settings remains reserved/i);
   assert.doesNotMatch(shell.content.description, /claim|dismiss|snooze|contacted|won|lost/i);
 });
 

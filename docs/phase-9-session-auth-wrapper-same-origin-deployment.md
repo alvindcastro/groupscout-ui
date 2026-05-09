@@ -20,6 +20,8 @@ Phase 9 adds the minimum deployment and session model needed to keep the operato
 
 - Browser access to `/api/*` requires the `groupscout_session` cookie to match a server-side session store.
 - Missing or invalid sessions return `401` with a `GroupScoutSession` challenge.
+- The production request handler applies this authorization check before proxying `/api/*` to `UI_API_PROXY_TARGET`.
+- Health, static, JSON, and proxied responses include baseline browser security headers: CSP, `x-content-type-options`, `x-frame-options`, and `referrer-policy`.
 - Disabled UI access returns `404` so the operator UI is not mounted.
 - `API_TOKEN` remains reserved for automation clients such as n8n and is not injected into browser requests.
 
@@ -32,6 +34,8 @@ Phase 9 does not add a new visual surface and does not require new `DESIGN.md` t
 - Red run: `node --test test/session-deployment.test.js test/api-boundary.test.js test/app-shell.test.js` failed because `web/src/server/uiDeployment.js` and `createMountedRouteShell(...)` did not exist.
 - Targeted green run: `node --test test/session-deployment.test.js test/api-boundary.test.js test/app-shell.test.js`.
 - Full-suite green run: `npm test`.
+- Refresh red run on 2026-05-09: `node --test test/session-deployment.test.js` failed because the production request handler did not expose session-gated `/api/*` behavior.
+- Refresh green run on 2026-05-09: `node --test test/session-deployment.test.js` passed after `createProductionRequestHandler(...)` gated `/api/*` with `authorizeUiApiRequest(...)` and added browser security headers.
 
 ## Out Of Scope
 

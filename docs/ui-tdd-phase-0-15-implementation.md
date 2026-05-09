@@ -23,9 +23,9 @@ The checkout was reconciled to the tracked Phase 13 UI baseline rather than rebu
 | 10 Pipeline Monitor And Run Controls | Complete | `test/pipeline-monitor.test.js` and `test/pipeline-client.test.js` cover run history, collector counts/failures, LLM health, delivery failures, and async manual run creation. |
 | 11 Analytics And Demand Signals | Complete | `test/analytics-dashboard.test.js`, `test/analytics-screen.test.js`, and `test/stats-client.test.js` cover distributions, denominators, date ranges, source yield, aging, verification quality, and demand timing. |
 | 12 Alertd Read-Only Console | Complete | `test/alert-console.test.js` and `test/alert-client.test.js` cover alert state, SPS, evidence, room inventory, action history, Slack-first policy, and disabled mutations. |
-| 13 Session/Auth And Same-Origin Runtime | Complete | `test/session-deployment.test.js` and `test/api-boundary.test.js` cover `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, session-cookie API authorization, same-origin credentials, and browser secret scans. |
+| 13 Session/Auth And Same-Origin Runtime | Complete | `test/session-deployment.test.js` and `test/api-boundary.test.js` cover `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, session-cookie API authorization, production request-handler gating before `/api/*` proxying, same-origin credentials, security headers, and browser secret scans. |
 | 14 Docker Integration And E2E Smoke | Complete | `test/dockerization-contract.test.js`, `Dockerfile`, `compose.dev.yml`, and server/runtime modules cover test image, dev product server, production static/proxy runtime, ports, healthchecks, backend discovery, and secret-free config. |
-| 15 Browser UX Hardening | Complete at deterministic renderer level | `test/browser-ux-hardening.test.js` and `web/src/renderer/browserUxHardening.js` cover focus labels, accessible names, responsive route variants, text-containment policy, stable loading/error/empty states, and same-origin API metadata. Screenshot/pixel checks remain blocked until a deterministic browser harness is introduced. |
+| 15 Browser UX Hardening | Complete at deterministic renderer level | `test/browser-ux-hardening.test.js` and `web/src/renderer/browserUxHardening.js` cover route-specific focus labels, accessible names, rendered desktop/tablet/mobile route variants, text-containment policy, stable loading/error/empty states, and same-origin API metadata. Screenshot/pixel checks remain blocked until a deterministic browser harness is introduced. |
 
 ## TDD Evidence
 
@@ -35,6 +35,15 @@ The checkout was reconciled to the tracked Phase 13 UI baseline rather than rebu
 - Red: `node --test test/browser-ux-hardening.test.js` failed with `ERR_MODULE_NOT_FOUND` before the Phase 15 hardening module was added.
 - Green: focused tests for baseline reconciliation, API boundary, lead client contracts, renderer/runtime smoke, and browser UX hardening passed.
 - Green: `npm run build`, `npm test`, Docker test-image build/run, production image build, and production-container smoke checks for `/healthz`, `/`, and `/assets/app.js` passed after implementation.
+
+## Verification Refresh
+
+- 2026-05-09: `npm test` passed 26/26 suites after rechecking the Phase 0-15 implementation against `docs/web-app-phase-prompts.md`.
+- 2026-05-09: `npm run build` regenerated the static app successfully with no tracked `web/dist` diff.
+- 2026-05-09: `docs/web-app-phase-prompts.md` was updated so its older supporting checklist reflects the completed Phase 0-15 implementation status recorded here.
+- 2026-05-09: production request-handler coverage now proves `/api/*` session gating and baseline browser security headers before backend proxying.
+- 2026-05-09: Phase 15 renderer evidence now requires route-specific focus labels and rendered desktop/tablet/mobile modes for all primary routes.
+- 2026-05-09: Phase 1 token guardrails now cover `text-input-focused` and the `property-row` background contract from `DESIGN.md`.
 
 ## Residual Risk
 
