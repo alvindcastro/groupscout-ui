@@ -117,6 +117,21 @@ test("stats client reads GET /api/stats with filters and adapts explainable anal
     label: "80-100",
     count: 19
   });
+  assert.deepEqual(stats.summaries.source[0], {
+    key: "permit_feed",
+    label: "Permit Feed",
+    count: 28
+  });
+  assert.deepEqual(stats.summaries.owner[0], {
+    key: "dana",
+    label: "Dana Lee",
+    count: 24
+  });
+  assert.deepEqual(stats.summaries.week[0], {
+    key: "2026-W18",
+    label: "Week of Apr 27",
+    count: 17
+  });
   assert.deepEqual(stats.sourceYield[0], {
     source: "permit_feed",
     total: 28,
@@ -132,6 +147,17 @@ test("stats client reads GET /api/stats with filters and adapts explainable anal
     leadCount: 9,
     estimatedRoomNights: 144
   });
+  assert.deepEqual(stats.leadAging[0], {
+    key: "0_2_days",
+    label: "0-2 days",
+    count: 23
+  });
+  assert.deepEqual(stats.verificationQuality[0], {
+    key: "verified_clean",
+    label: "Verified without correction",
+    count: 18,
+    denominator: 27
+  });
 });
 
 test("stats client documents source hit-rate inputs without hiding denominator semantics", async () => {
@@ -141,14 +167,12 @@ test("stats client documents source hit-rate inputs without hiding denominator s
 
   const stats = await client.getStats();
 
-  assert.equal(stats.hitRateDefinition.label, "Won leads / total source leads");
-  assert.deepEqual(stats.hitRateDefinition.numeratorStatuses, ["won"]);
-  assert.equal(
-    stats.hitRateDefinition.denominator,
-    "All leads from the source collected in the selected date range"
-  );
-  assert.ok(stats.hitRateDefinition.excludedFromNumerator.includes("claimed"));
-  assert.ok(stats.hitRateDefinition.excludedFromNumerator.includes("lost"));
+  assert.deepEqual(stats.hitRateDefinition, {
+    label: "Won leads / total source leads",
+    numeratorStatuses: ["won"],
+    denominator: "All leads from the source collected in the selected date range",
+    excludedFromNumerator: ["claimed", "contacted", "lost", "no_response", "dismissed"]
+  });
 });
 
 test("stats client validates required response sections", async () => {

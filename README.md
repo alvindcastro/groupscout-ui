@@ -35,6 +35,7 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Phase 9 tests cover session enforcement for `/api/*`, recursive browser credential exclusion, no automation-token browser headers, `UI_ENABLED`, `UI_BASE_PATH`, deployment readiness, and dev-only CORS configuration.
 - Phase 10 tests cover read-only alert state rendering, SPS summaries, evidence, room inventory, action history, disabled mutation actions, `/alerts` route mounting, responsive metadata, token usage, and `GET /api/alerts`.
 - Phase 11 tests cover the Today command center, priority lead and aging-work summaries, active alerts, failed jobs, system health, read-only action policy, `/` route mounting, responsive metadata, token usage, and `GET /api/system`.
+- Smell Phase H0 locks the API-client characterization baseline before the H1 split of the growing browser API client module.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
@@ -51,6 +52,8 @@ npm test
 - [Troubleshooting](./docs/troubleshooting.md)
 - [Nice To Knows](./docs/nice-to-knows.md)
 - [Code Smells And Housekeeping Notes](./docs/code-smells.md)
+- [Code Smell Transformation TDD Prompts](./docs/code-smell-transformation-prompts.md)
+- [Smell H0 API Client Characterization](./docs/smell-h0-api-client-characterization.md)
 - [Phase 0 Product Contract](./docs/phase-0-product-contract.md)
 - [Phase 1 Lead Inbox Contract](./docs/phase-1-lead-inbox-contract.md)
 - [Phase 2 Lead Inbox UI](./docs/phase-2-lead-inbox-ui.md)

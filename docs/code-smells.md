@@ -2,6 +2,8 @@
 
 These are documentation-only findings from the current UI and backend housekeeping pass. They are not code changes.
 
+For future implementation prompts that transform these smells under strict TDD, see [code-smell-transformation-prompts.md](./code-smell-transformation-prompts.md).
+
 ## UI Repo
 
 ### Growing API Client Module

@@ -3,7 +3,39 @@ import { readFile } from "node:fs/promises";
 import { readdir } from "node:fs/promises";
 import { test } from "node:test";
 
-import { API_BASE_PATH, createApiClient } from "../web/src/api/client.js";
+import * as apiClientModule from "../web/src/api/client.js";
+
+const { API_BASE_PATH, createApiClient } = apiClientModule;
+
+test("API client module keeps the public entry point and constants stable for adapter splits", () => {
+  assert.deepEqual(Object.keys(apiClientModule).sort(), [
+    "API_BASE_PATH",
+    "DEFAULT_LEAD_INBOX_SORT",
+    "LEAD_INBOX_ITEM_FIELDS",
+    "createApiClient"
+  ]);
+
+  const client = createApiClient({
+    fetchImpl: async () => Response.json({ ok: true })
+  });
+
+  assert.deepEqual(
+    Object.keys(client).sort(),
+    [
+      "getLeadRawAudit",
+      "getStats",
+      "getSystem",
+      "listAlerts",
+      "listLeadOutreach",
+      "listLeads",
+      "listPipelineRuns",
+      "logLeadOutreach",
+      "patchLead",
+      "request",
+      "startPipelineRun"
+    ].sort()
+  );
+});
 
 test("browser API access is isolated behind a same-origin /api client boundary", async () => {
   const calls = [];
@@ -24,15 +56,55 @@ test("browser API access is isolated behind a same-origin /api client boundary",
   assert.equal(calls[0].init.credentials, "same-origin");
 });
 
+test("API request transport applies JSON defaults and preserves same-origin session credentials", async () => {
+  const calls = [];
+  const client = createApiClient({
+    fetchImpl: async (url, init) => {
+      calls.push({ url, init });
+      return new Response("accepted", {
+        headers: { "content-type": "text/plain" }
+      });
+    }
+  });
+
+  const response = await client.request("/api/system", {
+    credentials: "include",
+    headers: {
+      "x-request-id": "req_123"
+    }
+  });
+
+  assert.equal(response, undefined);
+  assert.equal(calls[0].init.credentials, "same-origin");
+  assert.equal(calls[0].init.headers.accept, "application/json");
+  assert.equal(calls[0].init.headers["x-request-id"], "req_123");
+
+  const errorClient = createApiClient({
+    fetchImpl: async () => Response.json({ error: "unavailable" }, { status: 503 })
+  });
+
+  await assert.rejects(() => errorClient.request("/api/system"), /Request failed with status 503/);
+});
+
 test("client rejects non-/api browser endpoints before fetch", async () => {
+  let fetchCalls = 0;
   const client = createApiClient({
     fetchImpl: async () => {
+      fetchCalls += 1;
       throw new Error("fetch should not be called");
     }
   });
 
   await assert.rejects(() => client.request("/run"), /\/api/);
   await assert.rejects(() => client.request("https://example.com/api/system"), /same-origin/);
+  await assert.rejects(() => client.request("HTTP://example.com/api/system"), /same-origin/);
+  await assert.rejects(() => client.request("//example.com/api/system"), /\/api/);
+  await assert.rejects(() => client.request(""), /non-empty string/);
+  await assert.rejects(() => client.request(null), /non-empty string/);
+  await assert.rejects(() => client.request("/api"), /\/api/);
+  await assert.rejects(() => client.request("api/system"), /\/api/);
+  await assert.rejects(() => client.request("/apiary/system"), /\/api/);
+  assert.equal(fetchCalls, 0);
 });
 
 test("browser-facing source files do not reference API_TOKEN", async () => {

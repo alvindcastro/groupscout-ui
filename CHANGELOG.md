@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Smell Phase H0 - API Client Baseline Characterization
+
+- What: Added H0 characterization coverage for the browser API client public exports, `createApiClient(...)` method surface, same-origin transport defaults, invalid-route pre-fetch rejection, encoded lead-scoped routes, payload defaults, adapter defaults, and read-only policy metadata.
+- Where: Updated `test/api-boundary.test.js`, `test/lead-inbox-client.test.js`, `test/lead-status-mutation-client.test.js`, `test/raw-audit-client.test.js`, `test/outreach-client.test.js`, `test/pipeline-client.test.js`, `test/stats-client.test.js`, `test/alert-client.test.js`, and `test/system-client.test.js`.
+- When: Completed on 2026-05-09 before starting the H1 API-client split.
+- Why: Created a stable baseline so the H1 refactor fails on real contract drift instead of import-path or file-layout movement.
+- How: Tightened model-level `node:test` assertions, documented the affected H1 behavior map in `docs/smell-h0-api-client-characterization.md`, marked H0 complete in `docs/code-smell-transformation-prompts.md`, and refreshed README/testing/developer docs with the focused baseline command.
+
 ### Phase 11 - Today Command Center And System Health Summary
 
 - Added failing-first Phase 11 tests for the Today command center, priority lead and aging-work summaries, active alerts, failed jobs, system health, read-only action policy, responsive metadata, `DESIGN.md` token usage, `/` route mounting, and `GET /api/system`.
@@ -65,6 +73,7 @@
 - Documented backend startup paths from the sibling Go repo without changing backend code.
 - Captured current UI test-coverage limits and known doc/config drift to guide future cleanup.
 - Refreshed housekeeping docs with recursive credential-guard behavior, current phase links, focused test commands, optional design linting, and the latest code-smell watchlist.
+- Added strict-TDD code-smell transformation prompts with tickable housekeeping phases and tasks for future refactor work.
 
 ### Phase 4 - Lead Status Actions And State Model
 

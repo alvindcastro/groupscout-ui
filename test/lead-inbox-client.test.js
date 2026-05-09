@@ -78,6 +78,34 @@ test("lead inbox contract represents urgent unowned high-score default ordering"
   ]);
 });
 
+test("lead inbox client omits blank filters and preserves explicit sort overrides", async () => {
+  const calls = [];
+  const client = createApiClient({
+    fetchImpl: async (url, init) => {
+      calls.push({ url, init });
+      return Response.json({ leads: [apiLead] });
+    }
+  });
+
+  await client.listLeads({
+    q: "",
+    status: null,
+    source: undefined,
+    minScore: "",
+    owner: "dana",
+    sort: "created_at_desc"
+  });
+
+  const url = new URL(calls[0].url, "https://groupscout.test");
+  assert.equal(url.pathname, "/api/leads");
+  assert.equal(url.searchParams.has("q"), false);
+  assert.equal(url.searchParams.has("status"), false);
+  assert.equal(url.searchParams.has("source"), false);
+  assert.equal(url.searchParams.has("min_score"), false);
+  assert.equal(url.searchParams.get("owner"), "dana");
+  assert.equal(url.searchParams.get("sort"), "created_at_desc");
+});
+
 test("lead inbox response adapter exposes the fields needed by the future dense inbox table", async () => {
   const client = createApiClient({
     fetchImpl: async () => Response.json({ leads: [apiLead], next_cursor: "cursor_2" })

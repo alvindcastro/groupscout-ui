@@ -18,6 +18,8 @@ There is no package install requirement yet.
 
 Housekeeping run on 2026-05-08: `npm test` passed all 22 test files.
 
+Smell H0 baseline run on 2026-05-09: focused API-client characterization passed 9 test files, and `npm test` passed all 22 test files.
+
 Optional design-doc lint. This is not an npm script and may use the network through `npx`:
 
 ```sh
@@ -51,27 +53,33 @@ node --test test/system-client.test.js
 node --test test/today-command-center.test.js
 ```
 
+API-client characterization baseline for smell phases:
+
+```sh
+node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-status-mutation-client.test.js test/raw-audit-client.test.js test/outreach-client.test.js test/pipeline-client.test.js test/stats-client.test.js test/alert-client.test.js test/system-client.test.js
+```
+
 ## What The Current UI Tests Cover
 
-- Same-origin `/api/*` browser request boundary.
+- Same-origin `/api/*` browser request boundary, public API-client facade shape, request defaults, and invalid-route pre-fetch rejection.
 - Session-cookie enforcement metadata for UI `/api/*` access.
 - `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, and development-only `CORS_ALLOWED_ORIGINS` deployment behavior.
 - Recursive browser-source checks that `API_TOKEN` is not referenced in browser-facing `web/src/**/*.js` modules outside `web/src/server`.
-- Lead inbox query serialization and response adaptation.
+- Lead inbox query serialization, blank-filter elision, sort overrides, and response adaptation.
 - Lead inbox mocked table, filters, states, responsive metadata, and accessibility metadata.
 - Lead detail sections, source evidence, raw audit link intent, AI enrichment metadata, corrections, timeline, and states.
 - Lead status transition rules, invalid transition blocking, validation, and PATCH mutation intent.
 - Verification queue trigger classification, filters, row actions, raw audit alias links, responsive metadata, and blocked redaction-policy metadata.
-- Raw audit client access through same-origin `GET /api/leads/{id}/raw`.
-- Outreach client access through same-origin `GET/POST /api/leads/{id}/outreach`.
+- Raw audit client access through same-origin `GET /api/leads/{id}/raw`, encoded lead IDs, and raw policy defaults.
+- Outreach client access through same-origin `GET/POST /api/leads/{id}/outreach`, encoded lead IDs, optional draft logging, and manual logging validation.
 - Outreach workspace editable drafts, contact validation, manual copied/sent/logged states, outcome capture, activity timelines, responsive metadata, and route mounting.
-- Pipeline client access through same-origin `GET/POST /api/pipeline/runs`.
+- Pipeline client access through same-origin `GET/POST /api/pipeline/runs`, async run metadata, default manual run payloads, and compact health defaults.
 - Pipeline monitor compact health fields, async run creation state, collector counts/failures, LLM health, notification delivery health, partial-data/error states, responsive metadata, and route mounting.
-- Stats client access through same-origin `GET /api/stats`.
+- Stats client access through same-origin `GET /api/stats`, full summary adaptation, and source-yield hit-rate policy metadata.
 - Analytics dashboard status/source/score/owner/week summaries, source-yield hit-rate definition, lead aging, verification quality, upcoming demand, denominator/date-range labels, responsive metadata, and route mounting.
-- Alert client access through read-only same-origin `GET /api/alerts`.
+- Alert client access through read-only same-origin `GET /api/alerts`, cursor routing, and required evidence/inventory/history sections.
 - Alertd console current alert state, SPS summaries, evidence, room inventory, action history, disabled mutation actions, Slack-first policy metadata, responsive metadata, and route mounting.
-- System client access through read-only same-origin `GET /api/system`.
+- System client access through read-only same-origin `GET /api/system` and required generated/pipeline/count sections.
 - Today command center summary counts, priority lead rows, aging claimed work, active alerts, failed jobs, system health, read-only action policy, responsive metadata, and root route mounting.
 - Selected design token exports used by the current screen models.
 

@@ -8,6 +8,7 @@
 - `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/planning/ui/README.md`
 - `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/planning/ui/UI_STRATEGY.md`
 - `DESIGN.md`
+- `docs/code-smell-transformation-prompts.md`
 
 ## Global Rules For Every Phase
 
@@ -644,3 +645,7 @@ Do not build Settings, custom dashboards, system mutations, alert mutations, pip
 - [x] Phase 9 - Session/Auth Wrapper And Same-Origin Deployment
 - [x] Phase 10 - Later Alertd Read-Only Console
 - [x] Phase 11 - Today Command Center And System Health Summary
+
+## Related Refactor Prompt Pack
+
+- [ ] Use `docs/code-smell-transformation-prompts.md` for future code-smell transformation work. Those phases are not product phases; they are housekeeping refactor phases and must also follow strict TDD.

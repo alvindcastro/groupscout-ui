@@ -74,6 +74,22 @@ test("system client validates response shape and does not expose system mutation
   });
 
   await assert.rejects(() => client.getSystem(), /health/);
+
+  const missingGeneratedAtClient = createApiClient({
+    fetchImpl: async () => Response.json({ ...apiSystemSummary, generated_at: undefined })
+  });
+  await assert.rejects(() => missingGeneratedAtClient.getSystem(), /generated_at/);
+
+  const missingPipelineClient = createApiClient({
+    fetchImpl: async () => Response.json({ ...apiSystemSummary, pipeline: undefined })
+  });
+  await assert.rejects(() => missingPipelineClient.getSystem(), /pipeline/);
+
+  const missingCountsClient = createApiClient({
+    fetchImpl: async () => Response.json({ ...apiSystemSummary, counts: undefined })
+  });
+  await assert.rejects(() => missingCountsClient.getSystem(), /counts/);
+
   assert.equal(client.patchSystem, undefined);
   assert.equal(client.restartSystem, undefined);
   assert.equal(client.updateSettings, undefined);

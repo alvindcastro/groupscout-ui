@@ -72,6 +72,28 @@ test("lead correction mutation preserves original AI and source values with acto
   });
 });
 
+test("lead mutation client encodes lead ids and preserves nullable payload intent", async () => {
+  const calls = [];
+  const client = createApiClient({
+    fetchImpl: async (url, init) => {
+      calls.push({ url, init });
+      return Response.json({ ok: true });
+    }
+  });
+
+  await client.patchLead("lead 123/a", {
+    status: undefined,
+    owner: null,
+    notes: "Owner cleared for reassignment."
+  });
+
+  assert.equal(calls[0].url, "/api/leads/lead%20123%2Fa");
+  assert.deepEqual(JSON.parse(calls[0].init.body), {
+    owner: null,
+    notes: "Owner cleared for reassignment."
+  });
+});
+
 test("lead correction mutation requires audit actor, reason, and original values", async () => {
   const client = createApiClient({
     fetchImpl: async () => {
@@ -91,5 +113,25 @@ test("lead correction mutation requires audit actor, reason, and original values
         ]
       }),
     /correction.*original source value.*actor.*reason/i
+  );
+  await assert.rejects(
+    () => client.patchLead("lead_123", { corrections: { field: "projectType" } }),
+    /corrections must be an array/i
+  );
+  await assert.rejects(
+    () =>
+      client.patchLead("lead_123", {
+        corrections: [
+          {
+            field: "",
+            correctedValue: "renovation",
+            originalAiValue: "new_build",
+            originalSourceValue: "Permit says renovation.",
+            actor: "sam.rivera@groupscout.test",
+            reason: "Reviewed source evidence."
+          }
+        ]
+      }),
+    /field/i
   );
 });

@@ -96,6 +96,42 @@ test("outreach client logs POST /api/leads/{id}/outreach attempts without send b
   });
 });
 
+test("outreach client encodes lead ids and preserves optional draft text in manual logs", async () => {
+  const calls = [];
+  const client = createApiClient({
+    fetchImpl: async (url, init) => {
+      calls.push({ url, init });
+      return Response.json({
+        id: "outreach_3",
+        lead_id: "lead 123/a",
+        channel: "email",
+        contact: "manager@hotel.test",
+        notes: "Manual follow-up logged.",
+        outcome: "no_response",
+        created_at: "2026-05-08T16:15:00Z",
+        actor: "dana.lee@groupscout.test"
+      });
+    }
+  });
+
+  await client.logLeadOutreach("lead 123/a", {
+    channel: "email",
+    contact: "manager@hotel.test",
+    notes: "Manual follow-up logged.",
+    outcome: "no_response",
+    draft: "Checking whether your team needs crews next week."
+  });
+
+  assert.equal(calls[0].url, "/api/leads/lead%20123%2Fa/outreach");
+  assert.deepEqual(JSON.parse(calls[0].init.body), {
+    channel: "email",
+    contact: "manager@hotel.test",
+    notes: "Manual follow-up logged.",
+    outcome: "no_response",
+    draft: "Checking whether your team needs crews next week."
+  });
+});
+
 test("outreach client validates required manual logging fields", async () => {
   const client = createApiClient({
     fetchImpl: async () => {
@@ -104,6 +140,7 @@ test("outreach client validates required manual logging fields", async () => {
   });
 
   await assert.rejects(() => client.listLeadOutreach(""), /lead id/i);
+  await assert.rejects(() => client.logLeadOutreach("", {}), /lead id/i);
   await assert.rejects(
     () =>
       client.logLeadOutreach("lead_123", {
@@ -112,6 +149,26 @@ test("outreach client validates required manual logging fields", async () => {
         outcome: "contacted"
       }),
     /notes/i
+  );
+  await assert.rejects(
+    () =>
+      client.logLeadOutreach("lead_123", {
+        channel: "",
+        contact: "manager@hotel.test",
+        notes: "Manual follow-up logged.",
+        outcome: "contacted"
+      }),
+    /channel/i
+  );
+  await assert.rejects(
+    () =>
+      client.logLeadOutreach("lead_123", {
+        channel: "email",
+        contact: "",
+        notes: "Manual follow-up logged.",
+        outcome: "contacted"
+      }),
+    /contact/i
   );
   await assert.rejects(
     () =>

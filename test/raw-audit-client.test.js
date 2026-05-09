@@ -29,6 +29,27 @@ test("raw audit client reads through GET /api/leads/{id}/raw", async () => {
   });
 });
 
+test("raw audit client encodes lead ids and defaults missing raw policy fields to null", async () => {
+  const calls = [];
+  const client = createApiClient({
+    fetchImpl: async (url, init) => {
+      calls.push({ url, init });
+      return Response.json({
+        lead_id: "lead 123/a"
+      });
+    }
+  });
+
+  const raw = await client.getLeadRawAudit("lead 123/a");
+
+  assert.equal(calls[0].url, "/api/leads/lead%20123%2Fa/raw");
+  assert.deepEqual(raw, {
+    leadId: "lead 123/a",
+    redaction: null,
+    payload: null
+  });
+});
+
 test("raw audit client rejects legacy or direct raw endpoints", async () => {
   const client = createApiClient({
     fetchImpl: async () => {
@@ -45,4 +66,10 @@ test("raw audit client rejects legacy or direct raw endpoints", async () => {
     () => client.request("https://api.groupscout.test/leads/lead_123/raw"),
     /same-origin/i
   );
+
+  const invalidResponseClient = createApiClient({
+    fetchImpl: async () => Response.json({ payload: { id: "lead_123" } })
+  });
+
+  await assert.rejects(() => invalidResponseClient.getLeadRawAudit("lead_123"), /lead_id/);
 });

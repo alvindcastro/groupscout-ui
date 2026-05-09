@@ -115,6 +115,78 @@ test("pipeline client starts POST /api/pipeline/runs asynchronously without poll
   });
 });
 
+test("pipeline client adapts omitted compact health sections to stable empty values", async () => {
+  const client = createApiClient({
+    fetchImpl: async () =>
+      Response.json({
+        runs: [
+          {
+            id: "run_20260508_004",
+            status: "queued"
+          }
+        ]
+      })
+  });
+
+  const history = await client.listPipelineRuns();
+
+  assert.deepEqual(history.runs[0], {
+    id: "run_20260508_004",
+    status: "queued",
+    requestedAt: null,
+    startedAt: null,
+    finishedAt: null,
+    result: null,
+    collector: {
+      collected: null,
+      skipped: null,
+      enriched: null,
+      failures: []
+    },
+    llm: {
+      provider: null,
+      latencyMs: null,
+      errors: null
+    },
+    notifications: {
+      slackFailures: null,
+      emailFailures: null,
+      webhookFailures: null
+    },
+    links: {}
+  });
+});
+
+test("pipeline client default start payload keeps the manual reason and optional actor shape", async () => {
+  const calls = [];
+  const client = createApiClient({
+    fetchImpl: async (url, init) => {
+      calls.push({ url, init });
+      return Response.json(
+        {
+          id: "run_20260508_003",
+          status: "queued",
+          requested_at: "2026-05-08T17:00:00Z",
+          links: { status: "/api/pipeline/runs/run_20260508_003" }
+        },
+        { status: 202 }
+      );
+    }
+  });
+
+  await client.startPipelineRun();
+  await client.startPipelineRun({ actor: "sam.rivera@groupscout.test" });
+
+  assert.equal(calls[0].url, "/api/pipeline/runs");
+  assert.deepEqual(JSON.parse(calls[0].init.body), {
+    reason: "manual_operator_run"
+  });
+  assert.deepEqual(JSON.parse(calls[1].init.body), {
+    actor: "sam.rivera@groupscout.test",
+    reason: "manual_operator_run"
+  });
+});
+
 test("pipeline client validates response shape and keeps browser endpoints under /api", async () => {
   const client = createApiClient({
     fetchImpl: async () => Response.json({ runs: [{ status: "missing_id" }] })

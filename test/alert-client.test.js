@@ -46,10 +46,15 @@ test("alert client reads GET /api/alerts and adapts read-only alert fields", asy
     }
   });
 
-  const response = await client.listAlerts({ state: "active", property: "Riverside Hotel", limit: 20 });
+  const response = await client.listAlerts({
+    state: "active",
+    property: "Riverside Hotel",
+    limit: 20,
+    cursor: "cursor_1"
+  });
 
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, "/api/alerts?state=active&property=Riverside+Hotel&limit=20");
+  assert.equal(calls[0].url, "/api/alerts?state=active&property=Riverside+Hotel&limit=20&cursor=cursor_1");
   assert.equal(calls[0].init.method, "GET");
   assert.equal(calls[0].init.credentials, "same-origin");
   assert.deepEqual(response, {
@@ -99,6 +104,22 @@ test("alert client validates alert response shape and does not expose mutations"
   });
 
   await assert.rejects(() => client.listAlerts(), /id/);
+
+  const missingEvidenceClient = createApiClient({
+    fetchImpl: async () => Response.json({ alerts: [{ ...apiAlert, evidence: undefined }] })
+  });
+  await assert.rejects(() => missingEvidenceClient.listAlerts(), /evidence/);
+
+  const missingInventoryClient = createApiClient({
+    fetchImpl: async () => Response.json({ alerts: [{ ...apiAlert, room_inventory: undefined }] })
+  });
+  await assert.rejects(() => missingInventoryClient.listAlerts(), /room_inventory/);
+
+  const missingHistoryClient = createApiClient({
+    fetchImpl: async () => Response.json({ alerts: [{ ...apiAlert, action_history: undefined }] })
+  });
+  await assert.rejects(() => missingHistoryClient.listAlerts(), /action_history/);
+
   assert.equal(client.createAlert, undefined);
   assert.equal(client.patchAlert, undefined);
   assert.equal(client.acknowledgeAlert, undefined);

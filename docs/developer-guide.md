@@ -4,7 +4,7 @@ This repo is currently a no-build, model-level UI workspace for GroupScout opera
 
 ## Current Shape
 
-- `web/src/api/client.js` is the browser API boundary.
+- `web/src/api/client.js` is the browser API boundary and stable `createApiClient(...)` facade.
 - `web/src/app/shell.js` owns route-shell selection.
 - `web/src/server/uiDeployment.js` owns model-level UI deployment settings, base-path mounting, session-cookie API authorization, and development-only CORS metadata.
 - `web/src/app/todayCommandCenter.js` owns the mocked Today command center, operational priority summaries, system health metadata, and read-only routing policy.
@@ -64,6 +64,12 @@ node --test test/today-command-center.test.js
 node --test test/session-deployment.test.js
 ```
 
+API-client smell-phase baseline:
+
+```sh
+node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-status-mutation-client.test.js test/raw-audit-client.test.js test/outreach-client.test.js test/pipeline-client.test.js test/stats-client.test.js test/alert-client.test.js test/system-client.test.js
+```
+
 ## Development Rules
 
 - Keep browser requests behind same-origin `/api/*` paths.
@@ -113,6 +119,12 @@ Current UI client contracts:
 4. Update `README.md` current scope.
 5. Update `CHANGELOG.md` under `Unreleased`.
 6. Run `npm test`.
+
+## Transforming Code Smells
+
+Use [code-smell-transformation-prompts.md](./code-smell-transformation-prompts.md) for future housekeeping refactors. Treat each smell phase like a product phase: characterize behavior first, prove the red state, make the smallest change, rerun focused tests plus `npm test`, then update docs.
+
+The current smell baseline is [smell-h0-api-client-characterization.md](./smell-h0-api-client-characterization.md). It locks the public `web/src/api/client.js` exports, `createApiClient(...)` method surface, same-origin transport rules, route outputs, payload shapes, adapter defaults, and read-only policy metadata before the H1 client split.
 
 ## Current Limitations
 
