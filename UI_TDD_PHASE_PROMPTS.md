@@ -1,789 +1,475 @@
-# GroupScout UI TDD Phase Prompts
-
-> Planning artifact only. Do not implement code from this file in the current planning pass.
-> Future implementation prompts must follow strict TDD: write failing tests first, run them, implement the smallest change, rerun tests, then refactor.
-
-## Sources
-
-- `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/planning/ui/README.md`
-- `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/planning/ui/UI_STRATEGY.md`
-- `/mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml`
-- `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/guides/DOCKER.md`
-- `DESIGN.md`
-- `docs/phase-12-ui-dockerization.md`
-- `docs/code-smell-transformation-prompts.md`
-
-## Global Rules For Every Phase
-
-- [ ] Start by restating the phase goal, user workflow, and acceptance criteria before editing code.
-- [ ] Write or update tests before implementation.
-- [ ] Run the targeted test command and confirm the new tests fail for the expected reason.
-- [ ] Implement only the smallest code needed to pass the failing tests.
-- [ ] Rerun the targeted tests and any nearby regression tests.
-- [ ] Refactor only after tests pass.
-- [ ] Keep browser code behind explicit `/api/*` contracts. Do not query the database from the browser.
-- [ ] Do not expose `API_TOKEN` to browser JavaScript.
-- [ ] Preserve auditability: raw source output, AI enrichment, reviewer edits, status history, and outreach activity must remain distinguishable.
-- [ ] Use `DESIGN.md` tokens and component names verbatim. Do not approximate the Mintlify-style palette, typography, spacing, or radius system.
-- [ ] Use Inter for UI prose and Geist Mono only for code, identifiers, and type-like values.
-- [ ] Reserve mint green for accent CTAs, active states, and confirmations. Do not use it for body text or large surfaces.
-- [ ] Prefer dense operational UI: tables, tabs, segmented filters, detail drawers, menus, and keyboard-friendly controls.
-- [ ] Keep Slack/email as alerting channels; make the UI the durable review and ownership workspace.
-- [ ] Do not build CRM replacement features, auto-send outreach email, complex permission matrices, dashboard builders, direct database access, or a full `alertd` console in the first UI sequence.
-
-## Phase 0 - Product Contract And Test Harness
-
-### Prompt
-
-Use this prompt to prepare the UI implementation path without building feature UI.
-
-```text
-You are working in the GroupScout UI repo. Strictly follow TDD.
-
-Goal: establish the UI implementation contract and testing harness needed for the lead-management MVP without building product features yet.
-
-Context:
-- Read DESIGN.md.
-- Read /mnt/c/Users/alvin/GolandProjects/groupscout/docs/planning/ui/UI_STRATEGY.md.
-- The first UI is an operator workspace for lead triage, review, ownership, evidence, outreach history, and outcomes.
-- The browser must use explicit /api/* contracts and must not query storage directly or expose API_TOKEN.
-
-TDD requirements:
-1. Write tests first for project-level guardrails: design token availability, route shell existence, API client boundary location, and no direct browser references to API_TOKEN.
-2. Run the tests and confirm they fail because the harness or guardrail does not exist yet.
-3. Add the minimal test setup and placeholder shell needed to pass.
-4. Rerun the targeted tests.
-
-Do not build lead screens, real API calls, analytics, auth, or deployment behavior in this phase.
-```
-
-### Tasks
-
-- [x] Decide the UI app structure and test runner from the existing repo conventions.
-- [x] Add failing tests for token import or token mapping from `DESIGN.md`.
-- [x] Add failing tests for a route shell that can host Today, Leads, Verification, Outreach, Pipeline, Analytics, and Settings later.
-- [x] Add failing tests that browser-facing code does not read `API_TOKEN`.
-- [x] Add minimal harness code only after tests fail.
-- [x] Document the test command in the implementation notes for the phase.
-
-### Acceptance Criteria
-
-- [x] Tests prove there is a stable place for design tokens.
-- [x] Tests prove browser API access is isolated behind a client boundary.
-- [x] Tests prove the app shell can host the planned IA without implementing feature screens.
-- [x] No feature workflow is implemented yet.
-
-### Implementation Notes
-
-- App structure: `web/src/design`, `web/src/app`, and `web/src/api`.
-- Test runner: Node's built-in `node:test`, invoked with `npm test`.
-- Red run: failed with missing `web/src/*` Phase 0 harness modules.
-- Green run: `npm test` passes after adding only placeholder shell, design token exports, and API client boundary.
-
-## Phase 1 - Lead Inbox API Contract And Client
-
-### Prompt
-
-```text
-Strictly follow TDD.
-
-Goal: define and consume the lead inbox API contract for GET /api/leads with filtering, pagination, and default priority ordering.
-
-Context:
-- Lead Inbox is a dense operational table.
-- Default sort should put urgent, unowned, high-score leads first.
-- Expected filters: status, source, min_score, created date, property, owner, verification state, and free text query.
-- Browser code must use generated or typed API clients, not ad hoc fetch calls spread through components.
-
-TDD requirements:
-1. Write contract/client tests before implementation.
-2. Assert query serialization for q, status, source, min_score, created date, property, owner, verification state, limit, and cursor.
-3. Assert the typed response includes score, title, segment/project type, location/property fit, source, crew/duration estimate, outreach timing, status, owner, created date, and evidence/verification state.
-4. Assert default sort semantics are represented in the contract or adapter.
-5. Run tests and confirm expected failure.
-6. Implement the smallest client/contract surface needed.
-7. Rerun tests.
-
-Do not build the visual inbox table yet.
-```
-
-### Tasks
-
-- [x] Add tests for `GET /api/leads` query parameters.
-- [x] Add tests for pagination cursor handling.
-- [x] Add tests for default priority ordering expectations.
-- [x] Add tests for lead list item fields required by the inbox.
-- [x] Implement only the typed contract/client surface needed for those tests.
-- [x] Update OpenAPI or typed schema notes if this repo owns them.
-
-### Acceptance Criteria
-
-- [x] Inbox data requirements are test-covered before UI rendering starts.
-- [x] Pagination and filters are represented in one typed boundary.
-- [x] Components will not need to know raw endpoint URLs.
-
-### Implementation Notes
-
-- Contract/client facade lives in `web/src/api/client.js`; after H1, lead adapter implementation lives in `web/src/api/leads.js`.
-- Tests live in `test/lead-inbox-client.test.js`.
-- Typed schema notes live in `docs/phase-1-lead-inbox-contract.md`.
-- Red run: `npm test` failed because Phase 1 lead inbox contract exports did not exist yet.
-- Green run: `npm test` passes after adding `listLeads`, query serialization, default priority sort metadata, and the response adapter.
-
-## Phase 2 - Lead Inbox UI
-
-### Prompt
-
-```text
-Strictly follow TDD.
-
-Goal: build the Lead Inbox screen using mocked client data and DESIGN.md tokens.
-
-Context:
-- This is an operations table, not a marketing page.
-- Controls: search, status/source/min score/date/property/owner/verification filters, and clear filter behavior.
-- Columns: score, title, segment/project type, location/property fit, source, estimated crew/duration, suggested outreach timing, status, owner, created date, evidence/verification state.
-- Use dense layout, restrained color, accessible controls, and keyboard-friendly interactions.
-
-TDD requirements:
-1. Write failing component tests first for rendering, filtering controls, empty/loading/error states, row selection, and navigation to lead detail.
-2. Add responsive tests for desktop table behavior and mobile/tablet collapse behavior.
-3. Add accessibility assertions for labels, focus order, and touch targets.
-4. Run tests and confirm expected failure.
-5. Implement the smallest screen code needed to pass.
-6. Rerun tests and any visual checks available in the repo.
-
-Do not implement status mutations, outreach logging, raw audit viewing, or analytics in this phase.
-```
-
-### Tasks
-
-- [x] Test table columns and row content from mocked leads.
-- [x] Test search and each planned filter control.
-- [x] Test loading, empty, and error states.
-- [x] Test row activation opens or routes to lead detail.
-- [x] Test desktop, tablet, and mobile layout behavior.
-- [x] Test design-token usage for buttons, inputs, tabs, badges, and table surfaces.
-- [x] Implement after the tests fail.
-
-### Acceptance Criteria
-
-- [x] Operators can scan high-priority unowned leads.
-- [x] Filters are usable and reflected in client query state.
-- [x] UI follows `DESIGN.md` tokens for typography, spacing, borders, radius, and status accents.
-- [x] The screen remains dense and operational at desktop sizes and usable on mobile.
-
-### Implementation Notes
-
-- Screen surface lives in `web/src/app/leadInbox.js`.
-- Tests live in `test/lead-inbox-screen.test.js`, with shell integration coverage in `test/app-shell.test.js`.
-- Red run: Phase 2 screen tests failed because `web/src/app/leadInbox.js` did not exist yet; stricter follow-up tests failed while `/leads` still returned placeholder content and Phase 2 component tokens were incomplete.
-- Green run: `npm test` passes after adding the mocked Lead Inbox screen, documented `DESIGN.md` component tokens, and `/leads` shell mounting.
-- The current no-dependency harness verifies view model, token, responsive metadata, accessibility metadata, and navigation intent. It does not perform computed CSS or real browser focus checks yet.
-
-## Phase 3 - Lead Detail Evidence Workspace
-
-### Prompt
-
-```text
-Strictly follow TDD.
-
-Goal: build the Lead Detail workspace around reviewable evidence and audit-preserving AI enrichment.
-
-Context:
-- Required sections: Summary, Source Evidence, AI Enrichment, Actions, Outreach, Activity.
-- Summary: title, score, timing, room-night signal, property fit.
-- Source evidence: source name, source URL, raw audit link, collected timestamp.
-- AI enrichment: contractor/applicant, project type, crew size, duration, rationale, uncertainty.
-- Activity: status history, notes, outreach attempts, reviewer corrections.
-
-TDD requirements:
-1. Write failing tests for each required section before implementing layout.
-2. Test that original source/AI fields and reviewer corrections are visually distinct.
-3. Test raw audit link presence without loading raw payload inline yet.
-4. Test loading, not found, and error states.
-5. Test responsive layout: detail content is readable and actions remain reachable.
-6. Run tests, implement the minimum, rerun tests.
-
-Do not implement mutations beyond read-only detail display in this phase.
-```
-
-### Tasks
-
-- [x] Add tests for all required detail sections.
-- [x] Add tests for source evidence and raw audit link.
-- [x] Add tests for AI rationale and uncertainty display.
-- [x] Add tests for activity timeline entries.
-- [x] Add tests that reviewer corrections never silently replace source-backed extraction.
-- [x] Implement read-only detail UI after tests fail.
-
-### Acceptance Criteria
-
-- [x] Operators can evaluate why a lead exists and whether it is trustworthy.
-- [x] Source evidence is paired with every AI claim that needs review.
-- [x] Audit trail concepts are visible before write workflows are added.
-
-### Implementation Notes
-
-- Detail workspace surface lives in `web/src/app/leadDetail.js` and is mounted from `/leads/{id}` by `web/src/app/shell.js`.
-- Tests live in `test/lead-detail-screen.test.js`, with route coverage in `test/app-shell.test.js` and token coverage in `test/design-tokens.test.js`.
-- Red run: `node --test test/lead-detail-screen.test.js test/app-shell.test.js` failed because `web/src/app/leadDetail.js` did not exist yet.
-- Green run: `node --test test/lead-detail-screen.test.js test/app-shell.test.js test/design-tokens.test.js` passed after adding the read-only workspace, Phase 3 token exports, and `/leads/{id}` routing.
-- The current no-dependency harness verifies screen contracts, state metadata, responsive metadata, token references, and raw audit link intent. It does not perform computed CSS, real browser focus checks, or raw payload rendering.
-
-## Phase 4 - Lead Status Actions And State Model
-
-### Prompt
-
-```text
-Strictly follow TDD.
-
-Goal: implement lead status actions from the recommended v1 state model.
-
-Context:
-- Recommended states: new, notified, claimed, contacted, snoozed, flagged, verified, dismissed, won, lost, no_response.
-- Allowed actions must match the state transition table in UI_STRATEGY.md.
-- Verification may later become a separate field, so isolate transition logic from rendering.
-
-TDD requirements:
-1. Write failing unit tests for every allowed and disallowed state transition.
-2. Write failing component tests showing only valid actions for the current lead state.
-3. Write failing mutation tests for PATCH /api/leads/{id} payloads: status, owner, notes, snooze date, and safe field corrections.
-4. Write failing tests that corrections preserve original AI/source values plus who changed what and why.
-5. Run tests, implement minimum transition logic and UI actions, rerun tests.
-
-Do not add bulk actions until the status model is stable.
-```
-
-### Tasks
-
-- [x] Test allowed transitions from each v1 status.
-- [x] Test invalid transitions are blocked before API mutation.
-- [x] Test claim, dismiss, snooze, flag, contacted, won, lost, no_response, follow_up, reopen, verified, and corrected actions where applicable.
-- [x] Test notes and correction reason requirements.
-- [x] Implement transition helpers and UI action controls after tests fail.
-- [x] Keep mutation payloads typed and isolated in the API client boundary.
-
-### Acceptance Criteria
-
-- [x] Operators only see actions that make sense for the current lead.
-- [x] Invalid transitions are impossible from the UI.
-- [x] Corrections are auditable and do not overwrite source-backed data silently.
-
-### Implementation Notes
-
-- State model helpers live in `web/src/app/leadStatus.js`.
-- Lead Detail action controls are generated from the isolated status model in `web/src/app/leadDetail.js`.
-- PATCH mutation serialization enters through the browser API facade at `web/src/api/client.js`; after H1, lead mutation adapter implementation lives in `web/src/api/leads.js`.
-- Tests live in `test/lead-status-state-model.test.js`, `test/lead-status-mutation-client.test.js`, and the Phase 4 additions to `test/lead-detail-screen.test.js`.
-- Red runs failed first on missing `web/src/app/leadStatus.js`, missing `createApiClient().patchLead(...)`, read-only Phase 3 detail actions, and missing correction reason serialization.
-- Green run: `npm test` passes after adding transition helpers, valid action metadata, invalid transition blocking, typed lead PATCH payloads, and auditable correction payloads.
-
-## Phase 5 - Verification Queue And Raw Audit Review
-
-### Prompt
-
-```text
-Strictly follow TDD.
-
-Goal: build the Verification Queue and authenticated raw audit review entry point.
-
-Context:
-- Queue triggers include missing source URL/raw audit record, high score with weak rationale, contradiction between raw source and enriched fields, low confidence collector parse, and manual operator flag.
-- GET /api/leads/{id}/raw should be the UI-safe alias for raw audit payload access.
-- Raw payloads may need redaction rules before display.
-
-TDD requirements:
-1. Write failing tests for queue inclusion rules.
-2. Write failing tests for verification queue filters and row actions.
-3. Write failing tests for opening raw audit evidence through /api/leads/{id}/raw, not the older non-UI endpoint directly.
-4. Write failing tests for redacted or blocked sensitive raw payload fields once redaction rules are known.
-5. Run tests, implement minimal queue and raw evidence access, rerun tests.
-
-If redaction rules are not defined, add a blocked test/TODO documenting the missing decision instead of guessing.
-```
-
-### Tasks
-
-- [x] Test queue trigger classification.
-- [x] Test verification queue list rendering.
-- [x] Test verify, correct, dismiss, and return-to-lead actions.
-- [x] Test raw audit link/client path uses `/api/leads/{id}/raw`.
-- [x] Test missing-redaction decision is visible if rules are undefined.
-- [x] Implement after tests fail.
-
-### Acceptance Criteria
-
-- [x] High-value but low-trust leads have a focused workspace.
-- [x] Raw audit access goes through the UI-safe API boundary.
-- [x] Undefined redaction policy remains explicit instead of hidden in UI behavior.
-
-### Implementation Notes
-
-- Verification Queue screen surface lives in `web/src/app/verificationQueue.js` and is mounted from `/verification` by `web/src/app/shell.js`.
-- Raw audit client access lives in `createApiClient().getLeadRawAudit(...)` and uses `GET /api/leads/{id}/raw`.
-- Lead Detail raw audit evidence links now use `/api/leads/{id}/raw`.
-- Tests live in `test/verification-queue.test.js`, `test/raw-audit-client.test.js`, plus Phase 5 route/raw-link assertions in `test/app-shell.test.js` and `test/lead-detail-screen.test.js`.
-- Red run: `node --test test/verification-queue.test.js test/raw-audit-client.test.js test/app-shell.test.js test/lead-detail-screen.test.js` failed because the queue module, raw audit client method, `/verification` route mounting, and UI-safe Lead Detail raw link did not exist yet.
-- Green run: `npm test` passes after adding queue trigger classification, queue filters/actions, raw audit alias client access, `/verification` route mounting, and explicit blocked redaction metadata.
-- Redaction rules are still undefined; Phase 5 documents `RAW_AUDIT_REDACTION_POLICY.status = "blocked"` instead of rendering sensitive raw payloads inline.
-
-## Phase 6 - Outreach Workspace And Activity Log
-
-### Prompt
-
-```text
-Strictly follow TDD.
-
-Goal: add editable outreach draft, contact fields, outreach attempt logging, and outcome capture.
-
-Context:
-- POST /api/leads/{id}/outreach logs outreach attempt, channel, contact, notes, and outcome.
-- GET /api/leads/{id}/outreach shows activity history.
-- The first UI must not auto-send outreach email.
-
-TDD requirements:
-1. Write failing tests for editable draft and contact fields.
-2. Write failing tests for copied/sent/logged display states without actually sending email.
-3. Write failing API client tests for POST and GET outreach endpoints.
-4. Write failing activity timeline tests for outreach attempts and outcomes.
-5. Run tests, implement minimum workspace, rerun tests.
-
-Do not implement automated sending or CRM sync in this phase.
-```
-
-### Tasks
-
-- [x] Test editable outreach draft behavior.
-- [x] Test contact field validation.
-- [x] Test manual logging of channel, contact, notes, and outcome.
-- [x] Test contacted, won, lost, no-response outcome capture.
-- [x] Test activity history renders outreach attempts.
-- [x] Implement after tests fail.
-
-### Acceptance Criteria
-
-- [x] Operators can prepare and log outreach without the UI sending messages.
-- [x] Outreach history is visible in lead detail activity.
-- [x] Outcome data can feed later analytics.
-
-### Implementation Notes
-
-- Outreach Workspace surface lives in `web/src/app/outreachWorkspace.js` and is mounted from `/outreach` by `web/src/app/shell.js`.
-- Lead Detail embeds a compact manual outreach workspace in `web/src/app/leadDetail.js`.
-- Outreach API reads and writes live in `createApiClient().listLeadOutreach(...)` and `createApiClient().logLeadOutreach(...)`.
-- Tests live in `test/outreach-workspace.test.js`, `test/outreach-client.test.js`, plus Phase 6 route/detail assertions in `test/app-shell.test.js` and `test/lead-detail-screen.test.js`.
-- Red run: `npm test` failed because outreach client methods and Lead Detail outreach workspace behavior did not exist yet; `node test/app-shell.test.js` failed while `/outreach` still returned a placeholder.
-- Green run: `npm test` passes after adding editable outreach drafts, contact validation, manual copied/sent/logged states, outcome capture, outreach history timelines, same-origin `GET/POST /api/leads/{id}/outreach`, and `/outreach` route mounting.
-- Automated sending and CRM sync remain out of scope; Phase 6 display states explicitly set send/sync behavior to false.
-
-## Phase 7 - Pipeline Monitor And Run Controls
-
-### Prompt
-
-```text
-Strictly follow TDD.
-
-Goal: add compact pipeline health and run controls for operators.
-
-Context:
-- Pipeline Monitor answers whether the system is healthy; it does not replace Grafana.
-- Show last run time/result, collector collected/skipped/enriched counts, collector failures, LLM provider/latency/errors, Slack/email/webhook delivery failures, and links to logs or Grafana where available.
-- POST /api/pipeline/runs should start a run without blocking the browser for the whole pipeline.
-- GET /api/pipeline/runs should show recent run history and status.
-
-TDD requirements:
-1. Write failing API client tests for pipeline run creation and run history.
-2. Write failing component tests for compact health fields.
-3. Write failing tests that run creation is asynchronous from the browser perspective.
-4. Write failing tests for failure and partial-data states.
-5. Run tests, implement minimum pipeline monitor, rerun tests.
-
-Do not expose automation-only endpoints directly in browser components.
-```
-
-### Tasks
-
-- [x] Test run history client behavior.
-- [x] Test async run creation state.
-- [x] Test collector count display.
-- [x] Test recent failures display.
-- [x] Test LLM and notification delivery health summaries.
-- [x] Implement after tests fail.
-
-### Acceptance Criteria
-
-- [x] Operators can see whether the lead pipeline is fresh and healthy.
-- [x] Manual run control does not block the UI for long-running pipeline work.
-- [x] Browser components do not call automation endpoints directly.
-
-### Implementation Notes
-
-- Pipeline Monitor surface lives in `web/src/app/pipelineMonitor.js` and is mounted from `/pipeline` by `web/src/app/shell.js`.
-- Pipeline API reads and writes live in `createApiClient().listPipelineRuns(...)` and `createApiClient().startPipelineRun(...)`.
-- Tests live in `test/pipeline-monitor.test.js` and `test/pipeline-client.test.js`, with route and credential-boundary assertions in `test/app-shell.test.js` and `test/api-boundary.test.js`.
-- Red run: `npm test` failed because the pipeline client methods and monitor module did not exist yet.
-- Targeted green runs: `node --test test/pipeline-client.test.js` and `node --test test/pipeline-monitor.test.js`.
-- Green run: `npm test` passes after adding compact health summaries, recent run history, async run-control metadata, same-origin `GET/POST /api/pipeline/runs`, partial-data states, and `/pipeline` route mounting.
-- Grafana/log links are optional display links; automation-only endpoints remain out of browser components.
-
-## Phase 8 - Basic Analytics And Demand Signals
-
-### Prompt
-
-```text
-Strictly follow TDD.
-
-Goal: add basic explainable analytics for lead operations.
-
-Context:
-- Analytics should include counts by status, source, score band, owner, and week.
-- Useful views: source yield, claimed/won/lost rates, lead aging, score distribution, verification quality, and upcoming demand by week/segment/property.
-- Source hit rate must use explicit outcome definitions.
-
-TDD requirements:
-1. Write failing tests for GET /api/stats client shape.
-2. Write failing component tests for each summary metric and empty state.
-3. Write failing tests documenting the selected source hit-rate definition.
-4. Write failing tests that analytics explain their denominator and date range.
-5. Run tests, implement minimum analytics, rerun tests.
-
-Do not build a custom dashboard builder in this phase.
-```
-
-### Tasks
-
-- [x] Test stats client response.
-- [x] Test status, source, score band, owner, and week summaries.
-- [x] Test lead aging and verification quality summaries.
-- [x] Test demand timing view.
-- [x] Test visible denominator/date range labels.
-- [x] Implement after tests fail.
-
-### Acceptance Criteria
-
-- [x] Managers can understand pipeline coverage and source quality.
-- [x] Metrics are explainable and tied to explicit outcome definitions.
-- [x] Analytics remain basic and operational.
-
-### Implementation Notes
-
-- Analytics screen surface lives in `web/src/app/analyticsDashboard.js` and is mounted from `/analytics` by `web/src/app/shell.js`.
-- Stats API access lives in `createApiClient().getStats(...)` and uses same-origin `GET /api/stats`.
-- Source hit rate is defined as `won leads / total source leads`, with `won` as the only numerator status and all source leads in the selected date range as the denominator.
-- Tests live in `test/stats-client.test.js`, `test/analytics-dashboard.test.js`, and `test/analytics-screen.test.js`, with route and credential-boundary assertions in `test/app-shell.test.js` and `test/api-boundary.test.js`.
-- Red run: `node --test test/stats-client.test.js test/analytics-dashboard.test.js` failed because the analytics module and stats client method did not exist yet.
-- Targeted green run: `node --test test/stats-client.test.js test/analytics-dashboard.test.js test/analytics-screen.test.js test/app-shell.test.js test/api-boundary.test.js`.
-- Green run: `npm test` passes after adding stats adaptation, explainable metric definitions, summary sections, lead aging, verification quality, demand rows, and `/analytics` route mounting.
-- Custom dashboard builders remain out of scope.
-
-## Phase 9 - Session/Auth Wrapper And Same-Origin Deployment
-
-### Prompt
-
-```text
-Strictly follow TDD.
-
-Goal: add the minimum UI session/auth and deployment wrapper needed for safe operator access.
-
-Context:
-- Candidate settings: UI_ENABLED, UI_BASE_PATH, UI_SESSION_SECRET, CORS_ALLOWED_ORIGINS.
-- Same-origin deployment is preferred where possible.
-- API_TOKEN remains for automation clients such as n8n, not end-user browser sessions.
-
-TDD requirements:
-1. Write failing tests for session-required UI API access.
-2. Write failing tests that browser bundles do not include API_TOKEN.
-3. Write failing tests for UI_ENABLED and UI_BASE_PATH behavior if this repo owns deployment behavior.
-4. Write failing tests for development-only CORS configuration if applicable.
-5. Run tests, implement minimum auth/deployment wrapper, rerun tests.
-
-Do not add complex role matrices unless the backend contract already defines them.
-```
-
-### Tasks
-
-- [x] Test session enforcement for `/api/*`.
-- [x] Test no `API_TOKEN` in browser runtime/config.
-- [x] Test base path mounting.
-- [x] Test disabled UI behavior.
-- [x] Test dev-only CORS behavior if needed.
-- [x] Implement after tests fail.
-
-### Acceptance Criteria
-
-- [x] UI access is safe enough for operator use.
-- [x] Automation credentials are not repurposed for browser sessions.
-- [x] Deployment settings are explicit and test-covered.
-
-### Implementation Notes
-
-- Added `web/src/server/uiDeployment.js` for `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, development-only `CORS_ALLOWED_ORIGINS`, base-path mount resolution, and session-cookie `/api/*` authorization.
-- Added `createMountedRouteShell(...)` for `UI_BASE_PATH` route mapping and base-path-aware navigation hrefs.
-- Expanded browser credential tests to recursively scan browser-facing `web/src` modules while keeping server-only deployment helpers out of the bundle scan.
-- Red run: `node --test test/session-deployment.test.js test/api-boundary.test.js test/app-shell.test.js` failed with missing Phase 9 exports.
-- Green runs: `node --test test/session-deployment.test.js test/api-boundary.test.js test/app-shell.test.js` and `npm test`.
-
-## Phase 10 - Later Alertd Read-Only Console
-
-### Prompt
-
-```text
-Strictly follow TDD.
-
-Goal: optionally add a read-only disruption alert console after the lead workflow is stable.
-
-Context:
-- alertd remains Slack-first for the lead-management MVP.
-- A later UI can show current SPS, evidence, room inventory, alert state, and action history.
-
-TDD requirements:
-1. Write failing tests for read-only alert state rendering.
-2. Write failing tests for evidence and action history display.
-3. Write failing tests that alert actions remain disabled or out of scope unless contracts exist.
-4. Run tests, implement minimum read-only view, rerun tests.
-
-Do not let this phase block or expand the lead-management MVP.
-```
-
-### Tasks
-
-- [x] Confirm lead workflow phases are stable before starting.
-- [x] Test read-only alert summary.
-- [x] Test evidence display.
-- [x] Test room inventory display if data contract exists.
-- [x] Test action history display.
-- [x] Keep mutations out of scope.
-
-### Acceptance Criteria
-
-- [x] Disruption monitoring is visible without replacing Slack as the interrupt channel.
-- [x] The console remains read-only unless future contracts justify actions.
-
-### Implementation Notes
-
-- Alertd console surface lives in `web/src/app/alertdConsole.js` and is mounted from `/alerts` by `web/src/app/shell.js`.
-- Read-only alert API access lives in `createApiClient().listAlerts(...)` and uses `GET /api/alerts`.
-- The console shows current alert state, SPS, source evidence, room inventory, and action history while documenting Slack as the interrupt channel.
-- Alert mutations remain disabled and out of scope; the client exposes no create, patch, acknowledge, resolve, or suppress methods.
-- Tests live in `test/alert-console.test.js` and `test/alert-client.test.js`, with route and credential-boundary assertions in `test/app-shell.test.js` and `test/api-boundary.test.js`.
-- Lead-workflow stability check: `npm test` passed before Phase 10 implementation.
-- Red run: `node --test test/alert-console.test.js test/alert-client.test.js test/app-shell.test.js test/api-boundary.test.js` failed because the alert console module, `/alerts` route mounting, and `listAlerts(...)` client did not exist yet.
-- Green runs: `node --test test/alert-console.test.js test/alert-client.test.js test/app-shell.test.js test/api-boundary.test.js` and `npm test`.
-
-## Phase 11 - Today Command Center And System Health Summary
-
-### Prompt
-
-```text
-Strictly follow TDD.
-
-Goal: replace the reserved Today placeholder with a dense command center that shows the operator what needs attention now.
-
-Context:
-- Today is the first workspace route and should summarize existing lead, verification, outreach, pipeline, analytics, and alert surfaces.
-- The command center should show high-score new leads, aging claimed leads, active disruption alerts, failed jobs, and system health.
-- System health must use a UI-friendly /api/system contract, not browser calls to raw health/metrics/automation endpoints.
-- Today is an orientation and routing surface. Mutations remain in the owning workspaces.
-
-TDD requirements:
-1. Write failing tests for the Today command center before implementing the screen.
-2. Test priority leads, aging claimed work, active alerts, failed jobs, system health, read-only action policy, loading/empty/error states, responsive metadata, token usage, and root route mounting.
-3. Write failing client tests for read-only GET /api/system.
-4. Run tests and confirm expected failure.
-5. Implement the smallest screen and client surface needed.
-6. Rerun targeted tests and then the full suite.
-
-Do not build Settings, custom dashboards, system mutations, alert mutations, pipeline internals, or direct browser access to automation endpoints.
-```
-
-### Tasks
-
-- [x] Test the Today summary counts and generated timestamp.
-- [x] Test high-score new lead rows and aging claimed lead rows.
-- [x] Test active alert, failed job, and system-health summaries.
-- [x] Test read-only route/action policy.
-- [x] Test loading, empty, error, desktop, tablet, and mobile state metadata.
-- [x] Test `GET /api/system` client access and response adaptation.
-- [x] Mount Today from the root route after tests fail.
-
-### Acceptance Criteria
-
-- [x] Operators can scan the day’s highest-priority work from `/`.
-- [x] Every Today action links to an owning workspace instead of introducing duplicate mutations.
-- [x] System health is exposed through same-origin `/api/system`.
-- [x] Settings remains out of scope.
-
-### Implementation Notes
-
-- Today command center surface lives in `web/src/app/todayCommandCenter.js` and is mounted from `/` by `web/src/app/shell.js`.
-- Read-only system summary API access lives in `createApiClient().getSystem()` and uses `GET /api/system`.
-- Today shows high-score new leads, aging claimed leads, active alerts, failed jobs, and API/database/collector/LLM health.
-- Tests live in `test/today-command-center.test.js` and `test/system-client.test.js`, with root route coverage in `test/app-shell.test.js`.
-- Red run: `node --test test/today-command-center.test.js test/system-client.test.js test/app-shell.test.js` failed because the Today module, `/` route mounting, and `getSystem()` client did not exist yet.
-- Green runs: `node --test test/today-command-center.test.js test/system-client.test.js test/app-shell.test.js` and `npm test`.
-
-## Phase 12 - UI Dockerization
-
-> Status: D0 contract documented, D1 UI test container implemented, D2 browser runtime contract test-covered, D3 development Compose integration added, D4 production same-origin serving implemented, and D5 Docker operations docs/CI hooks documented. The detailed prompt pack lives in `docs/phase-12-ui-dockerization.md`, and the D0-D5 decision record lives in `docs/ui-dockerization-contract.md`.
-
-### Prompt
-
-```text
-Strictly follow TDD. Do not skip the red step.
-
-Goal: dockerize the UI in phases without inventing a browser runtime before the repo has one.
-
-Context:
-- The backend Docker stack is in /mnt/c/Users/alvin/GolandProjects/groupscout.
-- Backend Compose runs groupscout on 8080, alertd on 8081, Postgres, n8n, observability, Ollama, and ollama-init on groupscout_net.
-- At Phase 12 time, the UI repo had a D1 Dockerfile test target, .dockerignore, D3 compose.dev.yml backend Compose override, D4 production same-origin static/proxy serving, and D5 Docker operations docs/CI notes, but no renderer, dev server, build tool, lockfile, or product browser runtime. Phase 13 later added the no-dependency renderer/runtime path.
-- The UI repo currently runs model-level JavaScript tests with npm test -> node --test.
-- Browser code must use same-origin /api/* contracts.
-- API_TOKEN and provider secrets must not be exposed to browser JavaScript, static assets, generated config, or public image layers.
-
-TDD requirements:
-1. Start with a dockerization contract and decision record before adding Docker files.
-2. Add the smallest failing test or validation for each Docker behavior before implementing it.
-3. Confirm the red failure is caused by missing Docker/runtime behavior, not an unrelated test break.
-4. Implement the smallest change needed to pass.
-5. Rerun the focused check, then npm test.
-6. Run Docker validation only after Docker files exist: docker build, docker compose config, and smoke checks as appropriate.
-
-Do not add Dockerfile, Compose, nginx/proxy config, browser framework, dev server, or production runtime in the planning-only pass.
-```
-
-### Phase Tasks
-
-- [x] D0 - Dockerization Contract And Decision Record
-- [x] D1 - UI Test Container
-- [x] D2 - Browser Runtime Contract
-- [x] D3 - Development Compose Integration
-- [x] D4 - Same-Origin Proxy Or Static Serving
-- [x] D5 - Docker Operations Docs And CI Hooks
-
-### Acceptance Criteria
-
-- [x] The first Docker implementation target is a deterministic UI test image.
-- [x] A browser runtime is added only after its contract is test-covered.
-- [x] Development Compose reaches the backend by service name, `http://groupscout:8080`, from inside the Docker network.
-- [x] Browser-visible code and config never contain `API_TOKEN`, provider keys, Slack tokens, Resend keys, or database URLs.
-- [x] Production serves browser assets and `/api/*` from one origin.
-- [x] README, developer, testing, and troubleshooting docs are updated only when real commands exist.
-
-### Implementation Notes
-
-- D0 created the documentation-only contract and guardrail test.
-- D0 evidence: `node --test test/dockerization-contract.test.js` failed before `docs/ui-dockerization-contract.md` and its links existed, then passed after the contract and Markdown references were added.
-- D1 added `Dockerfile`, `.dockerignore`, and guardrail coverage for a Node test image that runs `npm test` without ports, healthchecks, backend wiring, proxy config, or browser runtime.
-- D1 evidence: `node test/dockerization-contract.test.js` failed before Docker files and D1 docs existed, then passed after implementation; `docker build --target test -t groupscout-ui-test .`, `docker run --rm groupscout-ui-test`, and `npm test` passed.
-- D2 added `web/src/server/browserRuntimeContract.js` and guardrail coverage for a future lightweight Node server contract: reserved `npm run start:ui`, port `3000`, `/healthz`, server-owned assets under `web/dist`, same-origin `/api/*` server/proxy routing to `http://groupscout:8080`, and forbidden browser public config keys.
-- D2 evidence: `node --test test/dockerization-contract.test.js` failed before runtime contract metadata and D2 docs existed, then passed after implementation; `npm test` passed.
-- D3 added `compose.dev.yml` and `web/src/server/devComposeHealthServer.js` for a development `groupscout-ui` service that joins `groupscout_net`, depends on backend service `groupscout`, maps `${GROUPSCOUT_UI_HOST_PORT:-3001}` to container port `3000`, healthchecks `/healthz`, and carries `UI_API_PROXY_TARGET=http://groupscout:8080` metadata without secrets.
-- D3 evidence: `node test/dockerization-contract.test.js` failed before the Compose override, health harness, and D3 docs existed, then passed after implementation; `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet`, `npm test`, `docker build --target test -t groupscout-ui-test .`, and `docker run --rm groupscout-ui-test` passed.
-- D4 added `web/src/server/productionServer.js`, `web/dist/index.html`, `web/dist/assets/app.js`, `npm run start:ui`, and the `production` Docker target for static asset serving and same-origin server-side `/api/*` forwarding.
-- D4 evidence: `node test/dockerization-contract.test.js` failed before the production server/static assets/Docker target/docs existed, then passed after implementation; `npm test`, Docker test-image build/run, and production image build passed.
-- D5 added operations docs and CI hook notes for local tests, containerized tests, dev Compose lifecycle, backend dependencies, required UI Docker env vars, troubleshooting, and secret-free CI smoke checks.
-- D5 evidence: `node test/dockerization-contract.test.js` failed before D5 operations docs existed, then passed after docs updates; `npm test`, Docker test-image build/run, Compose config validation, and production image build passed.
-- Do not add future framework, renderer, dev-server, or broader product runtime code without strict TDD and focused verification.
-- Backend constraints inspected: `/mnt/c/Users/alvin/GolandProjects/groupscout/Dockerfile`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/guides/DOCKER.md`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/guides/TESTING.md`, and `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/API_CONFIG.md`.
-
-## Phase 13 - Product Renderer Runtime
-
-> Status: implemented with a dependency-free vanilla DOM renderer/runtime. No framework, package install step, or lockfile was added. The implementation record lives in `docs/phase-13-product-renderer-runtime.md`; detailed prompts and tickable tasks live in `docs/phase-13-product-renderer-runtime-prompts.md`.
-
-### Prompt
-
-```text
-Strictly follow TDD. Do not skip the red step.
-
-Goal: introduce the next product renderer/runtime only after tests prove the contract, browser behavior, asset safety, and Docker impact.
-
-Context:
-- The UI repo is currently model-level JavaScript tested with node:test.
-- D1 runs npm test in a container.
-- D3 compose.dev.yml started as a backend-network health harness; Phase 13 changes it only after product dev-server tests fail for that expected reason.
-- D4 serves web/dist and proxies /api/* server-side from one origin.
-- The backend Docker stack lives in /mnt/c/Users/alvin/GolandProjects/groupscout and provides service groupscout on groupscout_net.
-- Browser-facing code must keep relative /api/* calls and must not expose API_TOKEN or other server secrets.
-
-TDD requirements:
-1. Start with a renderer/runtime contract test or docs guardrail before adding dependencies.
-2. Add browser/component harness support only after failing tests prove model-level tests are insufficient.
-3. Mount existing screen models in a renderer before introducing live backend behavior.
-4. Prove generated static assets are secret-free before serving them from D4.
-5. Change Compose only after a real product dev server exists and failing Compose tests describe the new behavior.
-6. Treat live backend 404/schema drift separately from Docker/proxy failures.
-
-Do not implement renderer code, dependencies, Docker changes, Compose changes, or backend route fixes in a planning-only pass.
-```
-
-### Phase Tasks
-
-- [x] 13-A - Renderer Runtime Contract
-- [x] 13-B - Browser And Component Test Harness Decision
-- [x] 13-C - Minimal Renderer Mount
-- [x] 13-D - Static Build And Asset Safety
-- [x] 13-E - Product Dev Server And Compose
-- [x] 13-F - Live Backend Compatibility Smoke
-
-### Acceptance Criteria
-
-- [x] The chosen renderer/runtime contract is test-covered before dependencies are added.
-- [x] Browser tests cover DOM, focus, accessibility, responsive layout, and same-origin API behavior that model tests cannot prove.
-- [x] Existing screen models remain the product behavior source until live data wiring is explicitly introduced.
-- [x] D4 remains the production same-origin static/proxy boundary unless a later tested contract replaces it.
-- [x] D3 Compose semantics are not changed until a product dev server exists.
-- [x] Backend route drift is documented as backend/API compatibility work, not misclassified as UI Docker failure.
-
-### Implementation Notes
-
-- Red run: `node test/phase-13-renderer-runtime.test.js` failed because Phase 13 modules were missing, `npm run build` was absent, `compose.dev.yml` still used the D3 health harness, and D4 did not serve app-route fallback.
-- 13-A added `web/src/server/productRendererRuntime.js` for the explicit vanilla DOM renderer contract, D4 static/proxy production boundary, product dev-server model, `web/dist` build output, `/healthz`, `/api/*`, and public-config secret guardrails.
-- 13-B chose a dependency-free `node-rendered-dom-smoke` harness in `test/phase-13-renderer-runtime.test.js`; no package, framework, or lockfile was added.
-- 13-C added `web/src/renderer/domRenderer.js` to mount Today, Lead Inbox, and Lead Detail from the existing screen models with rendered-route smoke coverage for landmarks, focusable labels, responsive metadata, states, and same-origin API entry metadata.
-- 13-D added `npm run build`, `web/src/renderer/buildStaticApp.js`, regenerated `web/dist/index.html` and `web/dist/assets/app.js`, and extended `web/src/server/productionServer.js` with route fallback for product app paths while preserving `/assets/*` 404 behavior and `/api/*` proxying.
-- 13-E added `web/src/server/productDevServer.js` and updated `compose.dev.yml` so `groupscout-ui` runs the product dev server on container port `3000`, host `${GROUPSCOUT_UI_HOST_PORT:-3001}`, and server-side `http://groupscout:8080`.
-- 13-F added `web/src/server/backendCompatibilitySmoke.js` to distinguish proxy failure, backend 404 route drift, auth requirements, schema drift, compatible responses, and backend errors for UI-modeled `/api/*` routes.
-- Green run: `node --test test/phase-13-renderer-runtime.test.js` passed; broader verification is `npm test`.
-
-### Planning Notes
-
-- Current backend findings: `groupscout` listens on `8080`, `alertd` on `8081`, Grafana on host `3000`, and shared service discovery uses `groupscout_net`.
-- Current UI findings: this working tree has only `.idea/*` line-ending changes; no product UI source changes are pending.
-- Recommended next read-only subagent split is renderer fit, Docker runtime impact, browser test strategy, and backend compatibility.
-
-## Open Decisions To Resolve Before Coding
-
-- [ ] Is verification a lead status or a separate source-review status?
-- [ ] Who can claim, verify, correct, dismiss, reopen, and mark won/lost?
-- [ ] Should corrected fields overwrite lead columns, live in a corrections table, or both?
-- [ ] Is built-in cookie auth required, or will the UI sit behind an auth proxy?
-- [ ] Is GroupScout or a future CRM the source of truth for outreach outcomes?
-- [ ] What exactly counts as source hit rate: claimed/total, won/claimed, won/total, or another metric?
-- [ ] What raw audit payloads can operators view, and what must be redacted before display? Phase 5 keeps this blocked explicitly before inline raw payload rendering.
-- [ ] Should v1 ship Slack quick actions, the admin UI, or both together?
-- [x] Should the first real UI runtime be static assets, a lightweight Node server, or backend-served assets? D2 chose a lightweight Node server contract.
-- [x] Should UI Compose live in the UI repo, the backend repo, or as a cross-repo override? D3 chose a UI-repo `compose.dev.yml` override used beside the backend Compose file.
-- [x] Should production same-origin behavior use a proxy container or Go static-file serving? D4 chose a lightweight Node production server in the UI repo.
+# GroupScout Web App TDD Phase Prompts
+
+> Planning artifact. Every implementation phase must use strict TDD: write a failing test first, run the narrow red command, implement the smallest change, rerun the narrow command, then run the relevant broader suite.
+
+## Companion Docs
+
+- [Web App Brainstorm](./docs/web-app-brainstorm.md)
+- [Phase Prompt Pack](./docs/web-app-phase-prompts.md)
+
+## Global Rules
+
+- [ ] Use beads for task tracking before code changes.
+- [ ] Check current repo state before edits; do not revert user changes.
+- [ ] Start every phase by restating goal, workflow, out-of-scope items, and acceptance criteria.
+- [ ] Write tests before implementation.
+- [ ] Confirm the red failure is for the expected missing behavior.
+- [ ] Implement only enough code/docs/runtime behavior to pass.
+- [ ] Rerun the narrow test and then the relevant broader suite.
+- [ ] Preserve browser-only access through same-origin `/api/*` contracts.
+- [ ] Keep secrets server-side: no `API_TOKEN`, provider keys, Slack tokens, Resend keys, database URLs, `OLLAMA_ENDPOINT`, or `UI_SESSION_SECRET` in browser-visible code/assets/config.
+- [ ] Use `DESIGN.md` tokens and UX direction: dense operator surfaces, Inter prose, Geist Mono for structured values, hairline borders, compact controls, black primary buttons, mint only for active/confirmation accents.
+- [ ] Treat raw source evidence, AI enrichment, reviewer corrections, outreach logs, and status history as distinct audit concepts.
+- [ ] Add follow-up beads issues for known gaps instead of hiding them in comments or unchecked assumptions.
 
 ## Suggested Phase Order
 
-- [x] Phase 0 - Product Contract And Test Harness
-- [x] Phase 1 - Lead Inbox API Contract And Client
-- [x] Phase 2 - Lead Inbox UI
-- [x] Phase 3 - Lead Detail Evidence Workspace
-- [x] Phase 4 - Lead Status Actions And State Model
-- [x] Phase 5 - Verification Queue And Raw Audit Review
-- [x] Phase 6 - Outreach Workspace And Activity Log
-- [x] Phase 7 - Pipeline Monitor And Run Controls
-- [x] Phase 8 - Basic Analytics And Demand Signals
-- [x] Phase 9 - Session/Auth Wrapper And Same-Origin Deployment
-- [x] Phase 10 - Later Alertd Read-Only Console
-- [x] Phase 11 - Today Command Center And System Health Summary
-- [x] Phase 12 - UI Dockerization
-- [x] Phase 13 - Product Renderer Runtime
+- [ ] Phase 0 - Baseline Reconciliation And Harness
+- [ ] Phase 1 - Product Contract, IA, And UX Guardrails
+- [ ] Phase 2 - Backend Compatibility Smoke
+- [ ] Phase 3 - API Client Contracts
+- [ ] Phase 4 - Today Command Center
+- [ ] Phase 5 - Lead Inbox
+- [ ] Phase 6 - Lead Detail Evidence Workspace
+- [ ] Phase 7 - Lead Status, Ownership, And Corrections
+- [ ] Phase 8 - Verification Queue And Raw Audit Review
+- [ ] Phase 9 - Outreach Workspace And Activity Log
+- [ ] Phase 10 - Pipeline Monitor And Run Controls
+- [ ] Phase 11 - Analytics And Demand Signals
+- [ ] Phase 12 - Alertd Read-Only Console
+- [ ] Phase 13 - Session/Auth And Same-Origin Runtime
+- [ ] Phase 14 - Docker Integration And E2E Smoke
+- [ ] Phase 15 - Browser UX Hardening
 
-## Related Refactor Prompt Pack
+## Phase 0 - Baseline Reconciliation And Harness
 
-- [ ] Use `docs/code-smell-transformation-prompts.md` for future code-smell transformation work. Those phases are not product phases; they are housekeeping refactor phases and must also follow strict TDD.
+### Prompt
+
+```text
+You are working in /mnt/c/Users/alvin/WebstormProjects/groupscout-ui. Strictly follow TDD.
+
+Goal: reconcile the current UI checkout with the latest Phase 13 UI baseline before product work begins.
+
+Context:
+- The current working tree has local deletions of the previous UI source, tests, package file, docs, and Docker files.
+- origin/main contains the latest UI updates: vanilla DOM renderer, node:test suite, static build, product dev server, production static/proxy server, and backend compatibility smoke classification.
+- Do not revert user changes unless explicitly directed.
+
+TDD requirements:
+1. Add or restore only the smallest test/harness files needed after deciding the baseline strategy.
+2. If restoring from origin/main, first add a failing smoke or docs-guardrail test that proves the expected baseline is absent in the current checkout.
+3. Run the narrow red command.
+4. Restore or recreate the minimal harness to pass.
+5. Rerun the narrow command and record the result.
+
+Do not build new product features in this phase.
+```
+
+### Tasks
+
+- [ ] Record current `git status` and identify user-owned changes.
+- [ ] Decide whether to restore Phase 13 files from `origin/main` or continue from a minimal docs-first baseline.
+- [ ] Add a failing baseline smoke for package scripts, route shell, renderer runtime, and secret guardrails.
+- [ ] Run the focused red command.
+- [ ] Restore or recreate the minimum harness.
+- [ ] Rerun focused tests.
+- [ ] Update docs with the chosen baseline decision.
+
+## Phase 1 - Product Contract, IA, And UX Guardrails
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: establish the product contract and visual guardrails for the GroupScout operator workbench.
+
+Context:
+- The app is a dense evidence-first operations console, not a CRM replacement or marketing site.
+- Use DESIGN.md tokens and UX direction.
+- Initial IA: Today, Leads, Verification, Outreach, Pipeline, Analytics, Alerts, Settings.
+
+TDD requirements:
+1. Write failing tests for route shell IA, design token availability, reserved navigation labels, and no direct browser references to secrets.
+2. Write failing tests or docs assertions for dense operator UX requirements: compact tables, filters, tabs, detail evidence, and responsive variants.
+3. Run red.
+4. Implement the smallest shell/token metadata needed.
+5. Rerun tests.
+
+Do not implement feature screens or live API calls in this phase.
+```
+
+### Tasks
+
+- [ ] Test route list and default route.
+- [ ] Test `DESIGN.md` token mapping for colors, typography, spacing, radius, and key components.
+- [ ] Test no browser-facing secret names.
+- [ ] Test shell reserves command center, leads, verification, outreach, pipeline, analytics, alerts, and settings.
+- [ ] Implement shell placeholders only after tests fail.
+- [ ] Document UX guardrails.
+
+## Phase 2 - Backend Compatibility Smoke
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: turn backend/UI route assumptions into compatibility smoke tests before wiring screens to live data.
+
+Context:
+- Backend docs conflict on whether UI /api/* routes are implemented.
+- Backend Compose service is groupscout on 8080.
+- Browser-visible code must call same-origin /api/* only.
+
+TDD requirements:
+1. Write failing smoke classification tests for /api/system, /api/leads, /api/pipeline/runs, /api/stats, /api/alerts, and /api/leads/{id}/raw.
+2. Distinguish proxy failure, backend 404 route drift, auth failure, schema drift, compatible response, and backend error.
+3. Run red against a documented live backend or stub.
+4. Implement only the classifier/client smoke harness, not route fixes.
+5. Rerun focused tests.
+
+Do not hide route drift behind fixtures.
+```
+
+### Tasks
+
+- [ ] Inventory backend live routes.
+- [ ] Test compatibility classification categories.
+- [ ] Test same-origin UI routes map to server-side `http://groupscout:8080`.
+- [ ] Test auth/session failures separately from automation `API_TOKEN`.
+- [ ] File backend follow-up issues for missing routes.
+- [ ] Document current compatible and incompatible endpoints.
+
+## Phase 3 - API Client Contracts
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: define typed browser API client contracts for UI-modeled /api/* routes.
+
+Context:
+- Components should not spread ad hoc fetch calls.
+- Contracts must be testable with fixtures before live backend wiring.
+
+TDD requirements:
+1. Write failing client tests for leads, lead detail, raw audit, outreach, pipeline runs, stats, alerts, and system health.
+2. Test query serialization, response adaptation, error handling, pagination, and forbidden secret headers.
+3. Run red.
+4. Implement the smallest client boundary.
+5. Rerun tests.
+```
+
+### Tasks
+
+- [ ] Test `GET /api/leads` filters and pagination.
+- [ ] Test `GET /api/leads/{id}` detail shape.
+- [ ] Test `PATCH /api/leads/{id}` mutation payload validation.
+- [ ] Test `GET /api/leads/{id}/raw` raw audit alias.
+- [ ] Test `GET/POST /api/leads/{id}/outreach`.
+- [ ] Test `GET/POST /api/pipeline/runs`.
+- [ ] Test `GET /api/stats`, `GET /api/alerts`, and `GET /api/system`.
+- [ ] Implement one centralized API boundary.
+
+## Phase 4 - Today Command Center
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: build the first screen: a dense command center for today's operator priorities.
+
+TDD requirements:
+1. Write failing tests for priority leads, aging claimed leads, verification problems, active alerts, failed jobs, and system health.
+2. Test loading, empty, error, desktop, tablet, and mobile states.
+3. Test actions route to owning workspaces instead of duplicating mutations.
+4. Run red, implement minimum, rerun.
+```
+
+### Tasks
+
+- [ ] Test summary counts and generated timestamp.
+- [ ] Test high-score new lead rows.
+- [ ] Test aging claimed work.
+- [ ] Test active alert and failed job cards.
+- [ ] Test system health via `/api/system`.
+- [ ] Test responsive layout and token use.
+- [ ] Implement Today screen.
+
+## Phase 5 - Lead Inbox
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: build the lead triage inbox.
+
+TDD requirements:
+1. Write failing tests for table columns, filter controls, priority ordering, loading/empty/error states, row selection, and detail navigation.
+2. Test desktop table, tablet priority table, and mobile lead cards.
+3. Run red, implement minimum, rerun.
+```
+
+### Tasks
+
+- [ ] Test search, status, source, score, owner, property, verification, and date filters.
+- [ ] Test score, title, segment, location/property fit, source, crew/duration, timing, status, owner, created, and evidence columns.
+- [ ] Test clear filters.
+- [ ] Test keyboard row activation.
+- [ ] Test mocked and API-backed data paths separately.
+- [ ] Implement inbox screen.
+
+## Phase 6 - Lead Detail Evidence Workspace
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: build the lead detail workspace around evidence and auditability.
+
+TDD requirements:
+1. Write failing tests for Summary, Source Evidence, AI Enrichment, Actions, Outreach, and Activity sections.
+2. Test original source values, AI values, and reviewer corrections stay visually distinct.
+3. Test raw audit links exist without loading raw payload inline by default.
+4. Run red, implement minimum, rerun.
+```
+
+### Tasks
+
+- [ ] Test summary fields.
+- [ ] Test source URL, source name, raw audit link, collected timestamp.
+- [ ] Test AI rationale, uncertainty, crew, duration, project type, and evidence references.
+- [ ] Test activity timeline.
+- [ ] Test not found, loading, and error states.
+- [ ] Test responsive detail layout.
+- [ ] Implement read-only detail workspace.
+
+## Phase 7 - Lead Status, Ownership, And Corrections
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: implement lead state transitions, ownership actions, and auditable corrections.
+
+TDD requirements:
+1. Write failing unit tests for allowed and blocked transitions.
+2. Write failing UI tests that only valid actions are shown for the current state.
+3. Write failing mutation tests for status, owner, notes, snooze date, and correction reason.
+4. Run red, implement minimum, rerun.
+```
+
+### Tasks
+
+- [ ] Define and test status model.
+- [ ] Test claim, snooze, flag, verify, dismiss, contacted, won, lost, no response, reopen, and correct.
+- [ ] Test required notes/reasons.
+- [ ] Test invalid transitions never call the API client.
+- [ ] Test corrections preserve original source/AI values.
+- [ ] Implement action controls and helpers.
+
+## Phase 8 - Verification Queue And Raw Audit Review
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: build a focused queue for leads that need source or AI review.
+
+TDD requirements:
+1. Write failing tests for queue inclusion rules.
+2. Test verify, correct, dismiss, and return-to-lead actions.
+3. Test raw audit access through /api/leads/{id}/raw.
+4. Test redaction-policy behavior before inline raw display.
+5. Run red, implement minimum, rerun.
+```
+
+### Tasks
+
+- [ ] Test missing source/raw audit trigger.
+- [ ] Test high score with weak rationale trigger.
+- [ ] Test raw/enriched contradiction trigger.
+- [ ] Test low-confidence parse trigger.
+- [ ] Test manual flag trigger.
+- [ ] Test redaction policy as blocked until defined.
+- [ ] Implement queue.
+
+## Phase 9 - Outreach Workspace And Activity Log
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: add manual outreach drafting, logging, and outcome capture.
+
+TDD requirements:
+1. Write failing tests for editable draft, contact fields, copied/sent/logged display states, and validation.
+2. Write failing client tests for outreach history and logging.
+3. Test the UI never auto-sends email.
+4. Run red, implement minimum, rerun.
+```
+
+### Tasks
+
+- [ ] Test channel, contact, message, notes, and outcome fields.
+- [ ] Test manual copied/sent/logged states.
+- [ ] Test contacted, won, lost, and no-response outcomes.
+- [ ] Test activity timeline entries.
+- [ ] Test no auto-send behavior.
+- [ ] Implement outreach workspace.
+
+## Phase 10 - Pipeline Monitor And Run Controls
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: expose pipeline health and manual run controls without replacing observability tools.
+
+TDD requirements:
+1. Write failing tests for run history, collector counts/failures, LLM health, delivery failures, and queued manual runs.
+2. Test manual run creation as accepted async work.
+3. Run red, implement minimum, rerun.
+```
+
+### Tasks
+
+- [ ] Test recent run rows.
+- [ ] Test collector collected/skipped/enriched counts.
+- [ ] Test LLM provider, latency, and errors.
+- [ ] Test Slack/email/webhook delivery failures.
+- [ ] Test manual run request payload.
+- [ ] Implement pipeline monitor.
+
+## Phase 11 - Analytics And Demand Signals
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: add basic explainable analytics for lead quality and demand timing.
+
+TDD requirements:
+1. Write failing tests for status, source, score, owner, week, property, and segment summaries.
+2. Test denominators, date ranges, empty states, and source-yield definitions.
+3. Run red, implement minimum, rerun.
+```
+
+### Tasks
+
+- [ ] Test status distribution.
+- [ ] Test source yield and denominators.
+- [ ] Test score bands and owner load.
+- [ ] Test lead aging and verification quality.
+- [ ] Test demand by week/property/segment.
+- [ ] Implement analytics dashboard.
+
+## Phase 12 - Alertd Read-Only Console
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: add a read-only disruption alert console after lead workflows are stable.
+
+TDD requirements:
+1. Write failing tests for alert state, SPS, evidence, room inventory, action history, and disabled mutation actions.
+2. Test Slack remains the interrupt channel.
+3. Run red, implement minimum, rerun.
+```
+
+### Tasks
+
+- [ ] Test alert list and summary.
+- [ ] Test highest SPS and room impact.
+- [ ] Test evidence rows.
+- [ ] Test action history.
+- [ ] Test no acknowledge/resolve/suppress mutation client exists.
+- [ ] Implement read-only alert console.
+
+## Phase 13 - Session/Auth And Same-Origin Runtime
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: make browser access safe enough for operator use.
+
+TDD requirements:
+1. Write failing tests for session cookie enforcement, UI base path, dev-only CORS, deployment readiness, and same-origin /api/* routing.
+2. Test API_TOKEN is never repurposed as a browser credential.
+3. Run red, implement minimum, rerun.
+```
+
+### Tasks
+
+- [ ] Test `UI_ENABLED`.
+- [ ] Test `UI_BASE_PATH`.
+- [ ] Test `UI_SESSION_SECRET` readiness.
+- [ ] Test session-cookie authorization for `/api/*`.
+- [ ] Test browser bundle secret scans.
+- [ ] Implement runtime/session helpers.
+
+## Phase 14 - Docker Integration And E2E Smoke
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: validate the UI beside the backend Docker stack without leaking secrets.
+
+TDD requirements:
+1. Write failing Docker/Compose contract tests for test image, dev product server, production static/proxy server, ports, healthchecks, backend service discovery, and secret-free config.
+2. Run red.
+3. Implement or restore the smallest Docker files/runtime code needed.
+4. Run focused tests, Docker config validation, and smoke checks.
+```
+
+### Tasks
+
+- [ ] Test `docker build --target test` contract.
+- [ ] Test dev UI service host port defaults to `3001`.
+- [ ] Test production smoke can run on `3002`.
+- [ ] Test server-side target `http://groupscout:8080`.
+- [ ] Test `/healthz`, `/`, `/assets/app.js`, and one `/api/*` classification.
+- [ ] Test Compose/static assets are secret-free.
+- [ ] Implement Docker integration.
+
+## Phase 15 - Browser UX Hardening
+
+### Prompt
+
+```text
+Strictly follow TDD.
+
+Goal: prove the app behaves correctly in a real browser.
+
+TDD requirements:
+1. Write failing browser tests for keyboard focus, accessible names, responsive layout, non-overlap, loading states, and same-origin API calls.
+2. Add screenshot or pixel checks only after deterministic rendering exists.
+3. Run red, implement minimum UX fixes, rerun.
+```
+
+### Tasks
+
+- [ ] Test keyboard navigation through shell, filters, rows, tabs, and actions.
+- [ ] Test accessible names for icon/action controls.
+- [ ] Test desktop, tablet, and mobile layouts.
+- [ ] Test no text overflow in buttons, badges, filters, and table/card cells.
+- [ ] Test loading and error states do not shift layout incoherently.
+- [ ] Test screenshots for primary routes once browser harness exists.
+- [ ] Implement UX hardening fixes.
+
