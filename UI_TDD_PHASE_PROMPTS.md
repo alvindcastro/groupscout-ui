@@ -7,7 +7,10 @@
 
 - `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/planning/ui/README.md`
 - `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/planning/ui/UI_STRATEGY.md`
+- `/mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml`
+- `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/guides/DOCKER.md`
 - `DESIGN.md`
+- `docs/phase-12-ui-dockerization.md`
 - `docs/code-smell-transformation-prompts.md`
 
 ## Global Rules For Every Phase
@@ -121,7 +124,7 @@ Do not build the visual inbox table yet.
 
 ### Implementation Notes
 
-- Contract/client surface lives in `web/src/api/client.js`.
+- Contract/client facade lives in `web/src/api/client.js`; after H1, lead adapter implementation lives in `web/src/api/leads.js`.
 - Tests live in `test/lead-inbox-client.test.js`.
 - Typed schema notes live in `docs/phase-1-lead-inbox-contract.md`.
 - Red run: `npm test` failed because Phase 1 lead inbox contract exports did not exist yet.
@@ -271,7 +274,7 @@ Do not add bulk actions until the status model is stable.
 
 - State model helpers live in `web/src/app/leadStatus.js`.
 - Lead Detail action controls are generated from the isolated status model in `web/src/app/leadDetail.js`.
-- PATCH mutation serialization lives in the browser API boundary at `web/src/api/client.js`.
+- PATCH mutation serialization enters through the browser API facade at `web/src/api/client.js`; after H1, lead mutation adapter implementation lives in `web/src/api/leads.js`.
 - Tests live in `test/lead-status-state-model.test.js`, `test/lead-status-mutation-client.test.js`, and the Phase 4 additions to `test/lead-detail-screen.test.js`.
 - Red runs failed first on missing `web/src/app/leadStatus.js`, missing `createApiClient().patchLead(...)`, read-only Phase 3 detail actions, and missing correction reason serialization.
 - Green run: `npm test` passes after adding transition helpers, valid action metadata, invalid transition blocking, typed lead PATCH payloads, and auditable correction payloads.
@@ -620,6 +623,60 @@ Do not build Settings, custom dashboards, system mutations, alert mutations, pip
 - Red run: `node --test test/today-command-center.test.js test/system-client.test.js test/app-shell.test.js` failed because the Today module, `/` route mounting, and `getSystem()` client did not exist yet.
 - Green runs: `node --test test/today-command-center.test.js test/system-client.test.js test/app-shell.test.js` and `npm test`.
 
+## Phase 12 - UI Dockerization
+
+> Planning status: not implemented. The detailed prompt pack lives in `docs/phase-12-ui-dockerization.md`.
+
+### Prompt
+
+```text
+Strictly follow TDD. Do not skip the red step.
+
+Goal: dockerize the UI in phases without inventing a browser runtime before the repo has one.
+
+Context:
+- The backend Docker stack is in /mnt/c/Users/alvin/GolandProjects/groupscout.
+- Backend Compose runs groupscout on 8080, alertd on 8081, Postgres, n8n, observability, Ollama, and ollama-init on groupscout_net.
+- The UI repo currently has no Dockerfile, .dockerignore, Compose file, renderer, dev server, build tool, lockfile, or browser runtime.
+- The UI repo currently runs model-level JavaScript tests with npm test -> node --test.
+- Browser code must use same-origin /api/* contracts.
+- API_TOKEN and provider secrets must not be exposed to browser JavaScript, static assets, generated config, or public image layers.
+
+TDD requirements:
+1. Start with a dockerization contract and decision record before adding Docker files.
+2. Add the smallest failing test or validation for each Docker behavior before implementing it.
+3. Confirm the red failure is caused by missing Docker/runtime behavior, not an unrelated test break.
+4. Implement the smallest change needed to pass.
+5. Rerun the focused check, then npm test.
+6. Run Docker validation only after Docker files exist: docker build, docker compose config, and smoke checks as appropriate.
+
+Do not add Dockerfile, Compose, nginx/proxy config, browser framework, dev server, or production runtime in the planning-only pass.
+```
+
+### Phase Tasks
+
+- [ ] D0 - Dockerization Contract And Decision Record
+- [ ] D1 - UI Test Container
+- [ ] D2 - Browser Runtime Contract
+- [ ] D3 - Development Compose Integration
+- [ ] D4 - Same-Origin Proxy Or Static Serving
+- [ ] D5 - Docker Operations Docs And CI Hooks
+
+### Acceptance Criteria
+
+- [ ] The first Docker implementation target is a deterministic UI test image.
+- [ ] A browser runtime is added only after its contract is test-covered.
+- [ ] Development Compose reaches the backend by service name, `http://groupscout:8080`, from inside the Docker network.
+- [ ] Browser-visible code and config never contain `API_TOKEN`, provider keys, Slack tokens, Resend keys, or database URLs.
+- [ ] Production serves browser assets and `/api/*` from one origin.
+- [ ] README, developer, testing, and troubleshooting docs are updated only when real commands exist.
+
+### Implementation Notes
+
+- Current pass created the planning prompt pack only.
+- Do not mark Phase 12 complete until Docker files or runtime code are added through strict TDD and verified.
+- Backend constraints inspected: `/mnt/c/Users/alvin/GolandProjects/groupscout/Dockerfile`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/guides/DOCKER.md`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/guides/TESTING.md`, and `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/API_CONFIG.md`.
+
 ## Open Decisions To Resolve Before Coding
 
 - [ ] Is verification a lead status or a separate source-review status?
@@ -630,6 +687,9 @@ Do not build Settings, custom dashboards, system mutations, alert mutations, pip
 - [ ] What exactly counts as source hit rate: claimed/total, won/claimed, won/total, or another metric?
 - [ ] What raw audit payloads can operators view, and what must be redacted before display? Phase 5 keeps this blocked explicitly before inline raw payload rendering.
 - [ ] Should v1 ship Slack quick actions, the admin UI, or both together?
+- [ ] Should the first real UI runtime be static assets, a lightweight Node server, or backend-served assets?
+- [ ] Should UI Compose live in the UI repo, the backend repo, or as a cross-repo override?
+- [ ] Should production same-origin behavior use a proxy container or Go static-file serving?
 
 ## Suggested Phase Order
 
@@ -645,6 +705,7 @@ Do not build Settings, custom dashboards, system mutations, alert mutations, pip
 - [x] Phase 9 - Session/Auth Wrapper And Same-Origin Deployment
 - [x] Phase 10 - Later Alertd Read-Only Console
 - [x] Phase 11 - Today Command Center And System Health Summary
+- [ ] Phase 12 - UI Dockerization
 
 ## Related Refactor Prompt Pack
 

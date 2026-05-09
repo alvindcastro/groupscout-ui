@@ -4,6 +4,8 @@
 
 Create a stable characterization baseline before the H1 API-client split. H0 does not refactor production code; it tightens tests so H1 fails on behavior changes rather than file layout changes.
 
+Follow-up: H1 consumed this baseline on 2026-05-09 and completed the API-client split documented in [smell-h1-api-client-split.md](./smell-h1-api-client-split.md).
+
 ## Next Smell Phase
 
 H1 targets the growing API client module:
@@ -78,3 +80,5 @@ Result on 2026-05-09: passed all 22 test files.
 ## Red/Green Note
 
 The H0 additions are characterization assertions against existing behavior, so they did not require production code changes. The targeted run stayed green because the current API client already implements the named behavior; future H1 changes should use these tests as the regression baseline.
+
+H1 completion note on 2026-05-09: the same focused API-client command passed after the split, and `npm test` passed all 22 test files.

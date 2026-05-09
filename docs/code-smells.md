@@ -6,13 +6,13 @@ For future implementation prompts that transform these smells under strict TDD, 
 
 ## UI Repo
 
-### Growing API Client Module
+### Growing API Client Module - Mitigated In H1
 
-`web/src/api/client.js` now owns transport rules, path builders, payload normalization, response adaptation, and feature-specific contracts for every browser API.
+H1 split `web/src/api/client.js` into a stable facade plus focused API modules under `web/src/api/`. `web/src/api/transport.js` now owns the centralized same-origin `/api/*` guard, and feature adapters own their own paths, payload normalization, and response adaptation.
 
-Impact: each new UI feature makes one shared file larger and raises the chance that unrelated contract changes conflict or become hard to review.
+Remaining risk: each new browser API method should still land in the focused adapter that owns its feature area, otherwise the facade or shared helpers can start growing again.
 
-Suggested follow-up: when the next substantial API surface lands, split feature adapters into focused modules while keeping one shared same-origin transport guard.
+Suggested follow-up: keep `createApiClient(...)` as the public entry point, keep transport behavior centralized, and add or update focused adapter tests when new API surfaces land.
 
 ### Mock Fixture Coupling
 

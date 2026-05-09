@@ -16,7 +16,7 @@ The UI intentionally blocks browser-facing code from hard-coding external API UR
 
 Check:
 
-- New app files under `web/src` should route API calls through `web/src/api/client.js`.
+- New app files under `web/src` should route API calls through `createApiClient(...)` from `web/src/api/client.js`; feature-specific API logic belongs in the focused modules under `web/src/api/`.
 - Same-origin paths must start with `/api/`.
 - The credential guard in `test/api-boundary.test.js` recursively scans browser-facing `web/src/**/*.js` files and skips `web/src/server`.
 - Browser API calls intentionally use `credentials: "same-origin"` and do not inject `Authorization`, `x-api-key`, or `x-api-token` headers.

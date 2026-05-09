@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Phase 12 - UI Dockerization Planning
+
+- Added a planning-only strict-TDD prompt pack for future UI dockerization in `docs/phase-12-ui-dockerization.md`.
+- Captured backend Docker/Compose constraints from the sibling Go repo and current UI gaps: no Dockerfile, Compose file, renderer, dev server, build tool, lockfile, or browser runtime yet.
+- Updated `UI_TDD_PHASE_PROMPTS.md`, `README.md`, `docs/developer-guide.md`, and `docs/testing.md` so future implementation starts with a Docker contract and test image before adding runtime or Compose behavior.
+
+### Smell Phase H1 - Split The Growing API Client
+
+- What: Split the browser API client into focused adapter modules while preserving the stable `createApiClient(...)` facade, public constants, endpoint paths, payload normalization, response adaptation, and centralized same-origin transport guard.
+- Where: Updated `web/src/api/client.js`, added `web/src/api/transport.js`, `web/src/api/shared.js`, `web/src/api/leads.js`, `web/src/api/rawAudit.js`, `web/src/api/outreach.js`, `web/src/api/pipeline.js`, `web/src/api/stats.js`, `web/src/api/alerts.js`, `web/src/api/system.js`, and tightened `test/api-boundary.test.js`.
+- When: Completed on 2026-05-09 after the H0 API-client characterization baseline.
+- Why: Reduced review risk in the growing API client module without changing the browser-facing import path or weakening the security-sensitive `/api/*` same-origin boundary.
+- How: Added split-module ownership coverage, moved feature-specific route builders/payload builders/adapters behind focused modules, kept transport validation in `transport.js`, documented the module map in `docs/smell-h1-api-client-split.md`, marked H1 complete in `docs/code-smell-transformation-prompts.md`, and reran the focused API-client suite plus `npm test`.
+
 ### Smell Phase H0 - API Client Baseline Characterization
 
 - What: Added H0 characterization coverage for the browser API client public exports, `createApiClient(...)` method surface, same-origin transport defaults, invalid-route pre-fetch rejection, encoded lead-scoped routes, payload defaults, adapter defaults, and read-only policy metadata.

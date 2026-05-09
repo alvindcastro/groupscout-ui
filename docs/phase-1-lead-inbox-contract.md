@@ -50,4 +50,4 @@ The response adapter exposes:
 ## TDD Evidence
 
 - Red run: `npm test` failed because the Phase 1 lead inbox contract exports did not exist yet.
-- Green run: `npm test` passes after adding the smallest client and adapter surface in `web/src/api/client.js`.
+- Green run: `npm test` passes after adding the smallest client and adapter surface. After H1, callers still enter through `web/src/api/client.js`, and the lead adapter implementation lives in `web/src/api/leads.js`.

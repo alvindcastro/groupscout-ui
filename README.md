@@ -1,12 +1,12 @@
 # GroupScout UI
 
-Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls. Phase 8 adds basic explainable analytics and demand signals. Phase 9 adds a minimal session/auth and same-origin deployment wrapper. Phase 10 adds a later read-only Alertd console while keeping Slack as the interrupt channel. Phase 11 adds the Today command center and read-only system health summary.
+Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls. Phase 8 adds basic explainable analytics and demand signals. Phase 9 adds a minimal session/auth and same-origin deployment wrapper. Phase 10 adds a later read-only Alertd console while keeping Slack as the interrupt channel. Phase 11 adds the Today command center and read-only system health summary. Phase 12 is a planning-only strict-TDD prompt pack for UI dockerization.
 
 ## Current Scope
 
 - Design tokens live in `web/src/design/tokens.js` and are mapped from `DESIGN.md`.
 - The route shell lives in `web/src/app/shell.js` and mounts Today, Leads, Verification, Outreach, Pipeline, Analytics, Alerts, and a Settings placeholder.
-- Browser API access is isolated in `web/src/api/client.js` and restricted to same-origin `/api/*` paths.
+- Browser API access still enters through `web/src/api/client.js`, with same-origin `/api/*` transport centralized in `web/src/api/transport.js` and feature adapters split across focused `web/src/api/*` modules.
 - UI deployment/session rules live in `web/src/server/uiDeployment.js` and cover `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, development-only `CORS_ALLOWED_ORIGINS`, and session-cookie `/api/*` access.
 - Lead inbox reads use `createApiClient().listLeads(...)` for `GET /api/leads` query serialization, pagination cursors, default priority ordering, and response field adaptation.
 - Lead status writes use `createApiClient().patchLead(...)` for `PATCH /api/leads/{id}` payloads covering status, owner, notes, snooze date, correction reason, and safe field corrections.
@@ -35,7 +35,8 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Phase 9 tests cover session enforcement for `/api/*`, recursive browser credential exclusion, no automation-token browser headers, `UI_ENABLED`, `UI_BASE_PATH`, deployment readiness, and dev-only CORS configuration.
 - Phase 10 tests cover read-only alert state rendering, SPS summaries, evidence, room inventory, action history, disabled mutation actions, `/alerts` route mounting, responsive metadata, token usage, and `GET /api/alerts`.
 - Phase 11 tests cover the Today command center, priority lead and aging-work summaries, active alerts, failed jobs, system health, read-only action policy, `/` route mounting, responsive metadata, token usage, and `GET /api/system`.
-- Smell Phase H0 locks the API-client characterization baseline before the H1 split of the growing browser API client module.
+- Smell Phase H1 split the growing browser API client module while preserving `createApiClient(...)` and the centralized same-origin `/api/*` guard.
+- Phase 12 dockerization planning lives in `docs/phase-12-ui-dockerization.md`; no UI Docker files exist yet.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
@@ -54,6 +55,7 @@ npm test
 - [Code Smells And Housekeeping Notes](./docs/code-smells.md)
 - [Code Smell Transformation TDD Prompts](./docs/code-smell-transformation-prompts.md)
 - [Smell H0 API Client Characterization](./docs/smell-h0-api-client-characterization.md)
+- [Smell H1 API Client Split](./docs/smell-h1-api-client-split.md)
 - [Phase 0 Product Contract](./docs/phase-0-product-contract.md)
 - [Phase 1 Lead Inbox Contract](./docs/phase-1-lead-inbox-contract.md)
 - [Phase 2 Lead Inbox UI](./docs/phase-2-lead-inbox-ui.md)
@@ -66,6 +68,7 @@ npm test
 - [Phase 9 Session/Auth Wrapper And Same-Origin Deployment](./docs/phase-9-session-auth-wrapper-same-origin-deployment.md)
 - [Phase 10 Later Alertd Read-Only Console](./docs/phase-10-later-alertd-read-only-console.md)
 - [Phase 11 Today Command Center And System Health Summary](./docs/phase-11-today-command-center-system-health.md)
+- [Phase 12 UI Dockerization Prompt Pack](./docs/phase-12-ui-dockerization.md)
 
 ## Phase 0 Guardrails
 

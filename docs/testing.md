@@ -20,11 +20,15 @@ Housekeeping run on 2026-05-08: `npm test` passed all 22 test files.
 
 Smell H0 baseline run on 2026-05-09: focused API-client characterization passed 9 test files, and `npm test` passed all 22 test files.
 
+Smell H1 split run on 2026-05-09: focused API-client split coverage passed 9 test files, and `npm test` passed all 22 test files.
+
 Optional design-doc lint. This is not an npm script and may use the network through `npx`:
 
 ```sh
 npx @google/design.md lint DESIGN.md
 ```
+
+UI Dockerization is planning-only today. See [Phase 12 UI Dockerization Prompt Pack](./phase-12-ui-dockerization.md) for the future strict-TDD sequence before adding Dockerfile, Compose, proxy, or browser runtime behavior.
 
 ## Focused UI Tests
 
@@ -53,7 +57,7 @@ node --test test/system-client.test.js
 node --test test/today-command-center.test.js
 ```
 
-API-client characterization baseline for smell phases:
+API-client focused run for smell phases:
 
 ```sh
 node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-status-mutation-client.test.js test/raw-audit-client.test.js test/outreach-client.test.js test/pipeline-client.test.js test/stats-client.test.js test/alert-client.test.js test/system-client.test.js
@@ -61,7 +65,7 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 
 ## What The Current UI Tests Cover
 
-- Same-origin `/api/*` browser request boundary, public API-client facade shape, request defaults, and invalid-route pre-fetch rejection.
+- Same-origin `/api/*` browser request boundary, public API-client facade shape, split adapter module ownership, request defaults, and invalid-route pre-fetch rejection.
 - Session-cookie enforcement metadata for UI `/api/*` access.
 - `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, and development-only `CORS_ALLOWED_ORIGINS` deployment behavior.
 - Recursive browser-source checks that `API_TOKEN` is not referenced in browser-facing `web/src/**/*.js` modules outside `web/src/server`.
@@ -92,6 +96,7 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 - CSS layout.
 - Live backend compatibility.
 - Real cookie signing, browser session issuance, reverse-proxy behavior, and production CORS headers.
+- UI Docker image builds, Compose integration, proxy/static serving behavior, and container smoke tests.
 - Raw audit payload redaction behavior beyond the explicit blocked TODO.
 - Real email sending, clipboard behavior, or CRM sync for outreach.
 - Real pipeline execution, worker polling, Grafana rendering, or log viewer integration.
@@ -106,7 +111,7 @@ Before treating a UI feature as production-ready, add browser or component-level
 ## Interpreting API Boundary Failures
 
 - Absolute `http` or `https` browser requests fail before fetch because UI calls must stay same-origin.
-- Non-`/api/` paths fail before fetch because `web/src/api/client.js` is the browser API boundary.
+- Non-`/api/` paths fail before fetch because `web/src/api/transport.js` owns the browser API transport boundary behind the `web/src/api/client.js` facade.
 - Non-2xx responses throw `Request failed with status N`.
 - API adapter errors usually mean the backend response shape drifted from the model contract. Check required sections such as `leads`, `date_range`, `summaries`, `pipeline`, `counts`, `alerts`, `evidence`, `room_inventory`, and `action_history`.
 - Session/deployment failures usually come from a missing or short `UI_SESSION_SECRET`, missing `groupscout_session`, or production `CORS_ALLOWED_ORIGINS` configuration.

@@ -37,6 +37,35 @@ test("API client module keeps the public entry point and constants stable for ad
   );
 });
 
+test("API client split keeps feature adapters focused behind the facade", async () => {
+  const apiDir = new URL("../web/src/api/", import.meta.url);
+  const entries = await readdir(apiDir);
+
+  assert.deepEqual(
+    entries.filter((entry) => entry.endsWith(".js")).sort(),
+    [
+      "alerts.js",
+      "client.js",
+      "leads.js",
+      "outreach.js",
+      "pipeline.js",
+      "rawAudit.js",
+      "shared.js",
+      "stats.js",
+      "system.js",
+      "transport.js"
+    ]
+  );
+
+  const transportSource = await readFile(new URL("../web/src/api/transport.js", import.meta.url), "utf8");
+  assert.match(transportSource, /function assertSameOriginApiPath/);
+  assert.match(transportSource, /credentials: "same-origin"/);
+
+  const clientSource = await readFile(new URL("../web/src/api/client.js", import.meta.url), "utf8");
+  assert.doesNotMatch(clientSource, /function assertSameOriginApiPath/);
+  assert.doesNotMatch(clientSource, /function adaptLeadInboxResponse/);
+});
+
 test("browser API access is isolated behind a same-origin /api client boundary", async () => {
   const calls = [];
   const client = createApiClient({

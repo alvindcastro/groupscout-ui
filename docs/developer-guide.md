@@ -4,7 +4,7 @@ This repo is currently a no-build, model-level UI workspace for GroupScout opera
 
 ## Current Shape
 
-- `web/src/api/client.js` is the browser API boundary and stable `createApiClient(...)` facade.
+- `web/src/api/client.js` is the stable browser API facade. Focused adapters live under `web/src/api/*`, and `web/src/api/transport.js` owns the shared same-origin `/api/*` request guard.
 - `web/src/app/shell.js` owns route-shell selection.
 - `web/src/server/uiDeployment.js` owns model-level UI deployment settings, base-path mounting, session-cookie API authorization, and development-only CORS metadata.
 - `web/src/app/todayCommandCenter.js` owns the mocked Today command center, operational priority summaries, system health metadata, and read-only routing policy.
@@ -111,6 +111,19 @@ Current UI client contracts:
 - `GET /api/alerts`
 - `GET /api/system`
 
+## API Module Map
+
+- `web/src/api/client.js`: public facade for `createApiClient(...)` and exported constants.
+- `web/src/api/transport.js`: centralized same-origin `/api/*` request validation, JSON defaults, session credentials, non-2xx errors, and non-JSON success behavior.
+- `web/src/api/shared.js`: small helpers shared by adapters.
+- `web/src/api/leads.js`: lead inbox reads and lead PATCH writes.
+- `web/src/api/rawAudit.js`: raw audit reads.
+- `web/src/api/outreach.js`: outreach history reads and manual outreach attempt logging.
+- `web/src/api/pipeline.js`: pipeline run history and manual run creation.
+- `web/src/api/stats.js`: analytics stats reads and hit-rate metadata adaptation.
+- `web/src/api/alerts.js`: read-only alert list reads.
+- `web/src/api/system.js`: read-only system summary reads.
+
 ## Adding A New UI Phase
 
 1. Write a focused test that describes the contract or screen-model behavior first.
@@ -124,7 +137,11 @@ Current UI client contracts:
 
 Use [code-smell-transformation-prompts.md](./code-smell-transformation-prompts.md) for future housekeeping refactors. Treat each smell phase like a product phase: characterize behavior first, prove the red state, make the smallest change, rerun focused tests plus `npm test`, then update docs.
 
-The current smell baseline is [smell-h0-api-client-characterization.md](./smell-h0-api-client-characterization.md). It locks the public `web/src/api/client.js` exports, `createApiClient(...)` method surface, same-origin transport rules, route outputs, payload shapes, adapter defaults, and read-only policy metadata before the H1 client split.
+The H0 baseline is [smell-h0-api-client-characterization.md](./smell-h0-api-client-characterization.md), and H1 completion is documented in [smell-h1-api-client-split.md](./smell-h1-api-client-split.md). H2, isolating mock fixtures from runtime factories, is the next active smell phase.
+
+## Dockerization Planning
+
+Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for future UI Docker work. The current repo has no Dockerfile, Compose file, browser runtime, dev server, framework, lockfile, or static build target yet, so the first Docker phase is a strict-TDD contract and test-container plan rather than runtime implementation.
 
 ## Current Limitations
 
@@ -133,3 +150,4 @@ The current smell baseline is [smell-h0-api-client-characterization.md](./smell-
 - Responsive behavior is represented as layout metadata, not measured DOM layout.
 - Design token tests check selected exports; they do not resolve every nested token reference from `DESIGN.md`.
 - The browser credential guard recursively scans browser-facing `web/src/**/*.js` files while excluding `web/src/server`; keep server-only code in that excluded subtree and keep browser modules free of automation credentials.
+- UI Docker images, Compose integration, static asset serving, and browser runtime behavior are not implemented yet.

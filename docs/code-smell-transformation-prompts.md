@@ -92,20 +92,30 @@ Do not change endpoint paths, payload names, or response adaptation semantics in
 
 ### Tasks
 
-- [ ] Characterize shared transport behavior in `test/api-boundary.test.js`.
-- [ ] Characterize lead, raw audit, outreach, pipeline, stats, alerts, and system client methods.
-- [ ] Define the target module ownership before moving code.
-- [ ] Keep `createApiClient(...)` backward compatible.
-- [ ] Move feature-specific adapters one group at a time.
-- [ ] Rerun focused client tests after each group.
-- [ ] Update developer docs with the new API module map.
+- [x] Characterize shared transport behavior in `test/api-boundary.test.js`.
+- [x] Characterize lead, raw audit, outreach, pipeline, stats, alerts, and system client methods.
+- [x] Define the target module ownership before moving code.
+- [x] Keep `createApiClient(...)` backward compatible.
+- [x] Move feature-specific adapters one group at a time.
+- [x] Rerun focused client tests after each group.
+- [x] Update developer docs with the new API module map.
 
 ### Acceptance Criteria
 
-- [ ] Same-origin transport rules are still centralized and test-covered.
-- [ ] Feature adapters are easier to review independently.
-- [ ] Existing callers still use `createApiClient(...)`.
-- [ ] Full suite passes after the split.
+- [x] Same-origin transport rules are still centralized and test-covered.
+- [x] Feature adapters are easier to review independently.
+- [x] Existing callers still use `createApiClient(...)`.
+- [x] Full suite passes after the split.
+
+### Implementation Notes
+
+- H1 split `web/src/api/client.js` into the stable facade plus focused modules: `transport.js`, `shared.js`, `leads.js`, `rawAudit.js`, `outreach.js`, `pipeline.js`, `stats.js`, `alerts.js`, and `system.js`.
+- `transport.js` owns the same-origin `/api/*` guard, JSON defaults, session credentials, non-2xx handling, and non-JSON success behavior.
+- `client.js` remains the public import path and still exports `API_BASE_PATH`, `DEFAULT_LEAD_INBOX_SORT`, `LEAD_INBOX_ITEM_FIELDS`, and `createApiClient(...)`.
+- Added an API split ownership assertion to `test/api-boundary.test.js`.
+- Focused run on 2026-05-09: `node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-status-mutation-client.test.js test/raw-audit-client.test.js test/outreach-client.test.js test/pipeline-client.test.js test/stats-client.test.js test/alert-client.test.js test/system-client.test.js` passed.
+- Full run on 2026-05-09: `npm test` passed all 22 test files.
+- H2 is now the next active smell phase.
 
 ## Smell Phase H2 - Isolate Mock Fixtures From Runtime Factories
 
@@ -475,8 +485,8 @@ Do not change backend runtime code during a docs-drift pass unless explicitly re
 
 ## Suggested Housekeeping Phase Order
 
-- [ ] H0 - Baseline Characterization
-- [ ] H1 - Split The Growing API Client
+- [x] H0 - Baseline Characterization
+- [x] H1 - Split The Growing API Client
 - [ ] H2 - Isolate Mock Fixtures From Runtime Factories
 - [ ] H3 - Centralize Duplicated Domain Constants
 - [ ] H4 - Add Design Token Parity Or Resolution
