@@ -40,7 +40,7 @@ Phase 13 run on 2026-05-09: `node test/phase-13-renderer-runtime.test.js` first 
 
 Canonical Phase 0-15 run on 2026-05-09: `node test/baseline-reconciliation.test.js` first failed because the UI baseline files were locally deleted, then passed after restoring the tracked Phase 13 baseline. Focused red/green additions covered `/api/leads/{id}/raw` in backend compatibility smoke, `createApiClient().getLead(...)` for `GET /api/leads/{id}`, and Phase 15 deterministic browser UX hardening. `node --test test/baseline-reconciliation.test.js test/api-boundary.test.js test/lead-inbox-client.test.js test/phase-13-renderer-runtime.test.js test/browser-ux-hardening.test.js`, `npm run build`, `npm test`, Docker test-image build/run, production image build, and production-container smoke checks for `/healthz`, `/`, and `/assets/app.js` passed.
 
-Production session-gate refresh on 2026-05-09: `node --test test/session-deployment.test.js` first failed because `web/src/server/productionServer.js` did not expose a request handler that authorized `/api/*` before proxying. It passed after `createProductionRequestHandler(...)` rejected missing/invalid `groupscout_session`, forwarded valid sessions to the backend target, and applied CSP, `x-content-type-options`, `x-frame-options`, and `referrer-policy` headers.
+Production session-gate refresh on 2026-05-09: `node --test test/session-deployment.test.js` first failed because `web/src/server/productionServer.js` did not expose a request handler that authorized `/api/*` before proxying. It passed after `createProductionRequestHandler(...)` rejected missing/invalid `groupscout_session` when `UI_SESSION_SECRET` is configured, forwarded backend Docker smoke requests when session auth is unconfigured, forwarded valid sessions to the backend target, and applied CSP, `x-content-type-options`, `x-frame-options`, and `referrer-policy` headers.
 
 Phase 15 renderer-evidence refresh on 2026-05-09: `node --test test/browser-ux-hardening.test.js` first failed because route-specific focus labels and rendered responsive modes were not reported for every primary route. It passed after the route shell accepted viewport options and the dependency-free renderer emitted controls/actions and desktop/tablet/mobile modes for Today, Leads, Lead Detail, Verification, Outreach, Pipeline, Analytics, and Alerts.
 
@@ -95,7 +95,7 @@ curl -i http://localhost:3002/api/system
 Split these checks by dependency:
 
 - Backend-independent UI runtime checks: `GET /healthz`, `GET /`, and `GET /assets/app.js`.
-- Backend-dependent proxy checks: authorized `GET /api/system` or another UI-modeled `/api/*` route. Unauthenticated `/api/*` requests should return `401` from the UI session gate.
+- Backend-dependent proxy checks: `GET /api/leads?limit=1` and `GET /api/system` should reach the backend when `UI_SESSION_SECRET` is not configured for Docker smoke. When `UI_SESSION_SECRET` is configured, unauthenticated `/api/*` requests should return `401` from the UI session gate.
 
 Backend plus UI Docker smoke run on 2026-05-08:
 
@@ -111,7 +111,7 @@ curl -i http://localhost:3002/assets/app.js
 curl -i http://localhost:3002/api/system
 ```
 
-Observed results: backend `/health` returned `200`; D3 UI `/healthz` returned `200`; D4 `/healthz`, `/`, and `/assets/app.js` returned `200`; D4 `/api/system` and `/api/leads` returned backend `404`. Treat that as live API route drift, not as a Docker-network failure. The current UI tests still prove model contracts and proxy construction, not live backend compatibility.
+Expected results: backend `/health` returns `200`; D3 UI `/healthz` returns `200`; D4 `/healthz`, `/`, and `/assets/app.js` return `200`; D4 `/api/leads?limit=1` reaches the backend and returns `200`; D4 `/api/system` reaches the backend and returns `200` when implemented or backend `404` when absent. Treat `502` as Docker/proxy reachability failure.
 
 Docker operations docs check:
 
@@ -166,7 +166,7 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 
 - Same-origin `/api/*` browser request boundary, public API-client facade shape, split adapter module ownership, request defaults, and invalid-route pre-fetch rejection.
 - Session-cookie enforcement metadata for UI `/api/*` access.
-- Production request-handler enforcement that rejects missing/invalid `groupscout_session` before `/api/*` proxying and applies baseline browser security headers.
+- Production request-handler enforcement that rejects missing/invalid `groupscout_session` before `/api/*` proxying when `UI_SESSION_SECRET` is configured, allows the no-secret backend Docker smoke proxy path, and applies baseline browser security headers.
 - `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, and development-only `CORS_ALLOWED_ORIGINS` deployment behavior.
 - D2 browser runtime contract metadata for the reserved start command, port, health path, static asset boundary, `/api/*` server/proxy target, and forbidden browser public config keys.
 - D3/Phase 13 development Compose metadata for the UI service, backend network attachment, backend service dependency, port mapping, healthcheck command, no-secret Compose boundary, and product dev-server health payload.
@@ -222,7 +222,7 @@ Before treating a UI feature as production-ready, add real browser or component-
 - Non-`/api/` paths fail before fetch because `web/src/api/transport.js` owns the browser API transport boundary behind the `web/src/api/client.js` facade.
 - Non-2xx responses throw `Request failed with status N`.
 - API adapter errors usually mean the backend response shape drifted from the model contract. Check required sections such as `leads`, `date_range`, `summaries`, `pipeline`, `counts`, `alerts`, `evidence`, `room_inventory`, and `action_history`.
-- Session/deployment failures usually come from a missing or short `UI_SESSION_SECRET`, missing `groupscout_session`, or production `CORS_ALLOWED_ORIGINS` configuration.
+- Session/deployment failures usually come from a short `UI_SESSION_SECRET`, a missing `groupscout_session` when session auth is configured, or production `CORS_ALLOWED_ORIGINS` configuration.
 
 ## Backend Tests
 

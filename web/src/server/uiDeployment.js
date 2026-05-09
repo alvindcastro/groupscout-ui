@@ -90,6 +90,18 @@ export function authorizeUiApiRequest(request, { config, sessions } = {}) {
     };
   }
 
+  if (!config.sessionSecret) {
+    return { allowed: true, reason: "session-unconfigured" };
+  }
+
+  if (config.sessionSecret.length < 32) {
+    return {
+      allowed: false,
+      status: 500,
+      reason: "invalid-session-config"
+    };
+  }
+
   const sessionId = getCookieValue(request.headers?.cookie ?? "", config.sessionCookieName);
 
   if (!sessionId) {

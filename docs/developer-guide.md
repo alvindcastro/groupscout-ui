@@ -74,7 +74,7 @@ curl -i http://localhost:3002/api/system
 docker stop groupscout-ui-production-smoke
 ```
 
-Interpret the checks separately. `GET /healthz`, `GET /`, and `GET /assets/app.js` prove the production UI container. `GET /api/system` proves proxy reachability only if the backend implements that route; as of the 2026-05-08 smoke run, the live backend returned `404` for `/api/system` and `/api/leads`.
+Interpret the checks separately. `GET /healthz`, `GET /`, and `GET /assets/app.js` prove the production UI container. With `UI_SESSION_SECRET` unset for Docker smoke, `GET /api/leads?limit=1` should reach the backend and return `200`; `GET /api/system` proves proxy reachability when it returns backend `200` or backend `404`. A `502` means the UI container could not reach `UI_API_PROXY_TARGET`.
 
 Production same-origin server: `npm run start:ui`
 
@@ -133,6 +133,7 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 - Keep `API_TOKEN` out of browser runtime/config modules.
 - Keep `UI_API_PROXY_TARGET` server-only; browser code and public config may only expose relative `/api/*`.
 - Keep production public config whitelist-only and free of provider keys, Slack tokens, Resend/SendGrid keys, database URLs, and `UI_SESSION_SECRET`.
+- Configure `UI_SESSION_SECRET` for real operator deployments so browser `/api/*` requests require a valid `groupscout_session`; leave it unset only for backend Docker smoke checks that need proxy reachability without a browser login flow.
 - Use `UI_ENABLED` to disable the UI, `UI_BASE_PATH` for subpath mounting, and `UI_SESSION_SECRET` for session readiness.
 - Keep `CORS_ALLOWED_ORIGINS` development-only; same-origin deployment is the default production posture.
 - Add API access through `createApiClient(...)`; do not fetch backend URLs directly from app modules.
@@ -168,7 +169,7 @@ CI hook order:
 2. `docker build --target test -t groupscout-ui-test .`
 3. `docker run --rm groupscout-ui-test`
 4. `docker build --target production -t groupscout-ui-production .`
-5. Optional smoke checks for `/healthz`, `/`, and `/assets/app.js`; smoke `/api/system` only when a backend or CI stub is reachable.
+5. Optional smoke checks for `/healthz`, `/`, and `/assets/app.js`; smoke `/api/leads?limit=1` or `/api/system` only when a backend or CI stub is reachable.
 
 Do not run UI Docker containers with backend `.env` or `--env-file`. Do not pass `API_TOKEN`, provider keys, Slack tokens, Resend/SendGrid keys, database URLs, `OLLAMA_BASE_URL`, or `UI_SESSION_SECRET` into browser-visible config, static assets, Compose output, or CI artifacts. Browser-visible config may only expose relative `/api/*`.
 

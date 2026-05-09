@@ -161,8 +161,8 @@ Interpret `/api/*` smoke failures by status:
 
 - `502`: the backend is unreachable or `UI_API_PROXY_TARGET` points at the wrong host.
 - `404`: the proxy reached the backend, but the backend does not implement that `/api/*` route.
+- `401`: `UI_SESSION_SECRET` is configured and the request does not have a valid `groupscout_session`; unset `UI_SESSION_SECRET` only for backend Docker smoke checks that need no-login proxy reachability.
 - DNS errors for `groupscout`: the production container is not on the backend Compose network, or it is running with standalone `docker run` and should use `http://host.docker.internal:8080`.
-- `401`: the backend/session auth rejected the request; this is not a UI proxy wiring failure.
 
 Browser-visible code and config should still show relative `/api/*`, never `http://groupscout:8080` or backend secrets.
 
@@ -187,7 +187,7 @@ If D4 is run on the backend Compose network, use the backend service name:
 docker run --rm -d --name groupscout-ui-production-smoke --network groupscout_groupscout_net -p 3002:3000 -e UI_API_PROXY_TARGET=http://groupscout:8080 groupscout-ui-production
 ```
 
-On 2026-05-08, `/api/system` and `/api/leads` returned backend `404` through the D4 proxy. That means the production UI container could reach the backend container, but the live backend routes did not match the UI repo's `/api/*` model contracts yet.
+The current backend smoke contract expects `/api/leads?limit=1` to return `200` through the D4 proxy. `/api/system` may return backend `200` or `404`; both distinguish a reachable backend from `502` proxy failure.
 
 ## Production UI Runtime Fails
 
@@ -208,8 +208,8 @@ Common causes:
 
 - `GET /` or `GET /assets/app.js` returns 404 because `web/dist/index.html` or `web/dist/assets/app.js` is missing from the image or local checkout.
 - `GET /leads/lead_hotel_001` returns 404 because app-route fallback to `index.html` regressed.
+- `GET /api/*` returns 401 because `UI_SESSION_SECRET` is configured and the request does not have a valid `groupscout_session`.
 - `GET /api/*` returns 502 because `UI_API_PROXY_TARGET` is wrong, the backend is down, or a Compose container cannot resolve `groupscout`.
-- `GET /api/*` returns 401 because the backend requires a valid `groupscout_session` cookie.
 - Browser code references `http://groupscout:8080` directly instead of a relative `/api/*` path.
 - Public config or static assets include blocked names such as `API_TOKEN`, `CLAUDE_API_KEY`, Slack tokens, Resend/SendGrid keys, database URLs, or `UI_SESSION_SECRET`.
 

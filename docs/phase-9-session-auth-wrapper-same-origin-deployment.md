@@ -18,9 +18,9 @@ Phase 9 adds the minimum deployment and session model needed to keep the operato
 
 ## Session Boundary
 
-- Browser access to `/api/*` requires the `groupscout_session` cookie to match a server-side session store.
-- Missing or invalid sessions return `401` with a `GroupScoutSession` challenge.
-- The production request handler applies this authorization check before proxying `/api/*` to `UI_API_PROXY_TARGET`.
+- Browser access to `/api/*` requires the `groupscout_session` cookie to match a server-side session store when `UI_SESSION_SECRET` is configured.
+- Missing or invalid sessions return `401` with a `GroupScoutSession` challenge when session auth is configured.
+- The production request handler applies this authorization check before proxying `/api/*` to `UI_API_PROXY_TARGET`; with no session secret configured, the backend Docker smoke path can proxy `/api/*` without a browser login flow.
 - Health, static, JSON, and proxied responses include baseline browser security headers: CSP, `x-content-type-options`, `x-frame-options`, and `referrer-policy`.
 - Disabled UI access returns `404` so the operator UI is not mounted.
 - `API_TOKEN` remains reserved for automation clients such as n8n and is not injected into browser requests.

@@ -73,6 +73,33 @@ test("UI API requests require a valid operator session cookie", () => {
   );
 });
 
+test("UI API requests allow backend Docker smoke when session auth is not configured", () => {
+  const config = createUiDeploymentConfig({
+    UI_ENABLED: "true"
+  });
+
+  assert.deepEqual(
+    authorizeUiApiRequest({ pathname: "/api/leads", headers: {} }, { config }),
+    { allowed: true, reason: "session-unconfigured" }
+  );
+});
+
+test("UI API requests fail closed when session auth is partially configured", () => {
+  const config = createUiDeploymentConfig({
+    UI_ENABLED: "true",
+    UI_SESSION_SECRET: "too-short"
+  });
+
+  assert.deepEqual(
+    authorizeUiApiRequest({ pathname: "/api/leads", headers: {} }, { config }),
+    {
+      allowed: false,
+      status: 500,
+      reason: "invalid-session-config"
+    }
+  );
+});
+
 test("UI deployment config normalizes base path and disabled UI behavior", () => {
   const enabled = createUiDeploymentConfig({
     UI_ENABLED: "true",
@@ -179,6 +206,27 @@ test("production request handler gates /api proxying behind the UI session contr
   assert.deepEqual(JSON.parse(valid.body), {
     path: "/api/system?scope=smoke",
     cookie: `${SESSION_COOKIE_NAME}=valid-session`
+  });
+});
+
+test("production request handler proxies backend Docker smoke without session auth configured", async () => {
+  const handler = createProductionRequestHandler({
+    env: {
+      UI_ENABLED: "true",
+      UI_API_PROXY_TARGET: "http://backend.example.test"
+    },
+    fetchImpl: async (url, init) => Response.json({
+      path: new URL(url).pathname + new URL(url).search,
+      cookie: init.headers.cookie ?? ""
+    })
+  });
+
+  const smoke = await dispatchProductionRequest(handler, { url: "/api/leads?limit=1" });
+
+  assert.equal(smoke.statusCode, 200);
+  assert.deepEqual(JSON.parse(smoke.body), {
+    path: "/api/leads?limit=1",
+    cookie: ""
   });
 });
 
