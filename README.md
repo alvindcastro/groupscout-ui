@@ -1,6 +1,6 @@
 # GroupScout UI
 
-Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls. Phase 8 adds basic explainable analytics and demand signals. Phase 9 adds a minimal session/auth and same-origin deployment wrapper. Phase 10 adds a later read-only Alertd console while keeping Slack as the interrupt channel. Phase 11 adds the Today command center and read-only system health summary. Phase 12 adds the first Docker target for the model-level UI test suite, a tested browser runtime contract, a development Compose override for backend-network UI wiring, and production same-origin serving for static assets plus `/api/*`.
+Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls. Phase 8 adds basic explainable analytics and demand signals. Phase 9 adds a minimal session/auth and same-origin deployment wrapper. Phase 10 adds a later read-only Alertd console while keeping Slack as the interrupt channel. Phase 11 adds the Today command center and read-only system health summary. Phase 12 adds Docker test/runtime boundaries. Phase 13 adds a dependency-free vanilla DOM product renderer/runtime, static build, product dev server, and live backend compatibility smoke classification while preserving same-origin `/api/*`.
 
 ## Current Scope
 
@@ -9,7 +9,11 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Browser API access still enters through `web/src/api/client.js`, with same-origin `/api/*` transport centralized in `web/src/api/transport.js` and feature adapters split across focused `web/src/api/*` modules.
 - UI deployment/session rules live in `web/src/server/uiDeployment.js` and cover `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, development-only `CORS_ALLOWED_ORIGINS`, and session-cookie `/api/*` access.
 - Browser runtime contract metadata lives in `web/src/server/browserRuntimeContract.js`; D4 now implements the lightweight production Node server on port `3000` with `/healthz` and same-origin `/api/*` routing to server-side `http://groupscout:8080` without exposing automation credentials.
-- Production same-origin serving lives in `web/src/server/productionServer.js`; `npm run start:ui` serves `web/dist` and forwards `/api/*` server-side to `UI_API_PROXY_TARGET` or `http://groupscout:8080`.
+- Phase 13 renderer/runtime metadata lives in `web/src/server/productRendererRuntime.js`; the first rendered-route smoke coverage lives in `test/phase-13-renderer-runtime.test.js`.
+- Production same-origin serving lives in `web/src/server/productionServer.js`; `npm run start:ui` serves `web/dist`, falls back to `index.html` for app routes, and forwards `/api/*` server-side to `UI_API_PROXY_TARGET` or `http://groupscout:8080`.
+- Static product assets are generated with `npm run build` from `web/src/renderer/buildStaticApp.js`; the first renderer mapping lives in `web/src/renderer/domRenderer.js`.
+- Product dev serving lives in `web/src/server/productDevServer.js`; `compose.dev.yml` runs that server on container port `3000` and host `${GROUPSCOUT_UI_HOST_PORT:-3001}`.
+- Backend compatibility smoke classification lives in `web/src/server/backendCompatibilitySmoke.js` and distinguishes proxy failure, backend route drift, auth, schema drift, compatible responses, and backend errors.
 - Lead inbox reads use `createApiClient().listLeads(...)` for `GET /api/leads` query serialization, pagination cursors, default priority ordering, and response field adaptation.
 - Lead status writes use `createApiClient().patchLead(...)` for `PATCH /api/leads/{id}` payloads covering status, owner, notes, snooze date, correction reason, and safe field corrections.
 - Raw audit reads use `createApiClient().getLeadRawAudit(...)` for the UI-safe `GET /api/leads/{id}/raw` alias.
@@ -38,13 +42,19 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Phase 10 tests cover read-only alert state rendering, SPS summaries, evidence, room inventory, action history, disabled mutation actions, `/alerts` route mounting, responsive metadata, token usage, and `GET /api/alerts`.
 - Phase 11 tests cover the Today command center, priority lead and aging-work summaries, active alerts, failed jobs, system health, read-only action policy, `/` route mounting, responsive metadata, token usage, and `GET /api/system`.
 - Smell Phase H1 split the growing browser API client module while preserving `createApiClient(...)` and the centralized same-origin `/api/*` guard.
-- Phase 12 dockerization planning lives in `docs/phase-12-ui-dockerization.md`; the D0-D5 contract lives in `docs/ui-dockerization-contract.md`; the test Docker target runs `npm test`, `compose.dev.yml` adds a development `groupscout-ui` service, the production Docker target serves static assets plus same-origin `/api/*` on container port `3000`, and D5 documents repeatable Docker operations/CI hooks while the product renderer remains future work.
+- Phase 12 dockerization planning lives in `docs/phase-12-ui-dockerization.md`; the D0-D5 contract lives in `docs/ui-dockerization-contract.md`; the test Docker target runs `npm test`, `compose.dev.yml` adds a development `groupscout-ui` service, the production Docker target serves static assets plus same-origin `/api/*` on container port `3000`, and D5 documents repeatable Docker operations/CI hooks. Phase 13 keeps those boundaries and adds the product renderer/runtime without external dependencies.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
 
 ```sh
 npm test
+```
+
+Static product build:
+
+```sh
+npm run build
 ```
 
 Containerized UI test run:
@@ -78,7 +88,7 @@ curl -i http://localhost:3002/api/system
 docker stop groupscout-ui-production-smoke
 ```
 
-The merged Compose service on port `3001` is the D3 health harness only. It proves backend-network wiring but does not serve static assets or proxy `/api/*`. The production container on port `3002` is the current same-origin static/proxy runtime. On 2026-05-08, `/healthz`, `/`, and `/assets/app.js` returned `200` from that runtime on the backend Compose network, while `/api/system` and `/api/leads` reached the backend and returned `404` because the live backend exposes older non-`/api` routes such as `/health`, `/run`, `/digest`, and `/leads/{id}/raw`.
+The merged Compose service on port `3001` now runs the Phase 13 product dev server. It proves backend-network wiring, serves the static product assets, and preserves server-side backend discovery. The production container on port `3002` remains the same-origin static/proxy runtime. On 2026-05-08, `/healthz`, `/`, and `/assets/app.js` returned `200` from that runtime on the backend Compose network, while `/api/system` and `/api/leads` reached the backend and returned `404` because the live backend exposes older non-`/api` routes such as `/health`, `/run`, `/digest`, and `/leads/{id}/raw`.
 
 Production UI runtime:
 
@@ -120,7 +130,7 @@ The default development UI host port is `3001` because the backend stack publish
 - [Phase 12 UI Dockerization Prompt Pack](./docs/phase-12-ui-dockerization.md)
 - [UI Dockerization Contract](./docs/ui-dockerization-contract.md)
 - [Docker Runtime Matrix](./docs/docker-runtime-matrix.md)
-- [Phase 13 Product Renderer Runtime Brainstorm](./docs/phase-13-product-renderer-runtime.md)
+- [Phase 13 Product Renderer Runtime](./docs/phase-13-product-renderer-runtime.md)
 - [Phase 13 Product Renderer Runtime Prompt Pack](./docs/phase-13-product-renderer-runtime-prompts.md)
 
 ## Phase 0 Guardrails

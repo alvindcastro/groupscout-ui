@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node web/src/renderer/buildStaticApp.js",
     "start:ui": "node web/src/server/productionServer.js",
     "test": "node --test"
   }

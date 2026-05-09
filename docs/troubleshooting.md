@@ -91,7 +91,7 @@ Common causes:
 - The reserved UI port, health path, or same-origin `/api/*` routing target no longer matches `docs/ui-dockerization-contract.md`.
 - Browser public config includes automation credentials, provider keys, database URLs, or `UI_SESSION_SECRET`.
 
-Note: D2 originally reserved `npm run start:ui`, port `3000`, and `/healthz` as contract metadata. D4 now provides the runnable production static/proxy server for those values; the product renderer, browser framework, and product development server are still future work.
+Note: D2 originally reserved `npm run start:ui`, port `3000`, and `/healthz` as contract metadata. D4 now provides the runnable production static/proxy server for those values. Phase 13 adds the dependency-free vanilla DOM renderer, static build, and product dev server; a browser framework remains future work.
 
 ## UI Development Compose Fails
 
@@ -125,7 +125,7 @@ Common causes:
 - The UI service cannot resolve `groupscout` because the override was run without the backend Compose file or without the `groupscout_net` network definition.
 - The `groupscout` backend service is not started. A targeted D3 smoke run should include `groupscout-ui` and `groupscout`; backend Compose also starts `postgres`, `ollama`, and `ollama-init` because `groupscout` depends on them.
 
-D3 healthchecks only `/healthz` on the development health harness. Use the D4 production runtime checks for static serving and `/api/*` proxy forwarding.
+Phase 13 healthchecks `/healthz` on the product dev server. It serves the generated `web/dist` assets and preserves server-side `http://groupscout:8080` backend discovery.
 
 ## Docker Operations Fail Before Startup
 
@@ -167,12 +167,12 @@ Browser-visible code and config should still show relative `/api/*`, never `http
 
 ## Backend And UI Docker Mode Mismatch
 
-D3 and D4 are different modes:
+D3/Phase 13 and D4 are different modes:
 
-- D3 `compose.dev.yml` runs `node web/src/server/devComposeHealthServer.js`; it only serves `/healthz`.
+- Phase 13 `compose.dev.yml` runs `node web/src/server/productDevServer.js`; it serves `web/dist`, healthchecks `/healthz`, and keeps backend discovery server-side.
 - D4 `groupscout-ui-production` runs `npm run start:ui`; it serves `web/dist` and proxies `/api/*`.
 
-If `http://localhost:3001/api/system` fails, that is expected because port `3001` is the D3 health harness. Use D4 on port `3002` for static/proxy smoke checks.
+If `http://localhost:3001/api/system` fails with backend route drift, classify it the same way as D4 proxy smoke: `502` is proxy/backend reachability, `404` is live backend route drift, `401`/`403` is auth, and a `200` with missing fields is schema drift.
 
 If D4 is run with standalone `docker run`, use a host backend target:
 
@@ -206,6 +206,7 @@ docker run --rm -p 3002:3000 -e UI_API_PROXY_TARGET=http://host.docker.internal:
 Common causes:
 
 - `GET /` or `GET /assets/app.js` returns 404 because `web/dist/index.html` or `web/dist/assets/app.js` is missing from the image or local checkout.
+- `GET /leads/lead_hotel_001` returns 404 because app-route fallback to `index.html` regressed.
 - `GET /api/*` returns 502 because `UI_API_PROXY_TARGET` is wrong, the backend is down, or a Compose container cannot resolve `groupscout`.
 - `GET /api/*` returns 401 because the backend requires a valid `groupscout_session` cookie.
 - Browser code references `http://groupscout:8080` directly instead of a relative `/api/*` path.

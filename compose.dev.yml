@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       target: test
     image: groupscout-ui-dev
-    command: ["node", "web/src/server/devComposeHealthServer.js"]
+    command: ["node", "web/src/server/productDevServer.js"]
     environment:
       NODE_ENV: "development"
       UI_API_PROXY_TARGET: "http://groupscout:8080"

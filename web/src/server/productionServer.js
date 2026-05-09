@@ -112,7 +112,7 @@ export function createProductionServer({
   env = process.env,
   publicRoot = DEFAULT_PUBLIC_ROOT
 } = {}) {
-  const resolvedPublicRoot = path.resolve(publicRoot);
+  const resolvedPublicRoot = path.resolve(publicRoot instanceof URL ? fileURLToPath(publicRoot) : publicRoot);
   const backendTarget = env.UI_API_PROXY_TARGET || DEFAULT_BACKEND_TARGET;
 
   return http.createServer(async (request, response) => {
@@ -189,33 +189,72 @@ export function createApiProxyRequest({ requestUrl, method, headers, targetBaseU
 }
 
 async function serveStaticAsset({ requestPath, response, publicRoot }) {
+  const plan = await createStaticAssetResponsePlan({ requestPath, publicRoot });
+
+  if (plan.statusCode !== 200) {
+    sendJson(response, plan.statusCode, { error: "not_found" });
+    return;
+  }
+
+  response.writeHead(200, {
+    "cache-control": plan.cacheControl,
+    "content-type": plan.contentType
+  });
+  createReadStream(plan.filePath).pipe(response);
+}
+
+export async function createStaticAssetResponsePlan({ requestPath, publicRoot }) {
+  const resolvedPublicRoot = path.resolve(publicRoot instanceof URL ? fileURLToPath(publicRoot) : publicRoot);
   const pathname = requestPath === "/" ? `/${DEFAULT_INDEX_FILE}` : requestPath;
   const decodedPathname = decodeURIComponent(pathname);
-  const resolvedPath = path.resolve(publicRoot, `.${decodedPathname}`);
-  const relativePath = path.relative(publicRoot, resolvedPath);
+  const resolvedPath = path.resolve(resolvedPublicRoot, `.${decodedPathname}`);
+  const relativePath = path.relative(resolvedPublicRoot, resolvedPath);
 
   if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
-    sendJson(response, 404, { error: "not_found" });
-    return;
+    return { statusCode: 404 };
   }
 
   try {
     const fileStat = await stat(resolvedPath);
 
     if (!fileStat.isFile()) {
-      sendJson(response, 404, { error: "not_found" });
-      return;
+      return createAppFallbackPlan({ requestPath, publicRoot: resolvedPublicRoot });
     }
   } catch {
-    sendJson(response, 404, { error: "not_found" });
-    return;
+    return createAppFallbackPlan({ requestPath, publicRoot: resolvedPublicRoot });
   }
 
-  response.writeHead(200, {
-    "cache-control": requestPath === "/" ? "no-store" : "public, max-age=31536000, immutable",
-    "content-type": contentTypeForPath(resolvedPath)
-  });
-  createReadStream(resolvedPath).pipe(response);
+  return {
+    statusCode: 200,
+    filePath: resolvedPath,
+    cacheControl: requestPath === "/" ? "no-store" : "public, max-age=31536000, immutable",
+    contentType: contentTypeForPath(resolvedPath)
+  };
+}
+
+async function createAppFallbackPlan({ requestPath, publicRoot }) {
+  if (requestPath.startsWith("/assets/") || path.extname(requestPath)) {
+    return { statusCode: 404 };
+  }
+
+  const indexPath = path.resolve(publicRoot, DEFAULT_INDEX_FILE);
+
+  try {
+    const fileStat = await stat(indexPath);
+
+    if (!fileStat.isFile()) {
+      return { statusCode: 404 };
+    }
+  } catch {
+    return { statusCode: 404 };
+  }
+
+  return {
+    statusCode: 200,
+    filePath: indexPath,
+    cacheControl: "no-store",
+    contentType: "text/html; charset=utf-8"
+  };
 }
 
 function filterProxyRequestHeaders(headers) {

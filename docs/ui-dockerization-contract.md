@@ -6,7 +6,7 @@ D1 status: UI test container. The first Docker target now runs the current model
 
 D2 status: browser runtime contract. The future browser runtime shape is now test-covered as contract metadata without adding a runnable server, framework, dev server, proxy, or Compose wiring.
 
-D3 status: development Compose integration. The UI repo now provides a backend Compose override and health harness for development container wiring without adding production proxy/static serving or a product renderer.
+D3 status: development Compose integration. The UI repo provides a backend Compose override for development container wiring. Phase 13 now runs a product dev server from that override while preserving the same network, port, health, and no-secret guarantees.
 
 D4 status: production same-origin serving. The UI repo now provides a lightweight Node production server that serves `web/dist` assets and proxies `/api/*` server-side to the backend target from one browser origin.
 
@@ -63,9 +63,9 @@ The D3 Compose override lives in `compose.dev.yml`.
 - Browser API path metadata: `/api/*`
 - Health path: `/healthz`
 - Host port: `${GROUPSCOUT_UI_HOST_PORT:-3001}` maps to container port `3000`
-- Container command: `node web/src/server/devComposeHealthServer.js`
+- Container command: `node web/src/server/productDevServer.js`
 
-The D3 service builds the existing D1 `test` target and overrides the command with a server-only health harness. It is a development Compose integration point, not the production serving model.
+The development service builds the existing D1 `test` target and overrides the command with the Phase 13 product dev server. It remains a development Compose integration point, not the production serving model.
 
 Use the override beside the backend Compose file:
 
@@ -115,7 +115,7 @@ Browser JavaScript still sees only relative `/api/*` paths. `API_TOKEN`, provide
 
 ## D5 Operations Docs And CI Hooks
 
-D5 adds operations documentation only. It does not change the Dockerfile, Compose file, production server, static assets, browser runtime contract, or product renderer.
+D5 added operations documentation only. Phase 13 later changed `compose.dev.yml`, the production server fallback behavior, static assets, and product renderer/runtime under separate red-first coverage.
 
 - Local test command: `npm test`
 - Containerized test image build: `docker build --target test -t groupscout-ui-test .`
@@ -132,9 +132,9 @@ Required UI Docker env vars stay small:
 - `GROUPSCOUT_UI_REPO` optionally changes the build context used by `compose.dev.yml`.
 - `UI_API_PROXY_TARGET` is server-side only. Use `http://groupscout:8080` inside Compose and `http://host.docker.internal:8080` for a standalone production-container smoke against a host backend.
 
-The D3 development smoke path requires the sibling backend repo at `/mnt/c/Users/alvin/GolandProjects/groupscout`. Starting `groupscout` also starts backend dependencies `postgres`, `ollama`, and `ollama-init`; D5 docs do not require `alertd`, `n8n`, Grafana, Prometheus, Loki, Promtail, or a lead pipeline run for the UI health harness.
+The development smoke path requires the sibling backend repo at `/mnt/c/Users/alvin/GolandProjects/groupscout`. Starting `groupscout` also starts backend dependencies `postgres`, `ollama`, and `ollama-init`; the UI product dev-server smoke does not require `alertd`, `n8n`, Grafana, Prometheus, Loki, Promtail, or a lead pipeline run.
 
-For a concise comparison of the D1 test image, D3 development health harness, and D4 production server, see [Docker Runtime Matrix](./docker-runtime-matrix.md).
+For a concise comparison of the D1 test image, Phase 13 development product server, and D4 production server, see [Docker Runtime Matrix](./docker-runtime-matrix.md).
 
 CI order: local Node tests, Docker test-image build/run, production image build, then optional smoke checks. CI can validate merged Compose config when the backend Compose file is available. Production `/api/system` smoke needs a reachable backend or a CI stub; `/healthz`, `/`, and `/assets/app.js` can run against the UI container alone.
 

@@ -637,7 +637,7 @@ Goal: dockerize the UI in phases without inventing a browser runtime before the 
 Context:
 - The backend Docker stack is in /mnt/c/Users/alvin/GolandProjects/groupscout.
 - Backend Compose runs groupscout on 8080, alertd on 8081, Postgres, n8n, observability, Ollama, and ollama-init on groupscout_net.
-- The UI repo has a D1 Dockerfile test target, .dockerignore, D3 compose.dev.yml backend Compose override, D4 production same-origin static/proxy serving, and D5 Docker operations docs/CI notes, but no renderer, dev server, build tool, lockfile, or product browser runtime.
+- At Phase 12 time, the UI repo had a D1 Dockerfile test target, .dockerignore, D3 compose.dev.yml backend Compose override, D4 production same-origin static/proxy serving, and D5 Docker operations docs/CI notes, but no renderer, dev server, build tool, lockfile, or product browser runtime. Phase 13 later added the no-dependency renderer/runtime path.
 - The UI repo currently runs model-level JavaScript tests with npm test -> node --test.
 - Browser code must use same-origin /api/* contracts.
 - API_TOKEN and provider secrets must not be exposed to browser JavaScript, static assets, generated config, or public image layers.
@@ -690,7 +690,7 @@ Do not add Dockerfile, Compose, nginx/proxy config, browser framework, dev serve
 
 ## Phase 13 - Product Renderer Runtime
 
-> Status: brainstorm and prompt pack documented only. No renderer, framework, package install step, lockfile, dev server, Dockerfile change, Compose change, browser test harness, or production UI code is implemented by this planning pass. The brainstorm lives in `docs/phase-13-product-renderer-runtime.md`; detailed prompts and tickable tasks live in `docs/phase-13-product-renderer-runtime-prompts.md`.
+> Status: implemented with a dependency-free vanilla DOM renderer/runtime. No framework, package install step, or lockfile was added. The implementation record lives in `docs/phase-13-product-renderer-runtime.md`; detailed prompts and tickable tasks live in `docs/phase-13-product-renderer-runtime-prompts.md`.
 
 ### Prompt
 
@@ -702,7 +702,7 @@ Goal: introduce the next product renderer/runtime only after tests prove the con
 Context:
 - The UI repo is currently model-level JavaScript tested with node:test.
 - D1 runs npm test in a container.
-- D3 compose.dev.yml is a backend-network health harness, not a product dev server.
+- D3 compose.dev.yml started as a backend-network health harness; Phase 13 changes it only after product dev-server tests fail for that expected reason.
 - D4 serves web/dist and proxies /api/* server-side from one origin.
 - The backend Docker stack lives in /mnt/c/Users/alvin/GolandProjects/groupscout and provides service groupscout on groupscout_net.
 - Browser-facing code must keep relative /api/* calls and must not expose API_TOKEN or other server secrets.
@@ -720,21 +720,32 @@ Do not implement renderer code, dependencies, Docker changes, Compose changes, o
 
 ### Phase Tasks
 
-- [ ] 13-A - Renderer Runtime Contract
-- [ ] 13-B - Browser And Component Test Harness Decision
-- [ ] 13-C - Minimal Renderer Mount
-- [ ] 13-D - Static Build And Asset Safety
-- [ ] 13-E - Product Dev Server And Compose
-- [ ] 13-F - Live Backend Compatibility Smoke
+- [x] 13-A - Renderer Runtime Contract
+- [x] 13-B - Browser And Component Test Harness Decision
+- [x] 13-C - Minimal Renderer Mount
+- [x] 13-D - Static Build And Asset Safety
+- [x] 13-E - Product Dev Server And Compose
+- [x] 13-F - Live Backend Compatibility Smoke
 
 ### Acceptance Criteria
 
-- [ ] The chosen renderer/runtime contract is test-covered before dependencies are added.
-- [ ] Browser tests cover DOM, focus, accessibility, responsive layout, and same-origin API behavior that model tests cannot prove.
-- [ ] Existing screen models remain the product behavior source until live data wiring is explicitly introduced.
-- [ ] D4 remains the production same-origin static/proxy boundary unless a later tested contract replaces it.
-- [ ] D3 Compose semantics are not changed until a product dev server exists.
-- [ ] Backend route drift is documented as backend/API compatibility work, not misclassified as UI Docker failure.
+- [x] The chosen renderer/runtime contract is test-covered before dependencies are added.
+- [x] Browser tests cover DOM, focus, accessibility, responsive layout, and same-origin API behavior that model tests cannot prove.
+- [x] Existing screen models remain the product behavior source until live data wiring is explicitly introduced.
+- [x] D4 remains the production same-origin static/proxy boundary unless a later tested contract replaces it.
+- [x] D3 Compose semantics are not changed until a product dev server exists.
+- [x] Backend route drift is documented as backend/API compatibility work, not misclassified as UI Docker failure.
+
+### Implementation Notes
+
+- Red run: `node test/phase-13-renderer-runtime.test.js` failed because Phase 13 modules were missing, `npm run build` was absent, `compose.dev.yml` still used the D3 health harness, and D4 did not serve app-route fallback.
+- 13-A added `web/src/server/productRendererRuntime.js` for the explicit vanilla DOM renderer contract, D4 static/proxy production boundary, product dev-server model, `web/dist` build output, `/healthz`, `/api/*`, and public-config secret guardrails.
+- 13-B chose a dependency-free `node-rendered-dom-smoke` harness in `test/phase-13-renderer-runtime.test.js`; no package, framework, or lockfile was added.
+- 13-C added `web/src/renderer/domRenderer.js` to mount Today, Lead Inbox, and Lead Detail from the existing screen models with rendered-route smoke coverage for landmarks, focusable labels, responsive metadata, states, and same-origin API entry metadata.
+- 13-D added `npm run build`, `web/src/renderer/buildStaticApp.js`, regenerated `web/dist/index.html` and `web/dist/assets/app.js`, and extended `web/src/server/productionServer.js` with route fallback for product app paths while preserving `/assets/*` 404 behavior and `/api/*` proxying.
+- 13-E added `web/src/server/productDevServer.js` and updated `compose.dev.yml` so `groupscout-ui` runs the product dev server on container port `3000`, host `${GROUPSCOUT_UI_HOST_PORT:-3001}`, and server-side `http://groupscout:8080`.
+- 13-F added `web/src/server/backendCompatibilitySmoke.js` to distinguish proxy failure, backend 404 route drift, auth requirements, schema drift, compatible responses, and backend errors for UI-modeled `/api/*` routes.
+- Green run: `node --test test/phase-13-renderer-runtime.test.js` passed; broader verification is `npm test`.
 
 ### Planning Notes
 
@@ -771,7 +782,7 @@ Do not implement renderer code, dependencies, Docker changes, Compose changes, o
 - [x] Phase 10 - Later Alertd Read-Only Console
 - [x] Phase 11 - Today Command Center And System Health Summary
 - [x] Phase 12 - UI Dockerization
-- [ ] Phase 13 - Product Renderer Runtime
+- [x] Phase 13 - Product Renderer Runtime
 
 ## Related Refactor Prompt Pack
 

@@ -1,13 +1,13 @@
 # Docker Runtime Matrix
 
-This doc distinguishes the current Docker/runtime modes so contributors do not expect the test image or development health harness to behave like the production static/proxy server.
+This doc distinguishes the current Docker/runtime modes so contributors do not expect the test image, development product server, and production static/proxy server to behave identically.
 
 ## Modes
 
 | Mode | Entry Point | Serves Assets | Proxies `/api/*` | Backend Required | Primary Use |
 | --- | --- | --- | --- | --- | --- |
 | D1 test image | `docker run --rm groupscout-ui-test` | No | No | No | Run the model-level Node test suite in a clean container. |
-| D3 development Compose health harness | `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout` | No | No | Yes, for merged Compose wiring | Prove the UI service can join the backend Compose network and expose `/healthz`. |
+| Phase 13 development product server | `docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml up --build groupscout-ui groupscout` | Yes, from `web/dist` | Server-side target metadata and same-origin behavior | Yes, for merged Compose wiring | Prove the UI service can join the backend Compose network, expose `/healthz`, and serve generated product assets. |
 | D4 production server | `npm run start:ui` or `docker run --rm -p 3002:3000 -e UI_API_PROXY_TARGET=http://host.docker.internal:8080 groupscout-ui-production` | Yes, from `web/dist` | Yes, server-side | Only for `/api/*` smoke checks | Serve one browser origin for static assets plus same-origin API forwarding. |
 | D4 production server on backend network | `docker run --rm -d --name groupscout-ui-production-smoke --network groupscout_groupscout_net -p 3002:3000 -e UI_API_PROXY_TARGET=http://groupscout:8080 groupscout-ui-production` | Yes, from `web/dist` | Yes, server-side | Yes | Current manual end-to-end Docker smoke path; there is no dedicated Compose lifecycle for this mode yet. |
 
@@ -26,7 +26,7 @@ docker run --rm groupscout-ui-test
 
 `compose.dev.yml` is an override for the backend Compose stack, not a standalone Compose file. The backend Compose file defines service `groupscout` and network `groupscout_net`; without that file, Compose validation is expected to fail.
 
-The D3 service builds the D1 `test` target but overrides the command with `node web/src/server/devComposeHealthServer.js`. It only serves `/healthz` JSON metadata. It does not serve `web/dist`, proxy `/api/*`, or render product screens.
+The Phase 13 service builds the D1 `test` target but overrides the command with `node web/src/server/productDevServer.js`. It serves generated `web/dist` assets, exposes `/healthz` JSON metadata, and keeps backend discovery server-side through `http://groupscout:8080`.
 
 Use it when validating container networking beside the backend stack:
 
@@ -68,7 +68,7 @@ curl -i http://localhost:3002/api/system
 docker stop groupscout-ui-production-smoke
 ```
 
-This is the closest current backend plus frontend Docker path. It is manual because `compose.dev.yml` still runs the D3 health harness, not the D4 production target. As of the 2026-05-08 smoke run, the UI static checks returned `200`; `/api/system` and `/api/leads` returned backend `404` because the backend did not yet expose those UI-modeled `/api/*` routes.
+This is the closest current backend plus frontend Docker path. It remains manual because `compose.dev.yml` runs the development product server, while D4 production is still a separate image target. As of the 2026-05-08 smoke run, the UI static checks returned `200`; `/api/system` and `/api/leads` returned backend `404` because the backend did not yet expose those UI-modeled `/api/*` routes.
 
 ## Stable Boundaries
 
@@ -76,4 +76,4 @@ This is the closest current backend plus frontend Docker path. It is manual beca
 - `UI_API_PROXY_TARGET` is server-side only.
 - Do not pass backend `.env` files into UI containers.
 - Do not inject `API_TOKEN`, provider keys, Slack tokens, Resend/SendGrid keys, database URLs, `OLLAMA_BASE_URL`, or `UI_SESSION_SECRET` into browser-visible config or static assets.
-- A future product dev server should update this matrix before changing `compose.dev.yml` semantics.
+- A future framework-backed product dev server should update this matrix before changing `compose.dev.yml` semantics again.

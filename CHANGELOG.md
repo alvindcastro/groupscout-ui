@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 13 - Product Renderer Runtime
+
+- What: Implemented Phase 13-A through 13-F with a tested dependency-free vanilla DOM renderer/runtime contract, rendered route smoke harness, static product build, app-route fallback, product dev server Compose command, and backend compatibility smoke classification.
+- Where: Added `test/phase-13-renderer-runtime.test.js`, `web/src/server/productRendererRuntime.js`, `web/src/renderer/domRenderer.js`, `web/src/renderer/buildStaticApp.js`, `web/src/server/productDevServer.js`, and `web/src/server/backendCompatibilitySmoke.js`; updated `package.json`, `compose.dev.yml`, `web/src/server/productionServer.js`, `web/dist/index.html`, `web/dist/assets/app.js`, `test/dockerization-contract.test.js`, `UI_TDD_PHASE_PROMPTS.md`, `README.md`, `docs/developer-guide.md`, `docs/testing.md`, `docs/troubleshooting.md`, `docs/phase-13-product-renderer-runtime.md`, and `docs/phase-13-product-renderer-runtime-prompts.md`.
+- When: Completed on 2026-05-09 after Phase 12 D0-D5 Docker/runtime boundaries and the Phase 13 prompt pack.
+- Why: Operators need the first real product renderer/runtime path while preserving the existing D4 same-origin static/proxy boundary and keeping backend/provider secrets out of browser-visible code, config, assets, Compose output, and CI artifacts.
+- How: Followed strict TDD with a red `node test/phase-13-renderer-runtime.test.js` run, added the smallest contract modules and no-dependency renderer/build/dev-server code, regenerated static assets via `npm run build`, changed Compose only after product dev-server coverage existed, classified live backend route drift separately from proxy failures, then reran the focused Phase 13 suite, Dockerization contract suite, build, and full `npm test`.
+
 ### Docs - Phase 13 Renderer Runtime Prompt Pack
 
 - What: Added a docs-only Phase 13 prompt pack with strict-TDD copy-paste prompts, parallel agent prompts, tickable phase tasks, backend Docker findings, UI working-tree findings, and explicit non-goals for future renderer/runtime work.

@@ -226,7 +226,7 @@ test("D3 Compose override wires the UI service to the backend network without se
   assert.match(compose, /context: \$\{GROUPSCOUT_UI_REPO:-\/mnt\/c\/Users\/alvin\/WebstormProjects\/groupscout-ui\}/);
   assert.match(compose, /dockerfile: Dockerfile/);
   assert.match(compose, /target: test/);
-  assert.match(compose, /command: \["node", "web\/src\/server\/devComposeHealthServer\.js"\]/);
+  assert.match(compose, /command: \["node", "web\/src\/server\/productDevServer\.js"\]/);
   assert.match(compose, /"\$\{GROUPSCOUT_UI_HOST_PORT:-3001\}:3000"/);
   assert.match(compose, /UI_API_PROXY_TARGET: "http:\/\/groupscout:8080"/);
   assert.match(compose, /UI_PUBLIC_API_PATH: "\/api\/\*"/);

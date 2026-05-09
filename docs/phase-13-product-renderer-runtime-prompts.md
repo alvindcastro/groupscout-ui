@@ -1,7 +1,6 @@
 # Phase 13 Product Renderer Runtime Prompt Pack
 
-> Planning artifact only. Do not implement code from this file in the current planning pass.
-> Future implementation must strictly follow TDD: red test first, smallest implementation, green test, then refactor.
+> Implementation record for Phase 13. Future runtime changes must still follow TDD: red test first, smallest implementation, green test, then refactor.
 
 ## Sources Inspected
 
@@ -26,8 +25,8 @@
 - The backend Docker stack builds the Go API and `alertd`, publishes `groupscout` on `8080`, publishes `alertd` on `8081`, and runs Postgres, n8n, Prometheus, Grafana, Loki, Promtail, Ollama, and `ollama-init` on `groupscout_net`.
 - Backend Compose service name for the API is `groupscout`; UI containers on the backend network should target `http://groupscout:8080` server-side.
 - Grafana already uses host port `3000`, so UI host examples should keep using `3001` for the development harness and `3002` for production-container smoke unless a future contract changes that.
-- The UI repo already has D1 test image, D3 Compose health harness, D4 production static/proxy server, and D5 Docker operations docs.
-- The UI repo still has no checked-in renderer framework, DOM component harness, product dev server, lockfile, or dependency install step.
+- The UI repo already had a D1 test image, D3 Compose health harness, D4 production static/proxy server, and D5 Docker operations docs before Phase 13; Phase 13 upgrades the Compose command to the product dev server under test.
+- The UI repo now has a dependency-free vanilla DOM renderer, rendered HTML smoke coverage, product dev server, static build script, and backend compatibility classifier. It still has no framework, lockfile, or dependency install step.
 - Browser-facing code must keep relative `/api/*` paths and must not expose `API_TOKEN`, provider keys, Slack tokens, Resend/SendGrid keys, database URLs, `OLLAMA_BASE_URL`, or `UI_SESSION_SECRET`.
 - Current uncommitted UI changes are limited to `.idea/*` line-ending churn; there are no uncommitted product UI source changes in this working tree.
 
@@ -100,19 +99,19 @@ Do not install dependencies, add a framework, create a dev server, or change Doc
 
 ### Tasks
 
-- [ ] Decide whether production remains D4 static/proxy for Phase 13.
-- [ ] Decide whether development stays D3 health-only until a renderer dev server exists.
-- [ ] Define the build output path, default port, and health path.
-- [ ] Define generated public config allowlist behavior.
-- [ ] Add red-first contract coverage.
-- [ ] Add the minimum docs/metadata to pass.
-- [ ] Update `docs/phase-13-product-renderer-runtime.md` with the chosen contract.
+- [x] Decide whether production remains D4 static/proxy for Phase 13.
+- [x] Decide that development changes from D3 health-only to product dev server once renderer dev-server tests exist.
+- [x] Define the build output path, default port, and health path.
+- [x] Define generated public config allowlist behavior.
+- [x] Add red-first contract coverage.
+- [x] Add the minimum docs/metadata to pass.
+- [x] Update `docs/phase-13-product-renderer-runtime.md` with the chosen contract.
 
 ### Acceptance Criteria
 
-- [ ] The renderer/runtime decision is explicit before dependencies are added.
-- [ ] D1-D5 Docker guarantees remain intact.
-- [ ] Browser-visible config cannot contain backend or provider secrets.
+- [x] The renderer/runtime decision is explicit before dependencies are added.
+- [x] D1-D5 Docker guarantees remain intact.
+- [x] Browser-visible config cannot contain backend or provider secrets.
 
 ## Phase 13-B - Browser And Component Test Harness Decision
 
@@ -139,18 +138,18 @@ Do not broaden into visual-regression infrastructure until route and API-boundar
 
 ### Tasks
 
-- [ ] Choose the first browser/component harness by required capability, not preference.
-- [ ] Define the first rendered route smoke: `/`, `/leads`, and one `/leads/{id}` case.
-- [ ] Define accessibility assertions for labels, landmarks, focusable controls, and tab/row actions.
-- [ ] Define responsive assertions for left navigation and detail/evidence layout.
-- [ ] Define API-boundary assertions proving relative `/api/*` requests.
-- [ ] Add a dependency/lockfile only after the failing harness test requires it.
+- [x] Choose the first browser/component harness by required capability, not preference.
+- [x] Define the first rendered route smoke: `/`, `/leads`, and one `/leads/{id}` case.
+- [x] Define accessibility assertions for labels, landmarks, focusable controls, and tab/row actions.
+- [x] Define responsive assertions for left navigation and detail/evidence layout.
+- [x] Define API-boundary assertions proving relative `/api/*` requests.
+- [x] Add a dependency/lockfile only after the failing harness test requires it.
 
 ### Acceptance Criteria
 
-- [ ] Browser tests cover behavior current model tests cannot cover.
-- [ ] The first harness does not require live Slack, email, LLM, public websites, or paid APIs.
-- [ ] Static asset scans stay in place after a browser build exists.
+- [x] Browser tests cover behavior current model tests cannot cover.
+- [x] The first harness does not require live Slack, email, LLM, public websites, or paid APIs.
+- [x] Static asset scans stay in place after a browser build exists.
 
 ## Phase 13-C - Minimal Renderer Mount
 
@@ -177,18 +176,18 @@ Do not introduce live backend calls, new workflow mutations, or CRM/email behavi
 
 ### Tasks
 
-- [ ] Mount Today as the first route.
-- [ ] Mount Lead Inbox with fixture-backed data.
-- [ ] Mount Lead Detail with fixture-backed evidence.
-- [ ] Keep screen model factories separate from renderer components.
-- [ ] Verify component props do not contain backend secrets.
-- [ ] Keep `createApiClient(...)` as the only browser API entry point.
+- [x] Mount Today as the first route.
+- [x] Mount Lead Inbox with fixture-backed data.
+- [x] Mount Lead Detail with fixture-backed evidence.
+- [x] Keep screen model factories separate from renderer components.
+- [x] Verify component props do not contain backend secrets.
+- [x] Keep `createApiClient(...)` as the only browser API entry point.
 
 ### Acceptance Criteria
 
-- [ ] Existing model-level behavior is preserved in rendered UI.
-- [ ] Operators can render and navigate the primary shell routes in a browser test.
-- [ ] No live backend dependency is introduced for component tests.
+- [x] Existing model-level behavior is preserved in rendered UI.
+- [x] Operators can render and navigate the primary shell routes in a browser test.
+- [x] No live backend dependency is introduced for component tests.
 
 ## Phase 13-D - Static Build And Asset Safety
 
@@ -215,18 +214,18 @@ Do not replace the production server unless a tested contract explicitly does so
 
 ### Tasks
 
-- [ ] Add red-first coverage for generated asset names and paths.
-- [ ] Add red-first coverage for route fallback from D4.
-- [ ] Add red-first public asset secret scan.
-- [ ] Add or update the build command only after tests fail.
-- [ ] Verify `GET /healthz`, `GET /`, and `GET /assets/app.js`.
-- [ ] Verify one `/api/*` smoke only when backend or stub is reachable.
+- [x] Add red-first coverage for generated asset names and paths.
+- [x] Add red-first coverage for route fallback from D4.
+- [x] Add red-first public asset secret scan.
+- [x] Add or update the build command only after tests fail.
+- [x] Verify `GET /healthz`, `GET /`, and `GET /assets/app.js`.
+- [x] Verify one `/api/*` smoke only when backend or stub is reachable.
 
 ### Acceptance Criteria
 
-- [ ] D4 can serve the real product build.
-- [ ] Public assets expose only approved config.
-- [ ] Backend-dependent smoke failures distinguish backend 404 from proxy 502.
+- [x] D4 can serve the real product build.
+- [x] Public assets expose only approved config.
+- [x] Backend-dependent smoke failures distinguish backend 404 from proxy 502.
 
 ## Phase 13-E - Product Dev Server And Compose
 
@@ -254,18 +253,18 @@ Do not pass backend .env files or automation tokens into UI containers.
 
 ### Tasks
 
-- [ ] Decide whether D3 remains health-only or becomes product dev server mode.
-- [ ] Test host port `${GROUPSCOUT_UI_HOST_PORT:-3001}`.
-- [ ] Test internal target `http://groupscout:8080` remains server-side.
-- [ ] Test healthcheck path and expected JSON.
-- [ ] Test Compose output does not include browser-visible secrets.
-- [ ] Document startup and teardown commands.
+- [x] Decide whether D3 remains health-only or becomes product dev server mode.
+- [x] Test host port `${GROUPSCOUT_UI_HOST_PORT:-3001}`.
+- [x] Test internal target `http://groupscout:8080` remains server-side.
+- [x] Test healthcheck path and expected JSON.
+- [x] Test Compose output does not include browser-visible secrets.
+- [x] Document startup and teardown commands.
 
 ### Acceptance Criteria
 
-- [ ] The UI service can run beside backend Compose without port conflict.
-- [ ] Backend service discovery uses Docker service names inside the network.
-- [ ] UI Compose remains an override, not a standalone backend replacement.
+- [x] The UI service can run beside backend Compose without port conflict.
+- [x] Backend service discovery uses Docker service names inside the network.
+- [x] UI Compose remains an override, not a standalone backend replacement.
 
 ## Phase 13-F - Live Backend Compatibility Smoke
 
@@ -292,18 +291,18 @@ Do not change backend code during this planning-only pass.
 
 ### Tasks
 
-- [ ] Inventory live backend routes versus UI client contracts.
-- [ ] Decide which repo owns each drift fix.
-- [ ] Define smoke expectations for `GET /api/system`.
-- [ ] Define smoke expectations for `GET /api/leads`.
-- [ ] Define auth/session expectations separately from automation `API_TOKEN`.
-- [ ] Add follow-up prompts for backend TDD implementation only after route ownership is clear.
+- [x] Inventory live backend routes versus UI client contracts.
+- [x] Decide which repo owns each drift fix.
+- [x] Define smoke expectations for `GET /api/system`.
+- [x] Define smoke expectations for `GET /api/leads`.
+- [x] Define auth/session expectations separately from automation `API_TOKEN`.
+- [x] Add follow-up prompts for backend TDD implementation only after route ownership is clear.
 
 ### Acceptance Criteria
 
-- [ ] Smoke checks identify route drift without mislabeling it as Docker failure.
-- [ ] Backend and UI docs agree on route ownership.
-- [ ] Future backend implementation prompts start with failing HTTP/storage tests.
+- [x] Smoke checks identify route drift without mislabeling it as Docker failure.
+- [x] Backend and UI docs agree on route ownership.
+- [x] Future backend implementation prompts start with failing HTTP/storage tests.
 
 ## Explicit Non-Goals
 

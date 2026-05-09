@@ -23,7 +23,7 @@ Phase D0 through D5 are complete. Future UI runtime or renderer work still requi
 
 - The backend repo already has a full Docker Compose stack with `groupscout` on `8080`, `alertd` on `8081`, Postgres, n8n, Prometheus, Grafana, Loki, Promtail, Ollama, and `ollama-init`.
 - Backend containers communicate on `groupscout_net`; UI containers should reach the backend as `http://groupscout:8080` when running in the same Compose project or network.
-- The UI repo now has a D1 `Dockerfile` test target, `.dockerignore`, D3 `compose.dev.yml` backend Compose override, D4 production same-origin Node server, and D5 Docker operations/CI documentation; it still has no framework, renderer, browser build, lockfile, or product UI dev server.
+- The UI repo has a D1 `Dockerfile` test target, `.dockerignore`, D3 `compose.dev.yml` backend Compose override, D4 production same-origin Node server, and D5 Docker operations/CI documentation. Phase 13 later added a dependency-free renderer, browser build script, and product UI dev server without adding a framework or lockfile.
 - The UI repo is currently a model-level plain JavaScript workspace with Node's built-in `node:test` runner and `npm test`.
 - Browser UI code must use same-origin `/api/*` contracts.
 - `API_TOKEN` is reserved for automation clients and must not be exposed to browser JavaScript.
@@ -410,4 +410,4 @@ Inspect README.md, docs/developer-guide.md, docs/testing.md, docs/troubleshootin
 
 D2-D5 resolved the original Dockerization decisions: the runtime model is a lightweight Node server, development Compose lives in this UI repo as `compose.dev.yml`, production same-origin behavior uses the D4 Node static/proxy server, the UI healthcheck route is `/healthz`, CI runs `npm test` before Docker image checks, and Dockerized UI tests stay backend-independent by default.
 
-The remaining planning question is no longer basic Dockerization. It is how to introduce a product renderer, browser framework, and development server without weakening the D0-D5 container, same-origin, and credential boundaries. See [Phase 13 Product Renderer Runtime Brainstorm](./phase-13-product-renderer-runtime.md).
+Phase 13 answered the next runtime question with a dependency-free renderer, static build, product dev server, and compatibility smoke classifier while preserving the D0-D5 container, same-origin, and credential boundaries. See [Phase 13 Product Renderer Runtime](./phase-13-product-renderer-runtime.md).

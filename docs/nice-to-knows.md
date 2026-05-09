@@ -77,11 +77,11 @@ When backend examples disagree, prefer the backend repo's current `.env.example`
 
 ## Docker Modes Are Different
 
-The UI repo has more than one Docker mode. D3 `compose.dev.yml` runs a backend-network health harness on `localhost:3001`; it does not serve the product static assets and does not proxy `/api/*`. D4 `groupscout-ui-production` runs the static/proxy server on container port `3000`; it can be attached manually to `groupscout_groupscout_net` and pointed at `http://groupscout:8080` for backend plus UI smoke checks.
+The UI repo has more than one Docker mode. Phase 13 `compose.dev.yml` runs a backend-network product dev server on `localhost:3001`; it serves generated `web/dist` assets and keeps backend discovery server-side. D4 `groupscout-ui-production` runs the production static/proxy server on container port `3000`; it can be attached manually to `groupscout_groupscout_net` and pointed at `http://groupscout:8080` for backend plus UI smoke checks.
 
 Use `docker compose -p groupscout` when combining backend and UI Compose files if you need the network name to be predictably `groupscout_groupscout_net` for a later D4 `docker run --network groupscout_groupscout_net ...` smoke.
 
-There is not yet a product renderer or a dedicated production Compose override for the D4 runtime. A `404` from `/api/system` or `/api/leads` through D4 means the proxy reached the current backend, but the backend does not yet expose those UI-modeled `/api/*` routes.
+There is now a dependency-free product renderer, but not a dedicated production Compose override for the D4 runtime. A `404` from `/api/system` or `/api/leads` through D4 means the proxy reached the current backend, but the backend does not yet expose those UI-modeled `/api/*` routes.
 
 ## Backend Docker Service Names
 

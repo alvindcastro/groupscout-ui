@@ -152,9 +152,9 @@ Expected endpoints:
 - Backend API: `http://localhost:8080`
 - Backend health: `http://localhost:8080/health`
 - Backend Grafana, when the full stack is started: `http://localhost:3000`
-- UI development health harness: `http://localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}/healthz`
+- UI product dev server health: `http://localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}/healthz`
 
-The UI service in `compose.dev.yml` is a D3 health harness. It does not serve product UI static assets and does not proxy `/api/*`.
+The UI service in `compose.dev.yml` is now the Phase 13 product dev server. It serves generated `web/dist` assets, healthchecks `/healthz`, and keeps `http://groupscout:8080` backend discovery server-side.
 
 For a same-origin UI runtime against the backend container, build and run the D4 production image on the backend Compose network:
 

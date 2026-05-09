@@ -1,6 +1,6 @@
 # Developer Guide
 
-This repo is currently a no-build, model-level UI workspace for GroupScout operator screens. The source is plain JavaScript modules plus Node's built-in test runner.
+This repo is currently a plain JavaScript UI workspace for GroupScout operator screens. It has model-level screen factories, a dependency-free vanilla DOM renderer, a static build script, and Node's built-in test runner.
 
 ## Current Shape
 
@@ -8,8 +8,11 @@ This repo is currently a no-build, model-level UI workspace for GroupScout opera
 - `web/src/app/shell.js` owns route-shell selection.
 - `web/src/server/uiDeployment.js` owns model-level UI deployment settings, base-path mounting, session-cookie API authorization, and development-only CORS metadata.
 - `web/src/server/browserRuntimeContract.js` owns the D2 browser runtime contract metadata for the future lightweight Node server, reserved port, health path, static asset boundary, `/api/*` routing expectation, and forbidden browser public config keys.
-- `web/src/server/devComposeHealthServer.js` owns the D3 development Compose health harness for the `groupscout-ui` service.
+- `web/src/server/productRendererRuntime.js` owns the Phase 13 renderer/runtime contract.
+- `web/src/server/productDevServer.js` owns the Phase 13 product dev server for the `groupscout-ui` Compose service.
 - `web/src/server/productionServer.js` owns the D4 production same-origin server for `web/dist` static assets, `/healthz`, whitelist-only public config, and server-side `/api/*` proxying.
+- `web/src/renderer/domRenderer.js` owns the first dependency-free rendered route mapping.
+- `web/src/renderer/buildStaticApp.js` owns the static product build into `web/dist`.
 - `web/src/app/todayCommandCenter.js` owns the mocked Today command center, operational priority summaries, system health metadata, and read-only routing policy.
 - `web/src/app/leadInbox.js` owns the mocked Lead Inbox screen model.
 - `web/src/app/leadDetail.js` owns the mocked Lead Detail Evidence Workspace.
@@ -22,7 +25,7 @@ This repo is currently a no-build, model-level UI workspace for GroupScout opera
 - `web/src/design/tokens.js` exports the subset of `DESIGN.md` tokens needed by tests.
 - `test/*.test.js` contains contract and screen-model tests using `node:test`.
 
-There is no bundler, DOM renderer, framework runtime, lockfile, or package-install step yet.
+There is no bundler, framework runtime, lockfile, or package-install step yet.
 
 ## Runtime
 
@@ -56,7 +59,7 @@ docker compose -p groupscout -f /mnt/c/Users/alvin/GolandProjects/groupscout/doc
 
 Choosing a backend plus UI Docker workflow:
 
-- Use D3 development Compose when you want to prove that the UI container can build, join `groupscout_groupscout_net`, depend on backend service `groupscout`, and expose `/healthz` on `localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}`.
+- Use Phase 13 development Compose when you want to prove that the UI container can build, join `groupscout_groupscout_net`, depend on backend service `groupscout`, expose `/healthz` on `localhost:${GROUPSCOUT_UI_HOST_PORT:-3001}`, and serve generated product assets from `web/dist`.
 - Use D4 production runtime when you want an actual browser origin that serves `web/dist` and forwards same-origin `/api/*` requests from the UI container to the backend container.
 - There is not yet a dedicated Compose override that runs the D4 production target beside the backend. For now, run the production container manually on the backend Compose network:
 
@@ -153,7 +156,7 @@ Backend dependency expectations:
 - The backend Compose file is expected at `/mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml`.
 - The UI dev service is `groupscout-ui`; the backend service is `groupscout`; both run on `groupscout_net`.
 - Starting `groupscout` also starts `postgres`, `ollama`, and `ollama-init` because of the backend dependency chain.
-- The UI health harness does not require `alertd`, `n8n`, Grafana, Prometheus, Loki, Promtail, or a lead pipeline run.
+- The UI product dev-server smoke does not require `alertd`, `n8n`, Grafana, Prometheus, Loki, Promtail, or a lead pipeline run.
 
 CI hook order:
 
@@ -220,9 +223,15 @@ The H0 baseline is [smell-h0-api-client-characterization.md](./smell-h0-api-clie
 
 Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phased prompt pack, [UI Dockerization Contract](./ui-dockerization-contract.md) for the D0-D5 decision record, and [Docker Runtime Matrix](./docker-runtime-matrix.md) when deciding which container mode to run. The repo has a minimal `Dockerfile` test target and `.dockerignore`; the test image runs `npm test` without a package install step or backend service.
 
-Runtime model: `lightweight-node-server`. D4 implements `npm run start:ui`, container port `3000`, health path `/healthz`, server-owned assets under `web/dist`, and server-side `/api/*` routing to `http://groupscout:8080` by default. Framework selection and the product UI renderer are still not implemented.
+Runtime model: `lightweight-node-server`. D4 implements `npm run start:ui`, container port `3000`, health path `/healthz`, server-owned assets under `web/dist`, app-route fallback to `index.html`, and server-side `/api/*` routing to `http://groupscout:8080` by default. Phase 13 adds a dependency-free vanilla DOM renderer and static build while still avoiding framework and lockfile changes.
 
-The next planning surface is [Phase 13 Product Renderer Runtime Brainstorm](./phase-13-product-renderer-runtime.md), with implementation-ready future prompts in [Phase 13 Product Renderer Runtime Prompt Pack](./phase-13-product-renderer-runtime-prompts.md). It treats renderer/framework choice, development-server behavior, browser-level tests, and Docker smoke coverage as one decision set so the D0-D5 Docker contract remains stable.
+The Phase 13 implementation record is [Phase 13 Product Renderer Runtime](./phase-13-product-renderer-runtime.md), with detailed prompts and task status in [Phase 13 Product Renderer Runtime Prompt Pack](./phase-13-product-renderer-runtime-prompts.md). It treats renderer choice, development-server behavior, browser-level tests, static asset safety, and backend compatibility smoke coverage as one decision set so the D0-D5 Docker contract remains stable.
+
+Static product build:
+
+```sh
+npm run build
+```
 
 Development Compose override: `compose.dev.yml`. Use it beside the backend Compose file so the UI service joins the backend `groupscout_net` network and can target backend service `groupscout` at `http://groupscout:8080`:
 
@@ -232,17 +241,17 @@ docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.ym
 
 Use `-p groupscout` on backend-plus-UI Compose runs when you also plan to attach the D4 production container to `groupscout_groupscout_net`.
 
-The D3 service is `groupscout-ui`. It builds the existing D1 `test` target, overrides the command with `node web/src/server/devComposeHealthServer.js`, maps `${GROUPSCOUT_UI_HOST_PORT:-3001}` to container port `3000`, and healthchecks `/healthz`. The default host port is `3001` because the backend full stack already uses host port `3000` for Grafana.
+The development service is `groupscout-ui`. It builds the existing D1 `test` target, overrides the command with `node web/src/server/productDevServer.js`, maps `${GROUPSCOUT_UI_HOST_PORT:-3001}` to container port `3000`, serves the generated `web/dist` product assets, and healthchecks `/healthz`. The default host port is `3001` because the backend full stack already uses host port `3000` for Grafana.
 
-For a targeted D3 smoke path, bring up `groupscout-ui` with backend service `groupscout`; the backend Compose dependency chain also starts `postgres`, `ollama`, and `ollama-init`. The UI health harness does not require `alertd`, `n8n`, Grafana, Prometheus, Loki, Promtail, or a lead pipeline run.
+For a targeted development smoke path, bring up `groupscout-ui` with backend service `groupscout`; the backend Compose dependency chain also starts `postgres`, `ollama`, and `ollama-init`. The UI product dev server does not require `alertd`, `n8n`, Grafana, Prometheus, Loki, Promtail, or a lead pipeline run.
 
-D4 production smoke checks should cover `/healthz`, `/`, `/assets/app.js`, and `/api/system` from one host origin.
+D4 production smoke checks should cover `/healthz`, `/`, `/assets/app.js`, one app fallback route such as `/leads/lead_hotel_001`, and `/api/system` from one host origin when a backend or stub is reachable.
 
 ## Current Limitations
 
-- Tests prove JavaScript model contracts, not rendered UI behavior in a browser.
-- Accessibility checks are metadata-level only.
-- Responsive behavior is represented as layout metadata, not measured DOM layout.
+- Tests now include dependency-free rendered HTML smoke coverage, but not a real browser engine.
+- Accessibility checks cover rendered landmarks, labels, and focusable metadata; they do not perform full assistive-technology audits.
+- Responsive behavior is still represented as layout metadata, not measured CSS layout.
 - Design token tests check selected exports; they do not resolve every nested token reference from `DESIGN.md`.
 - The browser credential guard recursively scans browser-facing `web/src/**/*.js` files while excluding `web/src/server`; keep server-only code in that excluded subtree and keep browser modules free of automation credentials.
-- Framework rendering and product browser runtime behavior remain future strict-TDD phases.
+- Framework rendering remains a future strict-TDD phase; the current renderer is a minimal vanilla DOM bridge over the existing screen models.
