@@ -4,12 +4,14 @@ D0 status: documentation-only. This contract records the path for future Docker 
 
 D1 status: UI test container. The first Docker target now runs the current model-level `npm test` suite in a clean Node container without adding browser runtime behavior.
 
+D2 status: browser runtime contract. The future browser runtime shape is now test-covered as contract metadata without adding a runnable server, framework, dev server, proxy, or Compose wiring.
+
 ## Decision
 
 The chosen dockerization path is test image first, browser runtime later.
 
 - D1 will add the first Docker target: a deterministic Node image that runs the current `npm test` suite.
-- D2 will define the browser runtime contract before selecting or wiring a dev server, renderer, proxy, or static-asset serving model.
+- D2 defines the browser runtime contract before selecting or wiring a dev server, renderer, proxy, or static-asset serving model.
 - D3 and later phases will wire development Compose and same-origin serving only after each behavior has failing tests or validation.
 - No Dockerfile, Compose file, reverse proxy, dev server, renderer, or application runtime is added in D0.
 
@@ -25,6 +27,21 @@ docker run --rm groupscout-ui-test
 The target uses Node, copies the no-install test inputs, and defaults to `npm test`. It does not expose ports, declare healthchecks, start a dev server, run a proxy, or connect to backend services.
 
 The D1 `.dockerignore` excludes VCS metadata, `node_modules`, logs, IDE files, generated outputs, and local `.env` files so the test-image context stays small and does not include local secrets.
+
+## D2 Browser Runtime Contract
+
+The D2 runtime contract lives in `web/src/server/browserRuntimeContract.js`.
+
+- Runtime model: `lightweight-node-server`
+- Framework: `not-selected`
+- Reserved start command: `npm run start:ui`
+- UI container port: `3000`
+- Health path: `/healthz`
+- Static asset boundary: generated server-owned assets under `web/dist`, with no generated public config in D2.
+- Browser route to APIs: same-origin `/api/*` with `credentials: "same-origin"` and the `groupscout_session` cookie.
+- API proxy target: `http://groupscout:8080` for future server/proxy-side routing.
+
+No framework, dev server, renderer, Compose service, or runnable UI server is added in D2. `package.json` intentionally does not define `start`, `dev`, or `start:ui` until a later phase implements the runtime.
 
 ## Backend Contract
 
@@ -63,10 +80,15 @@ Browser code must not call `http://groupscout:8080` or `http://alertd:8081` dire
 - Container test run: `docker run --rm groupscout-ui-test`.
 - Full-suite run: `npm test`.
 
+## D2 Evidence
+
+- Red run: `node --test test/dockerization-contract.test.js` failed because `web/src/server/browserRuntimeContract.js` and D2 documentation did not exist.
+- Green run: `node --test test/dockerization-contract.test.js`.
+- Full-suite run: `npm test`.
+
 ## Out Of Scope
 
 - Compose files and Compose overrides.
 - Nginx, reverse-proxy, or static-serving config.
-- Browser framework, renderer, dev server, or production app runtime.
-- Development or production ports and healthchecks.
+- Browser framework, renderer, dev server, or production app runtime implementation.
 - Compose validation commands.

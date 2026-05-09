@@ -7,6 +7,7 @@ This repo is currently a no-build, model-level UI workspace for GroupScout opera
 - `web/src/api/client.js` is the stable browser API facade. Focused adapters live under `web/src/api/*`, and `web/src/api/transport.js` owns the shared same-origin `/api/*` request guard.
 - `web/src/app/shell.js` owns route-shell selection.
 - `web/src/server/uiDeployment.js` owns model-level UI deployment settings, base-path mounting, session-cookie API authorization, and development-only CORS metadata.
+- `web/src/server/browserRuntimeContract.js` owns the D2 browser runtime contract metadata for the future lightweight Node server, reserved port, health path, static asset boundary, `/api/*` routing expectation, and forbidden browser public config keys.
 - `web/src/app/todayCommandCenter.js` owns the mocked Today command center, operational priority summaries, system health metadata, and read-only routing policy.
 - `web/src/app/leadInbox.js` owns the mocked Lead Inbox screen model.
 - `web/src/app/leadDetail.js` owns the mocked Lead Detail Evidence Workspace.
@@ -149,9 +150,9 @@ The H0 baseline is [smell-h0-api-client-characterization.md](./smell-h0-api-clie
 
 ## Dockerization Planning
 
-Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phased prompt pack and [UI Dockerization Contract](./ui-dockerization-contract.md) for the D0/D1 decision record. The current repo has a minimal `Dockerfile` test target and `.dockerignore`; the image runs `npm test` without a package install step, backend service, exposed port, healthcheck, proxy, or browser runtime.
+Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phased prompt pack and [UI Dockerization Contract](./ui-dockerization-contract.md) for the D0-D2 decision record. The current repo has a minimal `Dockerfile` test target and `.dockerignore`; the image runs `npm test` without a package install step, backend service, exposed port, healthcheck, proxy, or browser runtime.
 
-Browser runtime, dev server, framework selection, Compose wiring, static serving, and production same-origin proxy behavior are not implemented yet.
+Runtime model: `lightweight-node-server`. The D2 contract reserves `npm run start:ui`, container port `3000`, health path `/healthz`, server-owned generated assets under `web/dist`, and server/proxy-side `/api/*` routing to `http://groupscout:8080`. These are contract metadata only: `package.json` has no `start:ui` script yet, and dev server, framework selection, Compose wiring, static serving, and production same-origin proxy behavior are not implemented yet.
 
 ## Current Limitations
 
@@ -160,4 +161,4 @@ Browser runtime, dev server, framework selection, Compose wiring, static serving
 - Responsive behavior is represented as layout metadata, not measured DOM layout.
 - Design token tests check selected exports; they do not resolve every nested token reference from `DESIGN.md`.
 - The browser credential guard recursively scans browser-facing `web/src/**/*.js` files while excluding `web/src/server`; keep server-only code in that excluded subtree and keep browser modules free of automation credentials.
-- UI Compose integration, static asset serving, and browser runtime behavior are not implemented yet.
+- UI Compose integration, static asset serving, and browser runtime behavior are contract-only or not implemented yet.

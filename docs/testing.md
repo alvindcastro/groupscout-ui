@@ -26,6 +26,8 @@ Phase 12 D0 run on 2026-05-09: `node --test test/dockerization-contract.test.js`
 
 Phase 12 D1 run on 2026-05-09: `node test/dockerization-contract.test.js` covered the UI test-container Dockerfile, `.dockerignore`, no-runtime scope, and D1 docs; `docker build --target test -t groupscout-ui-test .`, `docker run --rm groupscout-ui-test`, and `npm test` passed.
 
+Phase 12 D2 run on 2026-05-09: `node --test test/dockerization-contract.test.js` covered the browser runtime contract metadata, reserved start command, port `3000`, `/healthz`, static asset boundary, same-origin `/api/*` routing to `http://groupscout:8080`, forbidden browser public config keys, and D2 docs; `npm test` passed.
+
 Optional design-doc lint. This is not an npm script and may use the network through `npx`:
 
 ```sh
@@ -39,7 +41,7 @@ docker build --target test -t groupscout-ui-test .
 docker run --rm groupscout-ui-test
 ```
 
-Compose, proxy/static serving, and browser runtime behavior remain future strict-TDD phases. See [Phase 12 UI Dockerization Prompt Pack](./phase-12-ui-dockerization.md) and [UI Dockerization Contract](./ui-dockerization-contract.md).
+The D2 browser runtime contract reserves a future lightweight Node server with `npm run start:ui`, container port `3000`, and `/healthz`, but no runnable server or package script exists yet. Compose, proxy/static serving, and browser runtime implementation remain future strict-TDD phases. See [Phase 12 UI Dockerization Prompt Pack](./phase-12-ui-dockerization.md) and [UI Dockerization Contract](./ui-dockerization-contract.md).
 
 ## Focused UI Tests
 
@@ -80,6 +82,7 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 - Same-origin `/api/*` browser request boundary, public API-client facade shape, split adapter module ownership, request defaults, and invalid-route pre-fetch rejection.
 - Session-cookie enforcement metadata for UI `/api/*` access.
 - `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, and development-only `CORS_ALLOWED_ORIGINS` deployment behavior.
+- D2 browser runtime contract metadata for the reserved start command, port, health path, static asset boundary, `/api/*` server/proxy target, and forbidden browser public config keys.
 - Recursive browser-source checks that `API_TOKEN` is not referenced in browser-facing `web/src/**/*.js` modules outside `web/src/server`.
 - Lead inbox query serialization, blank-filter elision, sort overrides, and response adaptation.
 - Lead inbox mocked table, filters, states, responsive metadata, and accessibility metadata.
@@ -117,6 +120,7 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 - Live alertd contract compatibility, Slack delivery behavior, and alert acknowledgement/resolution workflows.
 - Live `/api/system` compatibility or real system-health aggregation accuracy.
 - Full `DESIGN.md` token-reference resolution.
+- The D2 `npm run start:ui` command, port `3000`, and `/healthz` are contract metadata only; there is no running browser server to smoke test yet.
 
 Before treating a UI feature as production-ready, add browser or component-level coverage once a renderer/framework exists.
 

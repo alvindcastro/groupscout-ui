@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 12 D2 - Browser Runtime Contract
+
+- What: Added the D2 browser runtime contract for a future lightweight Node UI server, including reserved `npm run start:ui`, container port `3000`, `/healthz`, static asset boundary metadata, same-origin `/api/*` routing expectations, and forbidden browser public config checks.
+- Where: Added `web/src/server/browserRuntimeContract.js`; updated `test/dockerization-contract.test.js`, `docs/ui-dockerization-contract.md`, `docs/phase-12-ui-dockerization.md`, `UI_TDD_PHASE_PROMPTS.md`, `README.md`, `docs/developer-guide.md`, `docs/testing.md`, and `docs/troubleshooting.md`.
+- When: Completed on 2026-05-09 as Phase 12 D2 after the D1 UI test container.
+- Why: Future Compose and runtime work needs a tested browser runtime contract before adding a dev server, renderer, framework, proxy, or runnable UI server.
+- How: Followed strict TDD with a red `node --test test/dockerization-contract.test.js` run, added server-side contract metadata and public-config guard helpers, documented the runtime shape and evidence, then reran the focused Dockerization contract test and full `npm test`.
+
 ### Phase 12 D1 - UI Test Container
 
 - What: Added the first Docker implementation target for the UI repo: a deterministic Node test image that runs the current `npm test` suite, plus guardrail coverage for Dockerfile, `.dockerignore`, no-runtime scope, and credential boundaries.

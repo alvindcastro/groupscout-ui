@@ -81,6 +81,18 @@ Common causes:
 - `CORS_ALLOWED_ORIGINS` is configured for a production environment. CORS allow lists are development-only in the current deployment model.
 - Browser `/api/*` requests lack the `groupscout_session` cookie or present an invalid session value.
 
+## Browser Runtime Contract Fails
+
+Check `web/src/server/browserRuntimeContract.js` behavior through `test/dockerization-contract.test.js`.
+
+Common causes:
+
+- The D2 contract was changed away from the lightweight Node server model before a later phase added runtime implementation.
+- The reserved UI port, health path, or same-origin `/api/*` routing target no longer matches `docs/ui-dockerization-contract.md`.
+- Browser public config includes automation credentials, provider keys, database URLs, or `UI_SESSION_SECRET`.
+
+Note: D2 reserves `npm run start:ui`, port `3000`, and `/healthz` as contract metadata only. There is not a runnable UI server for those values yet.
+
 ## Backend Health Check Fails
 
 Run backend commands from:

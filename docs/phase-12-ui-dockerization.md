@@ -180,17 +180,30 @@ Do not build product UI screens beyond the existing phase scope. Do not choose a
 
 ### Tasks
 
-- [ ] Decide whether the UI runtime is static assets, a lightweight Node server, or backend-served assets.
-- [ ] Define the UI container port.
-- [ ] Define the health check path for the UI service.
-- [ ] Define how `/api/*` reaches `groupscout:8080` without exposing `API_TOKEN`.
-- [ ] Add tests for runtime config and forbidden browser env leaks.
+- [x] Decide whether the UI runtime is static assets, a lightweight Node server, or backend-served assets.
+- [x] Define the UI container port.
+- [x] Define the health check path for the UI service.
+- [x] Define how `/api/*` reaches `groupscout:8080` without exposing `API_TOKEN`.
+- [x] Add tests for runtime config and forbidden browser env leaks.
 
 ### Acceptance Criteria
 
-- [ ] A future UI server has a tested contract before Docker Compose wiring.
-- [ ] `/api/*` remains same-origin from the browser perspective.
-- [ ] The selected runtime does not weaken Phase 9 auth/session boundaries.
+- [x] A future UI server has a tested contract before Docker Compose wiring.
+- [x] `/api/*` remains same-origin from the browser perspective.
+- [x] The selected runtime does not weaken Phase 9 auth/session boundaries.
+
+### Implementation Notes
+
+#### D2 Evidence
+
+- The D2 runtime contract lives in `web/src/server/browserRuntimeContract.js`.
+- Selected runtime contract: lightweight Node server, no framework selected, reserved `npm run start:ui`, container port `3000`, and health path `/healthz`.
+- Static assets are contractually server-owned generated assets under `web/dist`; generated public config remains disabled in D2.
+- Future server/proxy-side `/api/*` traffic targets `http://groupscout:8080`, while browser code keeps same-origin `/api/*` and `credentials: "same-origin"` with the `groupscout_session` cookie.
+- Red run: `node --test test/dockerization-contract.test.js` failed because the runtime contract module and D2 documentation did not exist.
+- Green run: `node --test test/dockerization-contract.test.js`.
+- Full-suite run: `npm test`.
+- D2 did not add a dev server, production web server, reverse proxy, renderer, framework, Compose wiring, package start script, exposed Docker port, or Docker healthcheck.
 
 ## Phase D3 - Development Compose Integration
 
