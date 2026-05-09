@@ -34,6 +34,7 @@ The client adapters intentionally fail loudly when backend response shapes drift
 Check the required response sections named in the error. Common required sections include:
 
 - `leads` for `GET /api/leads`.
+- `lead`, `source_url`, `source_name`, `raw_audit_path`, `collected_at`, `ai`, `reviewer_corrections`, and `activity` for `GET /api/leads/{id}`.
 - `date_range`, `denominator`, `summaries`, `source_yield`, `verification_quality`, and `demand` for `GET /api/stats`.
 - `alerts`, `evidence`, `room_inventory`, and `action_history` for `GET /api/alerts`.
 - `generated_at`, `health`, `pipeline`, and `counts` for `GET /api/system`.

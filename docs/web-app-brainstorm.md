@@ -19,10 +19,10 @@
 
 ## Current Repo Reality
 
-- [ ] The current `feat/master` working tree is not a runnable UI app checkout: `package.json`, `web/`, `test/`, Docker files, README, and previous docs are deleted locally.
-- [ ] `origin/main` contains the latest UI implementation: dependency-free vanilla DOM renderer, `node:test` suite, static build, product dev server, production static/proxy server, and Phase 13 backend compatibility smoke classification.
-- [ ] Before any code implementation, choose whether to restore/rebase onto the Phase 13 UI baseline or intentionally continue from a docs-only/minimal reset.
-- [ ] Existing user changes must not be reverted without explicit direction.
+- [x] The previous `feat/master` checkout had local deletions of `package.json`, `web/`, `test/`, Docker files, README, and previous docs.
+- [x] The tracked UI baseline was restored on 2026-05-09 after a red Phase 0 reconciliation smoke proved the baseline was absent.
+- [x] The restored implementation includes a dependency-free vanilla DOM renderer, `node:test` suite, static build, product dev server, production static/proxy server, backend compatibility smoke classification, API clients, screen models, Docker contracts, and deterministic Phase 15 browser UX hardening metadata.
+- [x] Existing unrelated `.idea/*` user changes were preserved.
 
 ## Product Idea
 
@@ -86,4 +86,3 @@ The first useful app is not a marketing site and not a CRM replacement. It is a 
 - [ ] What raw audit payload fields must be redacted before operator display?
 - [ ] Is GroupScout or a future CRM the source of truth for outreach outcomes?
 - [ ] Which analytics denominators are canonical for hit rate, conversion, source yield, and aging?
-

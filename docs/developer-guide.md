@@ -12,6 +12,7 @@ This repo is currently a plain JavaScript UI workspace for GroupScout operator s
 - `web/src/server/productDevServer.js` owns the Phase 13 product dev server for the `groupscout-ui` Compose service.
 - `web/src/server/productionServer.js` owns the D4 production same-origin server for `web/dist` static assets, `/healthz`, whitelist-only public config, and server-side `/api/*` proxying.
 - `web/src/renderer/domRenderer.js` owns the first dependency-free rendered route mapping.
+- `web/src/renderer/browserUxHardening.js` owns the Phase 15 deterministic browser UX hardening report until a real browser harness is added.
 - `web/src/renderer/buildStaticApp.js` owns the static product build into `web/dist`.
 - `web/src/app/todayCommandCenter.js` owns the mocked Today command center, operational priority summaries, system health metadata, and read-only routing policy.
 - `web/src/app/leadInbox.js` owns the mocked Lead Inbox screen model.
@@ -115,6 +116,8 @@ node --test test/system-client.test.js
 node --test test/today-command-center.test.js
 node --test test/session-deployment.test.js
 node --test test/dockerization-contract.test.js
+node --test test/baseline-reconciliation.test.js
+node --test test/browser-ux-hardening.test.js
 ```
 
 API-client smell-phase baseline:
@@ -133,6 +136,7 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 - Use `UI_ENABLED` to disable the UI, `UI_BASE_PATH` for subpath mounting, and `UI_SESSION_SECRET` for session readiness.
 - Keep `CORS_ALLOWED_ORIGINS` development-only; same-origin deployment is the default production posture.
 - Add API access through `createApiClient(...)`; do not fetch backend URLs directly from app modules.
+- Use `createApiClient().getLead(...)` for browser-facing `GET /api/leads/{id}` detail reads; keep source evidence, AI enrichment, reviewer corrections, and activity distinct.
 - Use `GET /api/leads/{id}/raw` for browser-facing raw audit access; do not link older raw audit endpoints from UI screens.
 - Use `GET/POST /api/pipeline/runs` for pipeline history and manual run creation; do not call worker, scheduler, or one-shot automation endpoints directly from app modules.
 - Use `GET /api/stats` for browser-facing analytics; keep denominators, date ranges, and outcome definitions visible when adding metrics.
@@ -181,6 +185,7 @@ For backend startup and API checks, see [how-to-run-backend.md](./how-to-run-bac
 Current UI client contracts:
 
 - `GET /api/leads`
+- `GET /api/leads/{id}`
 - `PATCH /api/leads/{id}`
 - `GET /api/leads/{id}/raw`
 - `GET /api/leads/{id}/outreach`
@@ -196,7 +201,7 @@ Current UI client contracts:
 - `web/src/api/client.js`: public facade for `createApiClient(...)` and exported constants.
 - `web/src/api/transport.js`: centralized same-origin `/api/*` request validation, JSON defaults, session credentials, non-2xx errors, and non-JSON success behavior.
 - `web/src/api/shared.js`: small helpers shared by adapters.
-- `web/src/api/leads.js`: lead inbox reads and lead PATCH writes.
+- `web/src/api/leads.js`: lead inbox reads, lead detail reads, and lead PATCH writes.
 - `web/src/api/rawAudit.js`: raw audit reads.
 - `web/src/api/outreach.js`: outreach history reads and manual outreach attempt logging.
 - `web/src/api/pipeline.js`: pipeline run history and manual run creation.

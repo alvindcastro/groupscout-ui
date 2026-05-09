@@ -164,3 +164,103 @@ test("lead inbox response adapter fails at the API boundary when required fields
 
   await assert.rejects(() => client.listLeads(), /score/);
 });
+
+test("lead detail client serializes GET /api/leads/{id} and adapts evidence workspace fields", async () => {
+  const calls = [];
+  const client = createApiClient({
+    fetchImpl: async (url, init) => {
+      calls.push({ url, init });
+      return Response.json({
+        lead: {
+          ...apiLead,
+          source_url: "https://permits.example/lead_123",
+          source_name: "Austin permit feed",
+          raw_audit_path: "/api/leads/lead_123/raw",
+          collected_at: "2026-05-01T15:00:00Z",
+          ai: {
+            rationale: "Permit text requests a multi-week crew block.",
+            uncertainty: "medium",
+            crew_size: 8,
+            duration_days: 21,
+            project_type: "renovation",
+            evidence_refs: ["permit-line-7"]
+          },
+          reviewer_corrections: [
+            {
+              field: "duration_days",
+              corrected_value: 18,
+              original_ai_value: 21,
+              original_source_value: "three weeks",
+              actor: "Dana",
+              reason: "Follow-up call clarified end date"
+            }
+          ],
+          activity: [
+            { type: "source_collected", at: "2026-05-01T15:00:00Z", label: "Source collected" }
+          ]
+        }
+      });
+    }
+  });
+
+  const detail = await client.getLead("lead/123");
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].init.method, "GET");
+  assert.equal(calls[0].url, "/api/leads/lead%2F123");
+  assert.deepEqual(detail, {
+    lead: {
+      id: "lead_123",
+      score: 94,
+      title: "Downtown hotel tower renovation",
+      segment: "commercial",
+      projectType: "renovation",
+      location: "Austin, TX",
+      propertyFit: "hotel",
+      source: "permit_feed",
+      estimatedCrewSize: 8,
+      estimatedDurationDays: 21,
+      outreachTiming: "today",
+      status: "new",
+      owner: null,
+      createdAt: "2026-05-01T15:20:00Z",
+      evidenceState: "source_linked",
+      verificationState: "needs_review",
+      sourceEvidence: {
+        url: "https://permits.example/lead_123",
+        name: "Austin permit feed",
+        rawAuditPath: "/api/leads/lead_123/raw",
+        collectedAt: "2026-05-01T15:00:00Z"
+      },
+      aiEnrichment: {
+        rationale: "Permit text requests a multi-week crew block.",
+        uncertainty: "medium",
+        crewSize: 8,
+        durationDays: 21,
+        projectType: "renovation",
+        evidenceRefs: ["permit-line-7"]
+      },
+      reviewerCorrections: [
+        {
+          field: "duration_days",
+          correctedValue: 18,
+          originalAiValue: 21,
+          originalSourceValue: "three weeks",
+          actor: "Dana",
+          reason: "Follow-up call clarified end date"
+        }
+      ],
+      activity: [
+        { type: "source_collected", at: "2026-05-01T15:00:00Z", label: "Source collected" }
+      ]
+    }
+  });
+});
+
+test("lead detail client rejects missing evidence workspace fields at the boundary", async () => {
+  const client = createApiClient({
+    fetchImpl: async () => Response.json({ lead: { ...apiLead, source_url: undefined } })
+  });
+
+  await assert.rejects(() => client.getLead("lead_123"), /sourceEvidence.url/);
+});

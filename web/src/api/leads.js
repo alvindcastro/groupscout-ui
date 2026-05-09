@@ -40,6 +40,14 @@ export function createLeadApiMethods() {
       return adaptLeadInboxResponse(response);
     },
 
+    async getLead(leadId) {
+      const response = await this.request(buildLeadDetailPath(leadId), {
+        method: "GET"
+      });
+
+      return adaptLeadDetailResponse(response);
+    },
+
     async patchLead(leadId, patch = {}) {
       return this.request(buildLeadPatchPath(leadId), {
         method: "PATCH",
@@ -74,6 +82,11 @@ function buildLeadInboxPath(filters) {
 }
 
 function buildLeadPatchPath(leadId) {
+  assertLeadId(leadId);
+  return `${API_BASE_PATH}/leads/${encodeURIComponent(leadId)}`;
+}
+
+function buildLeadDetailPath(leadId) {
   assertLeadId(leadId);
   return `${API_BASE_PATH}/leads/${encodeURIComponent(leadId)}`;
 }
@@ -178,4 +191,76 @@ function adaptLeadInboxItem(lead) {
   }
 
   return item;
+}
+
+function adaptLeadDetailResponse(response) {
+  if (!response || !response.lead || typeof response.lead !== "object") {
+    throw new Error("GET /api/leads/{id} response must include a lead object");
+  }
+
+  return {
+    lead: adaptLeadDetail(response.lead)
+  };
+}
+
+function adaptLeadDetail(lead) {
+  const detail = {
+    ...adaptLeadInboxItem(lead),
+    sourceEvidence: {
+      url: lead.source_url,
+      name: lead.source_name,
+      rawAuditPath: lead.raw_audit_path,
+      collectedAt: lead.collected_at
+    },
+    aiEnrichment: {
+      rationale: lead.ai?.rationale,
+      uncertainty: lead.ai?.uncertainty,
+      crewSize: lead.ai?.crew_size,
+      durationDays: lead.ai?.duration_days,
+      projectType: lead.ai?.project_type,
+      evidenceRefs: lead.ai?.evidence_refs
+    },
+    reviewerCorrections: Array.isArray(lead.reviewer_corrections)
+      ? lead.reviewer_corrections.map(adaptReviewerCorrection)
+      : [],
+    activity: Array.isArray(lead.activity) ? lead.activity : []
+  };
+
+  assertDefinedDetailFields(detail, [
+    ["sourceEvidence.url", detail.sourceEvidence.url],
+    ["sourceEvidence.name", detail.sourceEvidence.name],
+    ["sourceEvidence.rawAuditPath", detail.sourceEvidence.rawAuditPath],
+    ["sourceEvidence.collectedAt", detail.sourceEvidence.collectedAt],
+    ["aiEnrichment.rationale", detail.aiEnrichment.rationale],
+    ["aiEnrichment.uncertainty", detail.aiEnrichment.uncertainty],
+    ["aiEnrichment.crewSize", detail.aiEnrichment.crewSize],
+    ["aiEnrichment.durationDays", detail.aiEnrichment.durationDays],
+    ["aiEnrichment.projectType", detail.aiEnrichment.projectType],
+    ["aiEnrichment.evidenceRefs", detail.aiEnrichment.evidenceRefs]
+  ]);
+
+  if (!Array.isArray(detail.aiEnrichment.evidenceRefs)) {
+    throw new Error("GET /api/leads/{id} response field aiEnrichment.evidenceRefs must be an array");
+  }
+
+  return detail;
+}
+
+function adaptReviewerCorrection(correction) {
+  return {
+    field: correction.field,
+    correctedValue: correction.corrected_value,
+    originalAiValue: correction.original_ai_value,
+    originalSourceValue: correction.original_source_value,
+    actor: correction.actor,
+    reason: correction.reason
+  };
+}
+
+function assertDefinedDetailFields(detail, fields) {
+  for (const [name, value] of fields) {
+    if (value === undefined) {
+      throw new Error(`GET /api/leads/{id} response is missing required field: ${name}`);
+    }
+  }
 }

@@ -198,7 +198,7 @@ test("13-F backend compatibility smoke classifies proxy, auth, route, and schema
 
   assert.deepEqual(
     BACKEND_COMPATIBILITY_SMOKE_CONTRACT.routes.map((route) => route.path),
-    ["/api/system", "/api/leads", "/api/pipeline/runs", "/api/stats", "/api/alerts"]
+    ["/api/system", "/api/leads", "/api/pipeline/runs", "/api/stats", "/api/alerts", "/api/leads/{id}/raw"]
   );
   assert.equal(BACKEND_COMPATIBILITY_SMOKE_CONTRACT.phase, "13-F");
   assert.equal(BACKEND_COMPATIBILITY_SMOKE_CONTRACT.owner, "backend-api-compatibility");

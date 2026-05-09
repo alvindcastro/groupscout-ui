@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phases 0-15 - GroupScout Web App Baseline And Browser Hardening
+
+- What: Reconciled the checkout to the tracked UI baseline, completed the canonical Phase 0-15 prompt order, added backend compatibility coverage for `/api/leads/{id}/raw`, added the read-only lead detail client contract, and added deterministic Phase 15 browser UX hardening metadata for focus labels, accessible names, responsive variants, stable states, text containment, and same-origin API calls.
+- Where: Added `test/baseline-reconciliation.test.js`, `test/browser-ux-hardening.test.js`, `web/src/renderer/browserUxHardening.js`, `docs/ui-tdd-phase-0-15-implementation.md`, and `docs/phase-15-browser-ux-hardening.md`; updated `web/src/api/leads.js`, `web/src/server/backendCompatibilitySmoke.js`, `test/api-boundary.test.js`, `test/lead-inbox-client.test.js`, `test/phase-13-renderer-runtime.test.js`, `README.md`, `UI_TDD_PHASE_PROMPTS.md`, `docs/testing.md`, `docs/developer-guide.md`, `docs/web-app-phase-prompts.md`, and `docs/web-app-brainstorm.md`.
+- When: Completed on 2026-05-09 after restoring the Phase 13 UI baseline and checking the canonical Phase 0-15 prompt pack.
+- Why: The operator workbench needed a runnable baseline plus evidence that every requested UI TDD phase is represented by tests, implementation, docs, same-origin API boundaries, and server-side secret handling.
+- How: Followed strict TDD with red runs for the absent baseline, missing raw-audit smoke route, missing `getLead` client, and missing Phase 15 hardening module; implemented the smallest contract changes; then reran focused tests, `npm run build`, `npm test`, Docker test-image build/run, production image build, and production-container smoke checks for `/healthz`, `/`, and `/assets/app.js`.
+
 ### Phase 13 - Product Renderer Runtime
 
 - What: Implemented Phase 13-A through 13-F with a tested dependency-free vanilla DOM renderer/runtime contract, rendered route smoke harness, static product build, app-route fallback, product dev server Compose command, and backend compatibility smoke classification.

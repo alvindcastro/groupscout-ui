@@ -1,6 +1,6 @@
 # GroupScout UI
 
-Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls. Phase 8 adds basic explainable analytics and demand signals. Phase 9 adds a minimal session/auth and same-origin deployment wrapper. Phase 10 adds a later read-only Alertd console while keeping Slack as the interrupt channel. Phase 11 adds the Today command center and read-only system health summary. Phase 12 adds Docker test/runtime boundaries. Phase 13 adds a dependency-free vanilla DOM product renderer/runtime, static build, product dev server, and live backend compatibility smoke classification while preserving same-origin `/api/*`.
+Phase 0-15 now follows the canonical `UI_TDD_PHASE_PROMPTS.md` order: baseline reconciliation, product IA/UX guardrails, backend compatibility smoke, API client contracts, Today, Leads, Lead Detail, status/corrections, verification, outreach, pipeline, analytics, read-only alerts, session/runtime, Docker E2E, and browser UX hardening. The restored baseline includes the dependency-free vanilla DOM product renderer/runtime, static build, product dev server, production static/proxy server, and same-origin `/api/*` contracts.
 
 ## Current Scope
 
@@ -10,11 +10,13 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - UI deployment/session rules live in `web/src/server/uiDeployment.js` and cover `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, development-only `CORS_ALLOWED_ORIGINS`, and session-cookie `/api/*` access.
 - Browser runtime contract metadata lives in `web/src/server/browserRuntimeContract.js`; D4 now implements the lightweight production Node server on port `3000` with `/healthz` and same-origin `/api/*` routing to server-side `http://groupscout:8080` without exposing automation credentials.
 - Phase 13 renderer/runtime metadata lives in `web/src/server/productRendererRuntime.js`; the first rendered-route smoke coverage lives in `test/phase-13-renderer-runtime.test.js`.
+- Phase 15 browser UX hardening metadata lives in `web/src/renderer/browserUxHardening.js`; deterministic focus, accessible-name, responsive, state-region, text-containment, and same-origin checks live in `test/browser-ux-hardening.test.js`.
 - Production same-origin serving lives in `web/src/server/productionServer.js`; `npm run start:ui` serves `web/dist`, falls back to `index.html` for app routes, and forwards `/api/*` server-side to `UI_API_PROXY_TARGET` or `http://groupscout:8080`.
 - Static product assets are generated with `npm run build` from `web/src/renderer/buildStaticApp.js`; the first renderer mapping lives in `web/src/renderer/domRenderer.js`.
 - Product dev serving lives in `web/src/server/productDevServer.js`; `compose.dev.yml` runs that server on container port `3000` and host `${GROUPSCOUT_UI_HOST_PORT:-3001}`.
 - Backend compatibility smoke classification lives in `web/src/server/backendCompatibilitySmoke.js` and distinguishes proxy failure, backend route drift, auth, schema drift, compatible responses, and backend errors.
 - Lead inbox reads use `createApiClient().listLeads(...)` for `GET /api/leads` query serialization, pagination cursors, default priority ordering, and response field adaptation.
+- Lead detail reads use `createApiClient().getLead(...)` for `GET /api/leads/{id}` evidence workspace fields, source evidence, AI enrichment, reviewer corrections, and activity rows.
 - Lead status writes use `createApiClient().patchLead(...)` for `PATCH /api/leads/{id}` payloads covering status, owner, notes, snooze date, correction reason, and safe field corrections.
 - Raw audit reads use `createApiClient().getLeadRawAudit(...)` for the UI-safe `GET /api/leads/{id}/raw` alias.
 - Outreach history reads and manual attempt logs use `createApiClient().listLeadOutreach(...)` and `createApiClient().logLeadOutreach(...)` for `GET/POST /api/leads/{id}/outreach`.
@@ -43,6 +45,7 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Phase 11 tests cover the Today command center, priority lead and aging-work summaries, active alerts, failed jobs, system health, read-only action policy, `/` route mounting, responsive metadata, token usage, and `GET /api/system`.
 - Smell Phase H1 split the growing browser API client module while preserving `createApiClient(...)` and the centralized same-origin `/api/*` guard.
 - Phase 12 dockerization planning lives in `docs/phase-12-ui-dockerization.md`; the D0-D5 contract lives in `docs/ui-dockerization-contract.md`; the test Docker target runs `npm test`, `compose.dev.yml` adds a development `groupscout-ui` service, the production Docker target serves static assets plus same-origin `/api/*` on container port `3000`, and D5 documents repeatable Docker operations/CI hooks. Phase 13 keeps those boundaries and adds the product renderer/runtime without external dependencies.
+- Canonical Phase 0-15 implementation evidence lives in `docs/ui-tdd-phase-0-15-implementation.md`.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
@@ -132,6 +135,8 @@ The default development UI host port is `3001` because the backend stack publish
 - [Docker Runtime Matrix](./docs/docker-runtime-matrix.md)
 - [Phase 13 Product Renderer Runtime](./docs/phase-13-product-renderer-runtime.md)
 - [Phase 13 Product Renderer Runtime Prompt Pack](./docs/phase-13-product-renderer-runtime-prompts.md)
+- [UI TDD Phases 0-15 Implementation Status](./docs/ui-tdd-phase-0-15-implementation.md)
+- [Phase 15 Browser UX Hardening](./docs/phase-15-browser-ux-hardening.md)
 
 ## Phase 0 Guardrails
 

@@ -23,6 +23,7 @@ test("API client module keeps the public entry point and constants stable for ad
     Object.keys(client).sort(),
     [
       "getLeadRawAudit",
+      "getLead",
       "getStats",
       "getSystem",
       "listAlerts",

@@ -44,6 +44,8 @@ Read-only. Inspect backend Docker files, UI Docker files if present, Compose por
 
 ## Phase Prompts
 
+Implementation note, 2026-05-09: the canonical Phase 0-15 sequence in `../UI_TDD_PHASE_PROMPTS.md` has been implemented and documented in [UI TDD Phases 0-15 Implementation Status](./ui-tdd-phase-0-15-implementation.md). This older prompt pack remains as supporting planning context.
+
 ### 0. Baseline Reconciliation
 
 - [ ] Prompt: reconcile current checkout with Phase 13 UI baseline without product changes.
@@ -155,4 +157,3 @@ Read-only. Inspect backend Docker files, UI Docker files if present, Compose por
 - [ ] Red tests: focus, labels, keyboard flows, responsive screenshots, text overflow, no overlapping UI, same-origin API calls.
 - [ ] Green target: browser-tested primary routes and UX fixes.
 - [ ] Verification: browser/component tests and screenshot checks.
-

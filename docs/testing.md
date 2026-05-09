@@ -36,6 +36,8 @@ Phase 12 D5 run on 2026-05-09: `node test/dockerization-contract.test.js` first 
 
 Phase 13 run on 2026-05-09: `node test/phase-13-renderer-runtime.test.js` first failed because Phase 13 contract/renderer/dev-server/backend-smoke modules were missing, `npm run build` was absent, `compose.dev.yml` still used the D3 health harness, and D4 did not have app-route fallback. The green run covered the vanilla DOM renderer contract, dependency-free rendered route harness, Today/Leads/Lead Detail route rendering, static build output, public asset secret scan, D4 route fallback, product dev server Compose command, and backend compatibility smoke classification; `node --test test/phase-13-renderer-runtime.test.js`, `node --test test/dockerization-contract.test.js`, `npm run build`, and `npm test` passed.
 
+Canonical Phase 0-15 run on 2026-05-09: `node test/baseline-reconciliation.test.js` first failed because the UI baseline files were locally deleted, then passed after restoring the tracked Phase 13 baseline. Focused red/green additions covered `/api/leads/{id}/raw` in backend compatibility smoke, `createApiClient().getLead(...)` for `GET /api/leads/{id}`, and Phase 15 deterministic browser UX hardening. `node --test test/baseline-reconciliation.test.js test/api-boundary.test.js test/lead-inbox-client.test.js test/phase-13-renderer-runtime.test.js test/browser-ux-hardening.test.js`, `npm run build`, `npm test`, Docker test-image build/run, production image build, and production-container smoke checks for `/healthz`, `/`, and `/assets/app.js` passed.
+
 Optional design-doc lint. This is not an npm script and may use the network through `npx`:
 
 ```sh
@@ -142,6 +144,8 @@ node --test test/system-client.test.js
 node --test test/today-command-center.test.js
 node --test test/dockerization-contract.test.js
 node --test test/phase-13-renderer-runtime.test.js
+node --test test/baseline-reconciliation.test.js
+node --test test/browser-ux-hardening.test.js
 ```
 
 API-client focused run for smell phases:
@@ -159,8 +163,10 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 - D3/Phase 13 development Compose metadata for the UI service, backend network attachment, backend service dependency, port mapping, healthcheck command, no-secret Compose boundary, and product dev-server health payload.
 - D4 production same-origin server metadata, static asset presence, app-route fallback, server-side `/api/*` proxy request construction, public-config secret rejection, and production Docker target.
 - Phase 13 renderer/runtime contract, rendered route smoke for Today/Leads/Lead Detail, static product build output, public asset secret scans, product dev server metadata, and backend compatibility smoke classification.
+- Phase 15 deterministic browser UX hardening for primary navigation, main landmarks, focus labels, accessible-name metadata, responsive variants, stable loading/error/empty states, text-containment policy, and same-origin API metadata.
 - Recursive browser-source checks that `API_TOKEN` is not referenced in browser-facing `web/src/**/*.js` modules outside `web/src/server`.
 - Lead inbox query serialization, blank-filter elision, sort overrides, and response adaptation.
+- Lead detail client access through same-origin `GET /api/leads/{id}`, encoded lead IDs, evidence workspace fields, source evidence, AI enrichment, reviewer corrections, and activity rows.
 - Lead inbox mocked table, filters, states, responsive metadata, and accessibility metadata.
 - Lead detail sections, source evidence, raw audit link intent, AI enrichment metadata, corrections, timeline, and states.
 - Lead status transition rules, invalid transition blocking, validation, and PATCH mutation intent.

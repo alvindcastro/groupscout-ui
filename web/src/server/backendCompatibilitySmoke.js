@@ -6,7 +6,8 @@ export const BACKEND_COMPATIBILITY_SMOKE_CONTRACT = Object.freeze({
     Object.freeze({ path: "/api/leads", method: "GET", requiredFields: Object.freeze(["items"]) }),
     Object.freeze({ path: "/api/pipeline/runs", method: "GET", requiredFields: Object.freeze(["items"]) }),
     Object.freeze({ path: "/api/stats", method: "GET", requiredFields: Object.freeze(["summary"]) }),
-    Object.freeze({ path: "/api/alerts", method: "GET", requiredFields: Object.freeze(["items"]) })
+    Object.freeze({ path: "/api/alerts", method: "GET", requiredFields: Object.freeze(["items"]) }),
+    Object.freeze({ path: "/api/leads/{id}/raw", method: "GET", requiredFields: Object.freeze(["raw"]) })
   ])
 });
 

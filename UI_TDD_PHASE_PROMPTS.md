@@ -24,22 +24,26 @@
 
 ## Suggested Phase Order
 
-- [ ] Phase 0 - Baseline Reconciliation And Harness
-- [ ] Phase 1 - Product Contract, IA, And UX Guardrails
-- [ ] Phase 2 - Backend Compatibility Smoke
-- [ ] Phase 3 - API Client Contracts
-- [ ] Phase 4 - Today Command Center
-- [ ] Phase 5 - Lead Inbox
-- [ ] Phase 6 - Lead Detail Evidence Workspace
-- [ ] Phase 7 - Lead Status, Ownership, And Corrections
-- [ ] Phase 8 - Verification Queue And Raw Audit Review
-- [ ] Phase 9 - Outreach Workspace And Activity Log
-- [ ] Phase 10 - Pipeline Monitor And Run Controls
-- [ ] Phase 11 - Analytics And Demand Signals
-- [ ] Phase 12 - Alertd Read-Only Console
-- [ ] Phase 13 - Session/Auth And Same-Origin Runtime
-- [ ] Phase 14 - Docker Integration And E2E Smoke
-- [ ] Phase 15 - Browser UX Hardening
+- [x] Phase 0 - Baseline Reconciliation And Harness
+- [x] Phase 1 - Product Contract, IA, And UX Guardrails
+- [x] Phase 2 - Backend Compatibility Smoke
+- [x] Phase 3 - API Client Contracts
+- [x] Phase 4 - Today Command Center
+- [x] Phase 5 - Lead Inbox
+- [x] Phase 6 - Lead Detail Evidence Workspace
+- [x] Phase 7 - Lead Status, Ownership, And Corrections
+- [x] Phase 8 - Verification Queue And Raw Audit Review
+- [x] Phase 9 - Outreach Workspace And Activity Log
+- [x] Phase 10 - Pipeline Monitor And Run Controls
+- [x] Phase 11 - Analytics And Demand Signals
+- [x] Phase 12 - Alertd Read-Only Console
+- [x] Phase 13 - Session/Auth And Same-Origin Runtime
+- [x] Phase 14 - Docker Integration And E2E Smoke
+- [x] Phase 15 - Browser UX Hardening
+
+## Implementation Status
+
+Completed on 2026-05-09 in the current canonical phase order. See [UI TDD Phases 0-15 Implementation Status](./docs/ui-tdd-phase-0-15-implementation.md) for the phase map, red/green evidence, residual risk, and the restored-baseline decision.
 
 ## Phase 0 - Baseline Reconciliation And Harness
 
@@ -472,4 +476,3 @@ TDD requirements:
 - [ ] Test loading and error states do not shift layout incoherently.
 - [ ] Test screenshots for primary routes once browser harness exists.
 - [ ] Implement UX hardening fixes.
-
