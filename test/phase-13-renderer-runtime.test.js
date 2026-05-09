@@ -195,10 +195,10 @@ test("13-D static product build output is present, route-safe, and secret-free",
 
   assert.equal(packageJson.scripts.build, "node web/src/renderer/buildStaticApp.js");
   assert.match(indexHtml, /<div id="app"><\/div>/);
-  assert.match(indexHtml, /<link rel="stylesheet" href="\/assets\/styles\.css\?v=pipeline-output-4">/);
-  assert.match(indexHtml, /<script type="module" src="\/assets\/app\.js\?v=pipeline-output-4"><\/script>/);
+  assert.match(indexHtml, /<link rel="stylesheet" href="\/assets\/styles\.css\?v=admin-login-1">/);
+  assert.match(indexHtml, /<script type="module" src="\/assets\/app\.js\?v=admin-login-1"><\/script>/);
   assert.match(appJs, /GroupScout operator workspace/);
-  assert.match(appJs, /pipelineRuntime\.js\?v=pipeline-output-4/);
+  assert.match(appJs, /pipelineRuntime\.js\?v=admin-login-1/);
   assert.match(appJs, /createApiClient|\/api\/system/);
   assert.match(styleCss, /\.lead-inbox-table/);
   assert.match(styleCss, /\.pipeline-output/);
@@ -236,7 +236,7 @@ test("13-G static app intercepts only browser app-route navigation", async () =>
   assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/leads/lead_hotel_001"), location), true);
   assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/pipeline?tab=runs#latest"), location), true);
   assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/api/leads/lead_hotel_001/raw"), location), false);
-  assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/assets/app.js?v=pipeline-output-4"), location), false);
+  assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/assets/app.js?v=admin-login-1"), location), false);
   assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/src/renderer/domRenderer.js"), location), false);
   assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("/exports/leads.csv"), location), false);
   assert.equal(shouldInterceptAppNavigation(clickEvent(), anchor("https://api.groupscout.test/leads"), location), false);
