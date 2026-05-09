@@ -103,6 +103,7 @@ function renderNavigation(shell) {
 
 function renderAppTopbar(shell) {
   const active = shell.sections.find((section) => section.active);
+  const logout = shell.chrome?.logoutControl;
 
   return [
     `<header class="workspace-topbar">`,
@@ -111,6 +112,9 @@ function renderAppTopbar(shell) {
     `<span class="status-pill status-live"><span class="status-dot"></span>Live Docker</span>`,
     `<span class="status-pill status-ok"><span class="status-dot"></span>Backend proxy</span>`,
     `<span class="status-pill status-watch"><span class="status-dot"></span>Run watch</span>`,
+    logout
+      ? `<button class="topbar-logout" type="button" data-admin-logout aria-label="${escapeHtml(logout.ariaLabel)}">${escapeHtml(logout.label)}</button>`
+      : "",
     `</div>`,
     `</header>`
   ].join("");

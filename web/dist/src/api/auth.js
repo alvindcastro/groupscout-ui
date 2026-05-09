@@ -20,6 +20,12 @@ export function createAuthApiMethods() {
       });
     },
 
+    async logout() {
+      return this.request(`${API_BASE_PATH}/auth/logout`, {
+        method: "POST"
+      });
+    },
+
     async getCurrentAdmin() {
       return this.request(`${API_BASE_PATH}/auth/me`, {
         method: "GET"

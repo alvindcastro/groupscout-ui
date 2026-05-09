@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 
@@ -11,11 +12,23 @@ const DEV_COMPOSE_SERVER = new URL("../web/src/server/devComposeHealthServer.js"
 const PRODUCTION_SERVER = new URL("../web/src/server/productionServer.js", import.meta.url);
 const STATIC_INDEX = new URL("../web/dist/index.html", import.meta.url);
 const STATIC_APP = new URL("../web/dist/assets/app.js", import.meta.url);
-const CONTRACT_DOC = new URL("../docs/ui-dockerization-contract.md", import.meta.url);
-const PHASE_DOC = new URL("../docs/phase-12-ui-dockerization.md", import.meta.url);
-const DEVELOPER_GUIDE = new URL("../docs/developer-guide.md", import.meta.url);
-const TESTING_DOC = new URL("../docs/testing.md", import.meta.url);
-const TROUBLESHOOTING_DOC = new URL("../docs/troubleshooting.md", import.meta.url);
+const CENTRAL_DOCS_ROOT = process.env.GROUPSCOUT_UI_DOCS_ROOT ?? "/mnt/c/Users/alvin/groupscout-site/frontend";
+
+function docUrl(path) {
+  const local = new URL(`../${path}`, import.meta.url);
+
+  if (existsSync(local)) {
+    return local;
+  }
+
+  return new URL(`${path}`, `file://${CENTRAL_DOCS_ROOT}/`);
+}
+
+const CONTRACT_DOC = docUrl("docs/ui-dockerization-contract.md");
+const PHASE_DOC = docUrl("docs/phase-12-ui-dockerization.md");
+const DEVELOPER_GUIDE = docUrl("docs/developer-guide.md");
+const TESTING_DOC = docUrl("docs/testing.md");
+const TROUBLESHOOTING_DOC = docUrl("docs/troubleshooting.md");
 
 test("D0 dockerization contract documents the chosen path before Docker files exist", async () => {
   const contract = await readFile(CONTRACT_DOC, "utf8");

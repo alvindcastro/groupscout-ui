@@ -9,7 +9,7 @@ import {
   createUiDeploymentConfig,
   resolveUiMount
 } from "../web/src/server/uiDeployment.js";
-import { createProductionRequestHandler } from "../web/src/server/productionServer.js";
+import { createProductionRequestHandler, startProductionServer } from "../web/src/server/productionServer.js";
 
 test("UI API requests require a valid operator session cookie", () => {
   const config = createUiDeploymentConfig({
@@ -86,6 +86,11 @@ test("UI auth endpoints reach the backend before a session exists", () => {
 
   assert.deepEqual(
     authorizeUiApiRequest({ pathname: "/api/auth/login", headers: {} }, { config, sessions: new Set() }),
+    { allowed: true, reason: "public-auth-endpoint" }
+  );
+
+  assert.deepEqual(
+    authorizeUiApiRequest({ pathname: "/api/auth/logout", headers: {} }, { config, sessions: new Set() }),
     { allowed: true, reason: "public-auth-endpoint" }
   );
 
@@ -189,6 +194,11 @@ test("deployment readiness requires session secret only when UI is enabled", () 
   assert.doesNotThrow(() =>
     assertUiDeploymentReady(createUiDeploymentConfig({ UI_ENABLED: "false" }))
   );
+
+  assert.throws(
+    () => startProductionServer({ env: { UI_ENABLED: "true", UI_PORT: "0" } }),
+    /UI_SESSION_SECRET/
+  );
 });
 
 test("CORS allow-list is development-only for the operator UI", () => {
@@ -254,7 +264,7 @@ test("production request handler gates /api proxying behind the UI session contr
   });
 });
 
-test("production request handler forwards admin login before session gating", async () => {
+test("production request handler forwards admin login and logout before session gating", async () => {
   const handler = createProductionRequestHandler({
     env: {
       UI_ENABLED: "true",
@@ -276,11 +286,17 @@ test("production request handler forwards admin login before session gating", as
   });
 
   const login = await dispatchProductionRequest(handler, { url: "/api/auth/login", method: "POST" });
+  const logout = await dispatchProductionRequest(handler, { url: "/api/auth/logout", method: "POST" });
 
   assert.equal(login.statusCode, 200);
   assert.equal(login.headers["set-cookie"], `${SESSION_COOKIE_NAME}=backend-session-token; Path=/; HttpOnly`);
   assert.deepEqual(JSON.parse(login.body), {
     path: "/api/auth/login",
+    method: "POST"
+  });
+  assert.equal(logout.statusCode, 200);
+  assert.deepEqual(JSON.parse(logout.body), {
+    path: "/api/auth/logout",
     method: "POST"
   });
 });

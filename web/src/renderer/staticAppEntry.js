@@ -1,12 +1,17 @@
 const root = typeof document === "undefined" ? undefined : document.querySelector("#app");
 const workspaceLabel = "GroupScout operator workspace";
 const STATIC_ROUTE_PREFIXES = Object.freeze(["/api/", "/assets/", "/src/"]);
+const ADMIN_LOGIN_PATH = "/admin/login";
 let rendererModulesPromise;
 let apiClientPromise;
 
 root?.setAttribute("aria-label", workspaceLabel);
 
 async function renderCurrentRoute() {
+  if (await redirectToLoginWhenUnauthenticated(window.location.pathname)) {
+    return;
+  }
+
   const { mountRoute, attachPipelineMonitor } = await loadRendererModules();
 
   mountRoute(root, { pathname: window.location.pathname });
@@ -40,6 +45,17 @@ if (typeof document !== "undefined" && typeof window !== "undefined") {
     renderCurrentRoute();
   });
 
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-admin-logout]");
+
+    if (!button) {
+      return;
+    }
+
+    event.preventDefault();
+    await submitAdminLogout(button);
+  });
+
   document.addEventListener("submit", async (event) => {
     const form = event.target.closest("form[data-admin-login-form]");
 
@@ -68,6 +84,7 @@ async function submitAdminLogin(form) {
   try {
     const apiClient = await loadApiClient();
     await apiClient.loginWithSetupToken({ token: String(token ?? "") });
+    await verifyAuthenticatedAdmin(apiClient);
     window.history.pushState({}, "", "/");
     await renderCurrentRoute();
   } catch {
@@ -77,6 +94,66 @@ async function submitAdminLogin(form) {
       submit.disabled = false;
     }
   }
+}
+
+async function submitAdminLogout(button) {
+  button.disabled = true;
+
+  try {
+    const apiClient = await loadApiClient();
+    await apiClient.logout();
+  } catch {
+    // The local browser state should leave protected routes even when the session is already expired.
+  } finally {
+    button.disabled = false;
+    redirectToLogin();
+  }
+}
+
+async function redirectToLoginWhenUnauthenticated(pathname) {
+  if (!routeRequiresAuth(pathname)) {
+    return false;
+  }
+
+  try {
+    const apiClient = await loadApiClient();
+    const status = await apiClient.getAuthStatus();
+
+    if (!getUnauthenticatedRedirect(pathname, status)) {
+      return false;
+    }
+  } catch {
+    // Fall through to the public login route.
+  }
+
+  redirectToLogin();
+  return true;
+}
+
+export async function verifyAuthenticatedAdmin(apiClient) {
+  const status = await apiClient.getAuthStatus();
+
+  if (isAuthenticatedStatus(status)) {
+    return status;
+  }
+
+  const admin = await apiClient.getCurrentAdmin();
+
+  if (admin && typeof admin === "object") {
+    return admin;
+  }
+
+  throw new Error("Admin session was not established");
+}
+
+function redirectToLogin() {
+  if (window.location.pathname === ADMIN_LOGIN_PATH) {
+    renderCurrentRoute();
+    return;
+  }
+
+  window.history.replaceState({}, "", ADMIN_LOGIN_PATH);
+  renderCurrentRoute();
 }
 
 function loadApiClient() {
@@ -89,6 +166,34 @@ function setLoginFeedback(feedback, message) {
   if (feedback) {
     feedback.textContent = message;
   }
+}
+
+export function isPublicRoute(pathname) {
+  return pathname === ADMIN_LOGIN_PATH;
+}
+
+export function routeRequiresAuth(pathname) {
+  return !isPublicRoute(pathname);
+}
+
+export function getUnauthenticatedRedirect(pathname, status) {
+  if (!routeRequiresAuth(pathname) || isAuthenticatedStatus(status)) {
+    return undefined;
+  }
+
+  return ADMIN_LOGIN_PATH;
+}
+
+export function isAuthenticatedStatus(status) {
+  if (status === true) {
+    return true;
+  }
+
+  if (!status || typeof status !== "object") {
+    return false;
+  }
+
+  return status.auth_required === false || status.authenticated === true || status.loggedIn === true || status.status === "authenticated";
 }
 
 export function shouldInterceptAppNavigation(event, anchor, location = globalThis.window?.location) {

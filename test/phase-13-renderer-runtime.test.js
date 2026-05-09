@@ -87,6 +87,40 @@ test("13-B browser harness decision names rendered behavior not covered by model
   assert.equal(BROWSER_COMPONENT_HARNESS_CONTRACT.capabilities.staticAssetSecretScan, true);
 });
 
+test("13-B static browser entry redirects protected routes until admin session is active", async () => {
+  const {
+    getUnauthenticatedRedirect,
+    isAuthenticatedStatus,
+    isPublicRoute,
+    routeRequiresAuth,
+    verifyAuthenticatedAdmin
+  } = await import(STATIC_APP_ENTRY);
+
+  assert.equal(isPublicRoute("/admin/login"), true);
+  assert.equal(routeRequiresAuth("/leads"), true);
+  assert.equal(getUnauthenticatedRedirect("/leads", { auth_required: true, authenticated: false }), "/admin/login");
+  assert.equal(getUnauthenticatedRedirect("/leads", { auth_required: true, authenticated: true }), undefined);
+  assert.equal(getUnauthenticatedRedirect("/leads", { auth_required: false, authenticated: false }), undefined);
+  assert.equal(isAuthenticatedStatus({ authenticated: true }), true);
+  assert.equal(isAuthenticatedStatus({ auth_required: false, authenticated: false }), true);
+  assert.equal(isAuthenticatedStatus({ authenticated: false }), false);
+
+  const verified = await verifyAuthenticatedAdmin({
+    getAuthStatus: async () => ({ auth_required: true, authenticated: false }),
+    getCurrentAdmin: async () => ({ user: { role: "admin" } })
+  });
+  assert.deepEqual(verified, { user: { role: "admin" } });
+
+  await assert.rejects(
+    () =>
+      verifyAuthenticatedAdmin({
+        getAuthStatus: async () => ({ auth_required: true, authenticated: false }),
+        getCurrentAdmin: async () => undefined
+      }),
+    /Admin session/
+  );
+});
+
 test("13-C renderer mounts Today, Lead Inbox, and Lead Detail from existing screen models", async () => {
   const {
     RENDERER_BROWSER_ENTRY_CONTRACT,
@@ -110,6 +144,7 @@ test("13-C renderer mounts Today, Lead Inbox, and Lead Detail from existing scre
   assert.match(today.html, /Today/);
   assert.match(leads.html, /Lead Inbox/);
   assert.match(leads.html, /aria-label="Search leads"/);
+  assert.match(leads.html, /data-admin-logout/);
   assert.match(leads.html, /Riverside hotel renovation crew block/);
   assert.match(detail.html, /Source Evidence/);
   assert.match(detail.html, /AI Enrichment/);
@@ -120,6 +155,7 @@ test("13-C renderer mounts Today, Lead Inbox, and Lead Detail from existing scre
   assert.match(pipeline.html, /Slack output preview/);
   assert.match(login.html, /data-admin-login-form/);
   assert.match(login.html, /aria-label="Setup token"/);
+  assert.doesNotMatch(login.html, /data-admin-logout/);
   assert.match(loading.html, /role="status"[^>]*>Loading leads for review\./);
   assert.match(empty.html, /No leads available/);
   assert.match(error.html, /role="alert"[^>]*>API unavailable/);

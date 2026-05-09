@@ -1422,6 +1422,13 @@ section[data-layout] > label {
   font: inherit;
 }
 
+.topbar-logout {
+  min-height: 32px;
+  border-color: var(--color-border);
+  background: #ffffff;
+  color: #334155;
+}
+
 button:hover,
 .app-shell > main a:hover {
   transform: translateY(-1px);

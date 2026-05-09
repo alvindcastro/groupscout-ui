@@ -34,6 +34,7 @@ test("API client module keeps the public entry point and constants stable for ad
       "listPipelineRuns",
       "logLeadOutreach",
       "loginWithSetupToken",
+      "logout",
       "patchLead",
       "request",
       "startPipelineRun"
@@ -167,6 +168,34 @@ test("browser API client does not inject automation credentials into session req
   assert.equal(calls[0].init.headers.authorization, undefined);
   assert.equal(calls[0].init.headers["x-api-key"], undefined);
   assert.equal(calls[0].init.headers["x-api-token"], undefined);
+});
+
+test("auth API methods use same-origin session endpoints", async () => {
+  const calls = [];
+  const client = createApiClient({
+    fetchImpl: async (url, init) => {
+      calls.push({ url, init });
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { "content-type": "application/json" }
+      });
+    }
+  });
+
+  await client.getAuthStatus();
+  await client.loginWithSetupToken({ token: " setup-token " });
+  await client.getCurrentAdmin();
+  await client.logout();
+
+  assert.deepEqual(
+    calls.map((call) => [call.url, call.init.method, call.init.credentials]),
+    [
+      ["/api/auth/status", "GET", "same-origin"],
+      ["/api/auth/login", "POST", "same-origin"],
+      ["/api/auth/me", "GET", "same-origin"],
+      ["/api/auth/logout", "POST", "same-origin"]
+    ]
+  );
+  assert.equal(calls[1].init.body, JSON.stringify({ token: "setup-token" }));
 });
 
 async function listBrowserSourceFiles(rootUrl) {

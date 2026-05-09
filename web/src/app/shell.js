@@ -26,6 +26,14 @@ export function createRouteShell(pathname = "/", options = {}) {
   return {
     kind: "operator-workspace-shell",
     activeRoute,
+    chrome: {
+      logoutControl: activeRoute.hidden
+        ? undefined
+        : {
+          label: "Log out",
+          ariaLabel: "Log out of admin session"
+        }
+    },
     sections: appNavigation.map((route) => ({
       ...route,
       active: route.path === activeRoute.path

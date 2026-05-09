@@ -26,6 +26,10 @@ test("route shell mounts the Phase 2 lead inbox for the Leads route", () => {
 
   assert.equal(shell.kind, "operator-workspace-shell");
   assert.equal(shell.activeRoute.label, "Leads");
+  assert.deepEqual(shell.chrome.logoutControl, {
+    label: "Log out",
+    ariaLabel: "Log out of admin session"
+  });
   assert.equal(shell.sections.length, expectedRoutes.length);
   assert.equal(shell.content.kind, "lead-inbox-screen");
   assert.equal(shell.content.state, "ready");
@@ -68,6 +72,7 @@ test("route shell mounts the admin setup-token login route outside primary navig
   assert.equal(shell.content.kind, "admin-login-screen");
   assert.equal(shell.content.form.action, "/api/auth/login");
   assert.equal(shell.content.form.fields[0].name, "token");
+  assert.equal(shell.chrome.logoutControl, undefined);
 });
 
 test("route shell mounts the Phase 8 analytics dashboard for the Analytics route", () => {

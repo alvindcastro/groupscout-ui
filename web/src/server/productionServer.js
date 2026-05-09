@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { BROWSER_RUNTIME_CONTRACT } from "./browserRuntimeContract.js";
 import {
+  assertUiDeploymentReady,
   authorizeUiApiRequest,
   createUiDeploymentConfig
 } from "./uiDeployment.js";
@@ -181,6 +182,7 @@ export function createProductionRequestHandler({
 
 export function startProductionServer({ env = process.env } = {}) {
   const port = Number.parseInt(env.UI_PORT || String(DEFAULT_CONTAINER_PORT), 10);
+  assertUiDeploymentReady(createUiDeploymentConfig(env));
   const server = createProductionServer({ env });
 
   server.listen(port, "0.0.0.0");

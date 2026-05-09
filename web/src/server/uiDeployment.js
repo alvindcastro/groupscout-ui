@@ -124,7 +124,7 @@ export function authorizeUiApiRequest(request, { config, sessions } = {}) {
 }
 
 function isPublicAuthEndpoint(pathname) {
-  return pathname === "/api/auth/status" || pathname === "/api/auth/login";
+  return pathname === "/api/auth/status" || pathname === "/api/auth/login" || pathname === "/api/auth/logout";
 }
 
 function parseEnabled(value) {

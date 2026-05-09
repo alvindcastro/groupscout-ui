@@ -1,10 +1,23 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 
 import { designTokens } from "../web/src/design/tokens.js";
 
-const designMarkdown = await readFile(new URL("../DESIGN.md", import.meta.url), "utf8");
+const CENTRAL_DOCS_ROOT = process.env.GROUPSCOUT_UI_DOCS_ROOT ?? "/mnt/c/Users/alvin/groupscout-site/frontend";
+
+function docUrl(path) {
+  const local = new URL(`../${path}`, import.meta.url);
+
+  if (existsSync(local)) {
+    return local;
+  }
+
+  return new URL(`${path}`, `file://${CENTRAL_DOCS_ROOT}/`);
+}
+
+const designMarkdown = await readFile(docUrl("DESIGN.md"), "utf8");
 
 function designValue(path) {
   const segments = path.split(".");
