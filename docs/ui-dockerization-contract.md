@@ -8,6 +8,8 @@ D2 status: browser runtime contract. The future browser runtime shape is now tes
 
 D3 status: development Compose integration. The UI repo now provides a backend Compose override and health harness for development container wiring without adding production proxy/static serving or a product renderer.
 
+D4 status: production same-origin serving. The UI repo now provides a lightweight Node production server that serves `web/dist` assets and proxies `/api/*` server-side to the backend target from one browser origin.
+
 ## Decision
 
 The chosen dockerization path is test image first, browser runtime later.
@@ -15,7 +17,7 @@ The chosen dockerization path is test image first, browser runtime later.
 - D1 will add the first Docker target: a deterministic Node image that runs the current `npm test` suite.
 - D2 defines the browser runtime contract before selecting or wiring a dev server, renderer, proxy, or static-asset serving model.
 - D3 wires development Compose through a UI-repo override that is loaded beside the backend Compose file.
-- D4 and later phases will wire same-origin serving only after each behavior has failing tests or validation.
+- D4 wires production same-origin serving through the lightweight Node server path defined in D2.
 - No Dockerfile, Compose file, reverse proxy, dev server, renderer, or application runtime is added in D0.
 
 ## D1 Test Image
@@ -44,7 +46,7 @@ The D2 runtime contract lives in `web/src/server/browserRuntimeContract.js`.
 - Browser route to APIs: same-origin `/api/*` with `credentials: "same-origin"` and the `groupscout_session` cookie.
 - API proxy target: `http://groupscout:8080` for future server/proxy-side routing.
 
-No framework, dev server, renderer, Compose service, or runnable UI server is added in D2. `package.json` intentionally does not define `start`, `dev`, or `start:ui` until a later phase implements the runtime.
+No framework, dev server, renderer, Compose service, or runnable UI server is added in D2. D4 now implements the reserved `start:ui` command.
 
 ## D3 Development Compose Integration
 
@@ -70,7 +72,43 @@ docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.ym
 
 The basic D3 smoke path targets `groupscout-ui` and the minimum backend services needed by the current backend `groupscout` dependency chain: `groupscout`, `postgres`, `ollama`, and `ollama-init`. It does not require `alertd`, `n8n`, `grafana`, `prometheus`, `loki`, `promtail`, or a lead pipeline run.
 
-D3 still does not add production same-origin proxying, static asset serving, or a product UI renderer. `package.json` still intentionally has no `start`, `dev`, or `start:ui` script.
+D3 still does not add production same-origin proxying, static asset serving, or a product UI renderer.
+
+## D4 Production Same-Origin Serving
+
+The D4 production server lives in `web/src/server/productionServer.js`.
+
+- Serving model: `node-static-assets-and-api-proxy`
+- Production command: `npm run start:ui`
+- Production Docker target: `production`
+- UI container port: `3000`
+- Health path: `/healthz`
+- Static asset root: `web/dist`
+- Browser route to APIs: same-origin `/api/*`
+- Server-side API proxy target: `http://groupscout:8080` by default, overrideable with `UI_API_PROXY_TARGET`
+
+Build the production image:
+
+```sh
+docker build --target production -t groupscout-ui-production .
+```
+
+Run it with an explicit server-side proxy target:
+
+```sh
+docker run --rm -p 3002:3000 -e UI_API_PROXY_TARGET=http://host.docker.internal:8080 groupscout-ui-production
+```
+
+Smoke checks:
+
+```sh
+curl -i http://localhost:3002/healthz
+curl -i http://localhost:3002/
+curl -i http://localhost:3002/assets/app.js
+curl -i http://localhost:3002/api/system
+```
+
+Browser JavaScript still sees only relative `/api/*` paths. `API_TOKEN`, provider keys, Slack tokens, Resend/SendGrid keys, database URLs, and `UI_SESSION_SECRET` remain server-side and must not enter static assets or public config.
 
 ## Backend Contract
 
@@ -124,8 +162,18 @@ Browser code must not call `http://groupscout:8080` or `http://alertd:8081` dire
 - Docker build: `docker build --target test -t groupscout-ui-test .`.
 - Containerized test: `docker run --rm groupscout-ui-test`.
 
+## D4 Evidence
+
+- Red run: `node test/dockerization-contract.test.js` failed because `web/src/server/productionServer.js`, `web/dist`, the production Docker target, and D4 documentation did not exist.
+- Green run: `node --test test/dockerization-contract.test.js`.
+- Full-suite run: `npm test`.
+- Docker test build: `docker build --target test -t groupscout-ui-test .`.
+- Containerized test: `docker run --rm groupscout-ui-test`.
+- Docker production build: `docker build --target production -t groupscout-ui-production .`.
+- Smoke checks: `GET /healthz`, `GET /`, `GET /assets/app.js`, and `GET /api/system`.
+
 ## Out Of Scope
 
-- Nginx, reverse-proxy, or static-serving config.
-- Browser framework, renderer, dev server, or production app runtime implementation.
-- Browser API proxy behavior beyond D3 metadata.
+- Nginx or Caddy configuration.
+- Browser framework, renderer, or dev server implementation.
+- Role matrices, production identity-provider UI, and direct database access.

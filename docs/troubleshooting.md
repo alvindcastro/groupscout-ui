@@ -109,7 +109,39 @@ Common causes:
 - The UI service cannot resolve `groupscout` because the override was run without the backend Compose file or without the `groupscout_net` network definition.
 - The `groupscout` backend service is not started. A targeted D3 smoke run should include `groupscout-ui` and `groupscout`; backend Compose also starts `postgres`, `ollama`, and `ollama-init` because `groupscout` depends on them.
 
-D3 healthchecks only `/healthz` on the development health harness. It does not prove production static serving, rendered UI behavior, or `/api/*` proxy forwarding yet.
+D3 healthchecks only `/healthz` on the development health harness. Use the D4 production runtime checks for static serving and `/api/*` proxy forwarding.
+
+## Production UI Runtime Fails
+
+D4 adds the production same-origin server:
+
+```sh
+npm run start:ui
+```
+
+For Docker:
+
+```sh
+docker build --target production -t groupscout-ui-production .
+docker run --rm -p 3002:3000 -e UI_API_PROXY_TARGET=http://host.docker.internal:8080 groupscout-ui-production
+```
+
+Common causes:
+
+- `GET /` or `GET /assets/app.js` returns 404 because `web/dist/index.html` or `web/dist/assets/app.js` is missing from the image or local checkout.
+- `GET /api/*` returns 502 because `UI_API_PROXY_TARGET` is wrong, the backend is down, or a Compose container cannot resolve `groupscout`.
+- `GET /api/*` returns 401 because the backend requires a valid `groupscout_session` cookie.
+- Browser code references `http://groupscout:8080` directly instead of a relative `/api/*` path.
+- Public config or static assets include blocked names such as `API_TOKEN`, `CLAUDE_API_KEY`, Slack tokens, Resend/SendGrid keys, database URLs, or `UI_SESSION_SECRET`.
+
+Smoke the runtime from one origin:
+
+```sh
+curl -i http://localhost:3002/healthz
+curl -i http://localhost:3002/
+curl -i http://localhost:3002/assets/app.js
+curl -i http://localhost:3002/api/system
+```
 
 ## Backend Health Check Fails
 

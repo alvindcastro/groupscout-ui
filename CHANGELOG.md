@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 12 D4 - Same-Origin Proxy Or Static Serving
+
+- What: Added D4 production same-origin serving with a lightweight Node server that serves `web/dist`, exposes `/healthz`, and forwards browser `/api/*` requests server-side to the backend target without exposing automation credentials.
+- Where: Added `web/src/server/productionServer.js`, `web/dist/index.html`, and `web/dist/assets/app.js`; updated `Dockerfile`, `package.json`, `test/dockerization-contract.test.js`, `docs/ui-dockerization-contract.md`, `docs/phase-12-ui-dockerization.md`, `README.md`, `docs/developer-guide.md`, `docs/testing.md`, and `docs/troubleshooting.md`.
+- When: Completed on 2026-05-09 as Phase 12 D4 after the D3 development Compose integration.
+- Why: Browser users need one production origin for static UI assets and `/api/*` while `API_TOKEN`, provider keys, Slack tokens, Resend/SendGrid keys, database URLs, and `UI_SESSION_SECRET` stay server-side.
+- How: Followed strict TDD with a red `node test/dockerization-contract.test.js` run, added D4 production server/static/proxy coverage, implemented `npm run start:ui` plus the `production` Docker target, documented smoke checks for `/healthz`, `/`, `/assets/app.js`, and `/api/system`, then reran the focused Dockerization contract test, `npm test`, Docker test-image build/run, and production image build.
+
 ### Phase 12 D3 - Development Compose Integration
 
 - What: Added the D3 development Compose override and server-only health harness for a `groupscout-ui` service that joins the backend network, uses container port `3000`, healthchecks `/healthz`, and carries the internal `http://groupscout:8080` API target metadata without exposing browser or image secrets.

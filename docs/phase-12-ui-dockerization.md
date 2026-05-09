@@ -1,6 +1,6 @@
 # Phase 12 UI Dockerization Prompt Pack
 
-Phase D0 through D3 are complete. Future phases in this prompt pack still require strict TDD before adding production proxy/static serving, framework, browser renderer, or application runtime code.
+Phase D0 through D4 are complete. Future phases in this prompt pack still require strict TDD before adding a framework, browser renderer, or broader application runtime code.
 
 ## Sources Inspected
 
@@ -23,7 +23,7 @@ Phase D0 through D3 are complete. Future phases in this prompt pack still requir
 
 - The backend repo already has a full Docker Compose stack with `groupscout` on `8080`, `alertd` on `8081`, Postgres, n8n, Prometheus, Grafana, Loki, Promtail, Ollama, and `ollama-init`.
 - Backend containers communicate on `groupscout_net`; UI containers should reach the backend as `http://groupscout:8080` when running in the same Compose project or network.
-- The UI repo now has a D1 `Dockerfile` test target, `.dockerignore`, and D3 `compose.dev.yml` backend Compose override; it still has no framework, renderer, browser build, lockfile, production proxy/static serving, or product UI dev server.
+- The UI repo now has a D1 `Dockerfile` test target, `.dockerignore`, D3 `compose.dev.yml` backend Compose override, and D4 production same-origin Node server; it still has no framework, renderer, browser build, lockfile, or product UI dev server.
 - The UI repo is currently a model-level plain JavaScript workspace with Node's built-in `node:test` runner and `npm test`.
 - Browser UI code must use same-origin `/api/*` contracts.
 - `API_TOKEN` is reserved for automation clients and must not be exposed to browser JavaScript.
@@ -36,7 +36,7 @@ Preferred end state:
 
 - A UI test image that runs `npm test` deterministically.
 - A development Compose service for the UI once a dev server exists.
-- A same-origin browser path for `/api/*`, either through a UI proxy container or by serving built assets from the backend.
+- A same-origin browser path for `/api/*` through the D4 UI production server.
 - No browser access to automation tokens.
 - Smoke checks that prove the UI development container starts on the backend network and can be extended to proxy/API checks once the runtime and proxy phases exist.
 
@@ -288,17 +288,35 @@ Do not add role matrices, production identity-provider UI, or direct database ac
 
 ### Tasks
 
-- [ ] Choose proxy container versus backend-served static assets.
-- [ ] Test browser-visible config excludes `API_TOKEN`, `CLAUDE_API_KEY`, Slack tokens, Resend keys, and database URLs.
-- [ ] Test `/api/*` remains a relative browser path.
-- [ ] Add production container or backend static-asset serving config.
-- [ ] Add smoke checks for `/`, a static asset, and an `/api/*` route.
+- [x] Choose proxy container versus backend-served static assets.
+- [x] Test browser-visible config excludes `API_TOKEN`, `CLAUDE_API_KEY`, Slack tokens, Resend keys, and database URLs.
+- [x] Test `/api/*` remains a relative browser path.
+- [x] Add production container or backend static-asset serving config.
+- [x] Add smoke checks for `/`, a static asset, and an `/api/*` route.
 
 ### Acceptance Criteria
 
-- [ ] Browser users see one origin for UI and `/api/*`.
-- [ ] Secrets stay server-side.
-- [ ] Production container behavior is covered by tests and smoke commands.
+- [x] Browser users see one origin for UI and `/api/*`.
+- [x] Secrets stay server-side.
+- [x] Production container behavior is covered by tests and smoke commands.
+
+### Implementation Notes
+
+#### D4 Evidence
+
+- Chosen serving model: lightweight Node production server in the UI repo. It serves `web/dist` assets and forwards `/api/*` server-side to `http://groupscout:8080` by default.
+- Added `npm run start:ui` for `node web/src/server/productionServer.js`.
+- Added a production Docker target named `production` with container port `3000`, `/healthz` healthcheck, and no baked production secrets.
+- Browser-visible config is whitelist-only and keeps `/api/*` relative. Public config/static-asset tests reject `API_TOKEN`, `CLAUDE_API_KEY`, Slack tokens, Resend/SendGrid keys, database URLs, provider keys, Ollama URLs, and `UI_SESSION_SECRET`.
+- Red run: `node test/dockerization-contract.test.js` failed because `web/src/server/productionServer.js`, `web/dist`, the production Docker target, and D4 documentation did not exist.
+- Green run: `node --test test/dockerization-contract.test.js`.
+- Full-suite run: `npm test`.
+- Docker build: `docker build --target production -t groupscout-ui-production .`.
+- Smoke health: `GET /healthz`.
+- Smoke root: `GET /`.
+- Smoke static asset: `GET /assets/app.js`.
+- Smoke API proxy: `GET /api/system`.
+- D4 did not add role matrices, production identity-provider UI, direct database access, a browser framework, or a product renderer.
 
 ## Phase D5 - Docker Operations Docs And CI Hooks
 

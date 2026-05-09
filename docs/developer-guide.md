@@ -9,6 +9,7 @@ This repo is currently a no-build, model-level UI workspace for GroupScout opera
 - `web/src/server/uiDeployment.js` owns model-level UI deployment settings, base-path mounting, session-cookie API authorization, and development-only CORS metadata.
 - `web/src/server/browserRuntimeContract.js` owns the D2 browser runtime contract metadata for the future lightweight Node server, reserved port, health path, static asset boundary, `/api/*` routing expectation, and forbidden browser public config keys.
 - `web/src/server/devComposeHealthServer.js` owns the D3 development Compose health harness for the `groupscout-ui` service.
+- `web/src/server/productionServer.js` owns the D4 production same-origin server for `web/dist` static assets, `/healthz`, whitelist-only public config, and server-side `/api/*` proxying.
 - `web/src/app/todayCommandCenter.js` owns the mocked Today command center, operational priority summaries, system health metadata, and read-only routing policy.
 - `web/src/app/leadInbox.js` owns the mocked Lead Inbox screen model.
 - `web/src/app/leadDetail.js` owns the mocked Lead Detail Evidence Workspace.
@@ -44,6 +45,14 @@ Development Compose config validation against the backend stack:
 
 ```sh
 docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
+```
+
+Production same-origin server: `npm run start:ui`
+
+```sh
+npm run start:ui
+docker build --target production -t groupscout-ui-production .
+docker run --rm -p 3002:3000 -e UI_API_PROXY_TARGET=http://host.docker.internal:8080 groupscout-ui-production
 ```
 
 Optional design-doc lint. This uses `npx` and may fetch the package if it is not already cached:
@@ -91,6 +100,8 @@ node --test test/api-boundary.test.js test/lead-inbox-client.test.js test/lead-s
 - Keep browser requests behind same-origin `/api/*` paths.
 - Keep browser auth session-based. Do not repurpose automation credentials for operator browser sessions.
 - Keep `API_TOKEN` out of browser runtime/config modules.
+- Keep `UI_API_PROXY_TARGET` server-only; browser code and public config may only expose relative `/api/*`.
+- Keep production public config whitelist-only and free of provider keys, Slack tokens, Resend/SendGrid keys, database URLs, and `UI_SESSION_SECRET`.
 - Use `UI_ENABLED` to disable the UI, `UI_BASE_PATH` for subpath mounting, and `UI_SESSION_SECRET` for session readiness.
 - Keep `CORS_ALLOWED_ORIGINS` development-only; same-origin deployment is the default production posture.
 - Add API access through `createApiClient(...)`; do not fetch backend URLs directly from app modules.
@@ -157,9 +168,9 @@ The H0 baseline is [smell-h0-api-client-characterization.md](./smell-h0-api-clie
 
 ## Dockerization Planning
 
-Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phased prompt pack and [UI Dockerization Contract](./ui-dockerization-contract.md) for the D0-D3 decision record. The current repo has a minimal `Dockerfile` test target and `.dockerignore`; the image runs `npm test` without a package install step, backend service, exposed port, healthcheck, proxy, or browser runtime.
+Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phased prompt pack and [UI Dockerization Contract](./ui-dockerization-contract.md) for the D0-D4 decision record. The repo has a minimal `Dockerfile` test target and `.dockerignore`; the test image runs `npm test` without a package install step or backend service.
 
-Runtime model: `lightweight-node-server`. The D2 contract reserves `npm run start:ui`, container port `3000`, health path `/healthz`, server-owned generated assets under `web/dist`, and server/proxy-side `/api/*` routing to `http://groupscout:8080`. These are contract metadata only: `package.json` has no `start:ui` script yet, and framework selection, static serving, production same-origin proxy behavior, and the product UI runtime are not implemented yet.
+Runtime model: `lightweight-node-server`. D4 implements `npm run start:ui`, container port `3000`, health path `/healthz`, server-owned assets under `web/dist`, and server-side `/api/*` routing to `http://groupscout:8080` by default. Framework selection and the product UI renderer are still not implemented.
 
 Development Compose override: `compose.dev.yml`. Use it beside the backend Compose file so the UI service joins the backend `groupscout_net` network and can target backend service `groupscout` at `http://groupscout:8080`:
 
@@ -171,6 +182,8 @@ The D3 service is `groupscout-ui`. It builds the existing D1 `test` target, over
 
 For a targeted D3 smoke path, bring up `groupscout-ui` with backend service `groupscout`; the backend Compose dependency chain also starts `postgres`, `ollama`, and `ollama-init`. The UI health harness does not require `alertd`, `n8n`, Grafana, Prometheus, Loki, Promtail, or a lead pipeline run.
 
+D4 production smoke checks should cover `/healthz`, `/`, `/assets/app.js`, and `/api/system` from one host origin.
+
 ## Current Limitations
 
 - Tests prove JavaScript model contracts, not rendered UI behavior in a browser.
@@ -178,4 +191,4 @@ For a targeted D3 smoke path, bring up `groupscout-ui` with backend service `gro
 - Responsive behavior is represented as layout metadata, not measured DOM layout.
 - Design token tests check selected exports; they do not resolve every nested token reference from `DESIGN.md`.
 - The browser credential guard recursively scans browser-facing `web/src/**/*.js` files while excluding `web/src/server`; keep server-only code in that excluded subtree and keep browser modules free of automation credentials.
-- Production static asset serving, browser `/api/*` proxy behavior, framework rendering, and the `npm run start:ui` runtime remain future strict-TDD phases.
+- Framework rendering and product browser runtime behavior remain future strict-TDD phases.

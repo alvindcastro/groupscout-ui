@@ -1,6 +1,6 @@
 # GroupScout UI
 
-Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls. Phase 8 adds basic explainable analytics and demand signals. Phase 9 adds a minimal session/auth and same-origin deployment wrapper. Phase 10 adds a later read-only Alertd console while keeping Slack as the interrupt channel. Phase 11 adds the Today command center and read-only system health summary. Phase 12 adds the first Docker target for the model-level UI test suite, a tested browser runtime contract, and a development Compose override for backend-network UI wiring.
+Phase 0 establishes the product contract and test harness for the GroupScout operator workspace. Phase 1 adds the lead inbox API contract/client. Phase 2 adds the first mocked Lead Inbox screen for dense operator triage. Phase 3 adds the Lead Detail Evidence Workspace for source-backed review. Phase 4 adds the v1 lead status action model and typed mutation boundary. Phase 5 adds the Verification Queue and UI-safe raw audit review entry point. Phase 6 adds manual outreach drafting, logging, and outcome activity. Phase 7 adds the Pipeline Monitor with compact health and async run controls. Phase 8 adds basic explainable analytics and demand signals. Phase 9 adds a minimal session/auth and same-origin deployment wrapper. Phase 10 adds a later read-only Alertd console while keeping Slack as the interrupt channel. Phase 11 adds the Today command center and read-only system health summary. Phase 12 adds the first Docker target for the model-level UI test suite, a tested browser runtime contract, a development Compose override for backend-network UI wiring, and production same-origin serving for static assets plus `/api/*`.
 
 ## Current Scope
 
@@ -9,6 +9,7 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Browser API access still enters through `web/src/api/client.js`, with same-origin `/api/*` transport centralized in `web/src/api/transport.js` and feature adapters split across focused `web/src/api/*` modules.
 - UI deployment/session rules live in `web/src/server/uiDeployment.js` and cover `UI_ENABLED`, `UI_BASE_PATH`, `UI_SESSION_SECRET`, development-only `CORS_ALLOWED_ORIGINS`, and session-cookie `/api/*` access.
 - Browser runtime contract metadata lives in `web/src/server/browserRuntimeContract.js` and reserves a future lightweight Node server on port `3000`, health path `/healthz`, and same-origin `/api/*` routing to server-side `http://groupscout:8080` without exposing automation credentials.
+- Production same-origin serving lives in `web/src/server/productionServer.js`; `npm run start:ui` serves `web/dist` and forwards `/api/*` server-side to `UI_API_PROXY_TARGET` or `http://groupscout:8080`.
 - Lead inbox reads use `createApiClient().listLeads(...)` for `GET /api/leads` query serialization, pagination cursors, default priority ordering, and response field adaptation.
 - Lead status writes use `createApiClient().patchLead(...)` for `PATCH /api/leads/{id}` payloads covering status, owner, notes, snooze date, correction reason, and safe field corrections.
 - Raw audit reads use `createApiClient().getLeadRawAudit(...)` for the UI-safe `GET /api/leads/{id}/raw` alias.
@@ -37,7 +38,7 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Phase 10 tests cover read-only alert state rendering, SPS summaries, evidence, room inventory, action history, disabled mutation actions, `/alerts` route mounting, responsive metadata, token usage, and `GET /api/alerts`.
 - Phase 11 tests cover the Today command center, priority lead and aging-work summaries, active alerts, failed jobs, system health, read-only action policy, `/` route mounting, responsive metadata, token usage, and `GET /api/system`.
 - Smell Phase H1 split the growing browser API client module while preserving `createApiClient(...)` and the centralized same-origin `/api/*` guard.
-- Phase 12 dockerization planning lives in `docs/phase-12-ui-dockerization.md`; the D0-D3 contract lives in `docs/ui-dockerization-contract.md`; the current Docker target runs `npm test` in a clean Node container, and `compose.dev.yml` adds a development `groupscout-ui` service with `/healthz` on container port `3000` while production proxy/static serving and the product renderer remain future work.
+- Phase 12 dockerization planning lives in `docs/phase-12-ui-dockerization.md`; the D0-D4 contract lives in `docs/ui-dockerization-contract.md`; the test Docker target runs `npm test`, `compose.dev.yml` adds a development `groupscout-ui` service, and the production Docker target serves static assets plus same-origin `/api/*` on container port `3000` while the product renderer remains future work.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
@@ -57,6 +58,18 @@ Development Compose config validation against the backend stack:
 
 ```sh
 docker compose -f /mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml -f compose.dev.yml config --quiet
+```
+
+Production UI runtime:
+
+```sh
+npm run start:ui
+docker build --target production -t groupscout-ui-production .
+docker run --rm -p 3002:3000 -e UI_API_PROXY_TARGET=http://host.docker.internal:8080 groupscout-ui-production
+curl -i http://localhost:3002/healthz
+curl -i http://localhost:3002/
+curl -i http://localhost:3002/assets/app.js
+curl -i http://localhost:3002/api/system
 ```
 
 ## Developer Docs

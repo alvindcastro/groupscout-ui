@@ -8,6 +8,9 @@ const COMPOSE_DEV = new URL("../compose.dev.yml", import.meta.url);
 const PACKAGE_JSON = new URL("../package.json", import.meta.url);
 const RUNTIME_CONTRACT = new URL("../web/src/server/browserRuntimeContract.js", import.meta.url);
 const DEV_COMPOSE_SERVER = new URL("../web/src/server/devComposeHealthServer.js", import.meta.url);
+const PRODUCTION_SERVER = new URL("../web/src/server/productionServer.js", import.meta.url);
+const STATIC_INDEX = new URL("../web/dist/index.html", import.meta.url);
+const STATIC_APP = new URL("../web/dist/assets/app.js", import.meta.url);
 const CONTRACT_DOC = new URL("../docs/ui-dockerization-contract.md", import.meta.url);
 const PHASE_DOC = new URL("../docs/phase-12-ui-dockerization.md", import.meta.url);
 const DEVELOPER_GUIDE = new URL("../docs/developer-guide.md", import.meta.url);
@@ -78,11 +81,12 @@ test("D1 Dockerfile defines only a Node test target for npm test", async () => {
 
 test("D1 Dockerfile does not introduce browser runtime, proxy, Compose, backend, or secret wiring", async () => {
   const dockerfile = await readFile(DOCKERFILE, "utf8");
+  const testStage = extractDockerStage(dockerfile, "test");
 
-  assert.doesNotMatch(dockerfile, /\b(EXPOSE|HEALTHCHECK)\b/);
-  assert.doesNotMatch(dockerfile, /\b(vite|next|webpack|nginx|caddy|http-server|serve)\b/i);
-  assert.doesNotMatch(dockerfile, /groupscout:8080|alertd:8081|groupscout_net/);
-  assert.doesNotMatch(dockerfile, /API_TOKEN|UI_SESSION_SECRET|DATABASE_URL|SLACK|RESEND|OPENAI|ANTHROPIC|OLLAMA/i);
+  assert.doesNotMatch(testStage, /\b(EXPOSE|HEALTHCHECK)\b/);
+  assert.doesNotMatch(testStage, /\b(vite|next|webpack|nginx|caddy|http-server|serve)\b/i);
+  assert.doesNotMatch(testStage, /groupscout:8080|alertd:8081|groupscout_net/);
+  assert.doesNotMatch(testStage, /API_TOKEN|UI_SESSION_SECRET|DATABASE_URL|SLACK|RESEND|OPENAI|ANTHROPIC|CLAUDE|OLLAMA/i);
 });
 
 test("D1 .dockerignore excludes local, dependency, VCS, log, and generated artifacts", async () => {
@@ -124,7 +128,7 @@ test("D1 documentation records test-image commands and non-runtime scope", async
   assert.match(testingDoc, /docker run --rm groupscout-ui-test/);
 });
 
-test("D2 browser runtime contract selects a lightweight Node server without adding runtime code", async () => {
+test("D2 browser runtime contract preserves the lightweight Node server shape", async () => {
   const [{ BROWSER_RUNTIME_CONTRACT }, packageJsonSource] = await Promise.all([
     import(RUNTIME_CONTRACT),
     readFile(PACKAGE_JSON, "utf8")
@@ -145,7 +149,7 @@ test("D2 browser runtime contract selects a lightweight Node server without addi
   });
   assert.equal(packageJson.scripts.start, undefined);
   assert.equal(packageJson.scripts.dev, undefined);
-  assert.equal(packageJson.scripts["start:ui"], undefined);
+  assert.equal(packageJson.scripts["start:ui"], "node web/src/server/productionServer.js");
 });
 
 test("D2 browser runtime contract keeps /api routing same-origin and token-free", async () => {
@@ -304,3 +308,155 @@ test("D3 documentation records Compose commands, constraints, and evidence", asy
   assert.match(testingDoc, /Phase 12 D3 run on 2026-05-09/);
   assert.match(troubleshootingDoc, /## UI Development Compose Fails/);
 });
+
+test("D4 production server serves assets and forwards /api/* through one origin", async () => {
+  const {
+    PRODUCTION_SERVING_CONTRACT,
+    createApiProxyRequest,
+    createProductionHealthPayload
+  } = await import(PRODUCTION_SERVER);
+
+  assert.deepEqual(PRODUCTION_SERVING_CONTRACT, {
+    phase: "D4",
+    status: "production-same-origin-serving",
+    servingModel: "node-static-assets-and-api-proxy",
+    serviceName: "groupscout-ui",
+    containerPort: 3000,
+    healthPath: "/healthz",
+    publicRoot: "web/dist",
+    indexFile: "index.html",
+    staticAssetPath: "/assets/app.js",
+    browserApiPath: "/api/*",
+    backendTarget: "http://groupscout:8080"
+  });
+
+  const [indexHtml, appJs] = await Promise.all([
+    readFile(STATIC_INDEX, "utf8"),
+    readFile(STATIC_APP, "utf8")
+  ]);
+  const proxyRequest = createApiProxyRequest({
+    requestUrl: "/api/system?scope=smoke",
+    method: "GET",
+    headers: {
+      authorization: "Bearer must-not-forward",
+      cookie: "groupscout_session=session-value",
+      host: "localhost:3000",
+      "x-api-key": "must-not-forward",
+      "x-api-token": "must-not-forward"
+    },
+    targetBaseUrl: "http://groupscout:8080"
+  });
+
+  assert.deepEqual(createProductionHealthPayload({ UI_PUBLIC_API_PATH: "/api/*" }), {
+    status: "ok",
+    phase: "D4",
+    service: "groupscout-ui",
+    api: {
+      browserPath: "/api/*",
+      sameOrigin: true
+    }
+  });
+  assert.match(indexHtml, /<script type="module" src="\/assets\/app\.js"><\/script>/);
+  assert.match(appJs, /fetchImpl\("\/api\/system"/);
+  assert.equal(proxyRequest.url.href, "http://groupscout:8080/api/system?scope=smoke");
+  assert.equal(proxyRequest.method, "GET");
+  assert.equal(proxyRequest.headers.cookie, "groupscout_session=session-value");
+  assert.equal(proxyRequest.headers.authorization, undefined);
+  assert.equal(proxyRequest.headers["x-api-key"], undefined);
+  assert.equal(proxyRequest.headers["x-api-token"], undefined);
+  assert.equal(proxyRequest.headers.host, undefined);
+});
+
+test("D4 public config and static assets reject browser-visible secrets", async () => {
+  const {
+    assertProductionPublicConfigSafe,
+    createPublicRuntimeConfig
+  } = await import(PRODUCTION_SERVER);
+  const [indexHtml, appJs] = await Promise.all([
+    readFile(STATIC_INDEX, "utf8"),
+    readFile(STATIC_APP, "utf8")
+  ]);
+  const forbiddenPublicNames = [
+    "API_TOKEN",
+    "CLAUDE_API_KEY",
+    "SLACK_BOT_TOKEN",
+    "SLACK_WEBHOOK_URL",
+    "RESEND_API_KEY",
+    "SENDGRID_API_KEY",
+    "DATABASE_URL",
+    "POSTGRES_URL",
+    "TEST_POSTGRES_URL",
+    "OPENAI_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "OLLAMA_BASE_URL",
+    "UI_SESSION_SECRET"
+  ];
+
+  assert.deepEqual(createPublicRuntimeConfig({ UI_PUBLIC_API_PATH: "/api/*" }), {
+    apiPath: "/api/*"
+  });
+  assert.doesNotThrow(() => assertProductionPublicConfigSafe({ apiPath: "/api/*" }));
+
+  for (const name of forbiddenPublicNames) {
+    assert.throws(
+      () => assertProductionPublicConfigSafe({ publicEnv: { [name]: "secret" } }),
+      new RegExp(name)
+    );
+    assert.doesNotMatch(indexHtml, new RegExp(name));
+    assert.doesNotMatch(appJs, new RegExp(name));
+  }
+
+  assert.throws(
+    () => createPublicRuntimeConfig({ UI_PUBLIC_API_PATH: "http://groupscout:8080/api" }),
+    /same-origin/
+  );
+});
+
+test("D4 Dockerfile adds a production target without baking production secrets", async () => {
+  const [dockerfile, packageJsonSource] = await Promise.all([
+    readFile(DOCKERFILE, "utf8"),
+    readFile(PACKAGE_JSON, "utf8")
+  ]);
+  const packageJson = JSON.parse(packageJsonSource);
+  const productionStage = extractDockerStage(dockerfile, "production");
+
+  assert.equal(packageJson.scripts["start:ui"], "node web/src/server/productionServer.js");
+  assert.match(productionStage, /^FROM test AS production/m);
+  assert.match(productionStage, /^ENV NODE_ENV=production/m);
+  assert.match(productionStage, /^EXPOSE 3000/m);
+  assert.match(productionStage, /^HEALTHCHECK /m);
+  assert.match(productionStage, /^CMD \["npm", "run", "start:ui"\]$/m);
+  assert.doesNotMatch(productionStage, /API_TOKEN|DATABASE_URL|POSTGRES_URL|SLACK|RESEND|SENDGRID|OPENAI|ANTHROPIC|CLAUDE|OLLAMA|UI_SESSION_SECRET/i);
+});
+
+test("D4 documentation records production same-origin commands, smoke checks, and evidence", async () => {
+  const [contract, phaseDoc, developerGuide, testingDoc, troubleshootingDoc] = await Promise.all([
+    readFile(CONTRACT_DOC, "utf8"),
+    readFile(PHASE_DOC, "utf8"),
+    readFile(DEVELOPER_GUIDE, "utf8"),
+    readFile(TESTING_DOC, "utf8"),
+    readFile(TROUBLESHOOTING_DOC, "utf8")
+  ]);
+
+  assert.match(contract, /D4 status: production same-origin serving/i);
+  assert.match(contract, /Serving model: `node-static-assets-and-api-proxy`/);
+  assert.match(contract, /Production Docker target: `production`/);
+  assert.match(contract, /docker build --target production -t groupscout-ui-production \./);
+  assert.match(phaseDoc, /#### D4 Evidence/);
+  assert.match(phaseDoc, /Smoke health: `GET \/healthz`/);
+  assert.match(phaseDoc, /Smoke root: `GET \/`/);
+  assert.match(phaseDoc, /Smoke static asset: `GET \/assets\/app\.js`/);
+  assert.match(phaseDoc, /Smoke API proxy: `GET \/api\/system`/);
+  assert.match(developerGuide, /Production same-origin server: `npm run start:ui`/);
+  assert.match(testingDoc, /Phase 12 D4 run on 2026-05-09/);
+  assert.match(troubleshootingDoc, /## Production UI Runtime Fails/);
+});
+
+function extractDockerStage(dockerfile, stageName) {
+  const stagePattern = new RegExp(`^FROM .+ AS ${stageName}\\n[\\s\\S]*?(?=^FROM .+ AS |(?![\\s\\S]))`, "m");
+  const match = dockerfile.match(stagePattern);
+
+  assert.ok(match, `Expected Dockerfile stage ${stageName}`);
+
+  return match[0];
+}
