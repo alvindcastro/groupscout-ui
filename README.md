@@ -36,7 +36,7 @@ Phase 0 establishes the product contract and test harness for the GroupScout ope
 - Phase 10 tests cover read-only alert state rendering, SPS summaries, evidence, room inventory, action history, disabled mutation actions, `/alerts` route mounting, responsive metadata, token usage, and `GET /api/alerts`.
 - Phase 11 tests cover the Today command center, priority lead and aging-work summaries, active alerts, failed jobs, system health, read-only action policy, `/` route mounting, responsive metadata, token usage, and `GET /api/system`.
 - Smell Phase H1 split the growing browser API client module while preserving `createApiClient(...)` and the centralized same-origin `/api/*` guard.
-- Phase 12 dockerization planning lives in `docs/phase-12-ui-dockerization.md`; no UI Docker files exist yet.
+- Phase 12 dockerization planning lives in `docs/phase-12-ui-dockerization.md`; the D0 contract lives in `docs/ui-dockerization-contract.md`; no UI Docker files exist yet.
 - Tests use Node's built-in `node:test` runner so the harness has no package-install requirement yet.
 
 ## Test Command
@@ -69,6 +69,7 @@ npm test
 - [Phase 10 Later Alertd Read-Only Console](./docs/phase-10-later-alertd-read-only-console.md)
 - [Phase 11 Today Command Center And System Health Summary](./docs/phase-11-today-command-center-system-health.md)
 - [Phase 12 UI Dockerization Prompt Pack](./docs/phase-12-ui-dockerization.md)
+- [UI Dockerization Contract](./docs/ui-dockerization-contract.md)
 
 ## Phase 0 Guardrails
 

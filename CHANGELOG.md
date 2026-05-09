@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 12 D0 - Dockerization Contract And Decision Record
+
+- What: Added the documentation-only D0 Dockerization contract and a focused guardrail test that makes the contract testable before Docker files exist.
+- Where: Added `docs/ui-dockerization-contract.md` and `test/dockerization-contract.test.js`; updated `docs/phase-12-ui-dockerization.md`, `UI_TDD_PHASE_PROMPTS.md`, `README.md`, `docs/developer-guide.md`, and `docs/testing.md`.
+- When: Completed on 2026-05-09 as the first implementation task in the Phase 12 UI dockerization sequence.
+- Why: Future Docker work needs an explicit path, backend service contract, and browser security boundary before adding images, Compose, proxies, or runtimes.
+- How: Followed D0 strict TDD with a red `node --test test/dockerization-contract.test.js` run, documented the test-image-first decision, backend internal URLs, same-origin `/api/*` rule, and no-`API_TOKEN` browser constraint, then reran the focused test and full `npm test`.
+
 ### Phase 12 - UI Dockerization Planning
 
 - Added a planning-only strict-TDD prompt pack for future UI dockerization in `docs/phase-12-ui-dockerization.md`.

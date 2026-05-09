@@ -22,13 +22,15 @@ Smell H0 baseline run on 2026-05-09: focused API-client characterization passed 
 
 Smell H1 split run on 2026-05-09: focused API-client split coverage passed 9 test files, and `npm test` passed all 22 test files.
 
+Phase 12 D0 run on 2026-05-09: `node --test test/dockerization-contract.test.js` covered the documentation-only Dockerization contract before any Docker files were added, and `npm test` passed all 23 test files.
+
 Optional design-doc lint. This is not an npm script and may use the network through `npx`:
 
 ```sh
 npx @google/design.md lint DESIGN.md
 ```
 
-UI Dockerization is planning-only today. See [Phase 12 UI Dockerization Prompt Pack](./phase-12-ui-dockerization.md) for the future strict-TDD sequence before adding Dockerfile, Compose, proxy, or browser runtime behavior.
+UI Dockerization is planning-only today. See [Phase 12 UI Dockerization Prompt Pack](./phase-12-ui-dockerization.md) and [UI Dockerization Contract](./ui-dockerization-contract.md) for the future strict-TDD sequence before adding Dockerfile, Compose, proxy, or browser runtime behavior.
 
 ## Focused UI Tests
 
@@ -55,6 +57,7 @@ node --test test/alert-client.test.js
 node --test test/alert-console.test.js
 node --test test/system-client.test.js
 node --test test/today-command-center.test.js
+node --test test/dockerization-contract.test.js
 ```
 
 API-client focused run for smell phases:

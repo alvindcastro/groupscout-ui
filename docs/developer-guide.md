@@ -62,6 +62,7 @@ node --test test/alert-console.test.js
 node --test test/system-client.test.js
 node --test test/today-command-center.test.js
 node --test test/session-deployment.test.js
+node --test test/dockerization-contract.test.js
 ```
 
 API-client smell-phase baseline:
@@ -141,7 +142,7 @@ The H0 baseline is [smell-h0-api-client-characterization.md](./smell-h0-api-clie
 
 ## Dockerization Planning
 
-Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for future UI Docker work. The current repo has no Dockerfile, Compose file, browser runtime, dev server, framework, lockfile, or static build target yet, so the first Docker phase is a strict-TDD contract and test-container plan rather than runtime implementation.
+Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phased prompt pack and [UI Dockerization Contract](./ui-dockerization-contract.md) for the D0 decision record. The current repo has no Dockerfile, Compose file, browser runtime, dev server, framework, lockfile, or static build target yet, so the first Docker implementation phase remains a strict-TDD test-container plan rather than runtime implementation.
 
 ## Current Limitations
 

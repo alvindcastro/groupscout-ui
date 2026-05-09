@@ -625,7 +625,7 @@ Do not build Settings, custom dashboards, system mutations, alert mutations, pip
 
 ## Phase 12 - UI Dockerization
 
-> Planning status: not implemented. The detailed prompt pack lives in `docs/phase-12-ui-dockerization.md`.
+> Planning status: D0 contract documented. The detailed prompt pack lives in `docs/phase-12-ui-dockerization.md`, and the D0 decision record lives in `docs/ui-dockerization-contract.md`.
 
 ### Prompt
 
@@ -655,7 +655,7 @@ Do not add Dockerfile, Compose, nginx/proxy config, browser framework, dev serve
 
 ### Phase Tasks
 
-- [ ] D0 - Dockerization Contract And Decision Record
+- [x] D0 - Dockerization Contract And Decision Record
 - [ ] D1 - UI Test Container
 - [ ] D2 - Browser Runtime Contract
 - [ ] D3 - Development Compose Integration
@@ -673,7 +673,8 @@ Do not add Dockerfile, Compose, nginx/proxy config, browser framework, dev serve
 
 ### Implementation Notes
 
-- Current pass created the planning prompt pack only.
+- Current pass created the D0 documentation-only contract and guardrail test only.
+- D0 evidence: `node --test test/dockerization-contract.test.js` failed before `docs/ui-dockerization-contract.md` and its links existed, then passed after the contract and Markdown references were added.
 - Do not mark Phase 12 complete until Docker files or runtime code are added through strict TDD and verified.
 - Backend constraints inspected: `/mnt/c/Users/alvin/GolandProjects/groupscout/Dockerfile`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/guides/DOCKER.md`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/guides/TESTING.md`, and `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/API_CONFIG.md`.
 

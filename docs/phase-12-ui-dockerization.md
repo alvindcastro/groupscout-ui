@@ -17,6 +17,7 @@ Planning artifact only. Do not implement Docker, Compose, proxy, framework, runt
 - `README.md`
 - `docs/developer-guide.md`
 - `docs/testing.md`
+- `docs/ui-dockerization-contract.md`
 
 ## Current Findings
 
@@ -54,6 +55,8 @@ Preferred end state:
 
 ## Phase D0 - Dockerization Contract And Decision Record
 
+Canonical D0 output: [UI Dockerization Contract](./ui-dockerization-contract.md).
+
 ### Prompt
 
 ```text
@@ -79,17 +82,25 @@ Do not create Dockerfile, Compose, nginx, dev-server, or app-renderer code in th
 
 ### Tasks
 
-- [ ] Capture the chosen dockerization path: test image first, browser runtime later.
-- [ ] Document backend service names, ports, and internal URLs.
-- [ ] Document same-origin `/api/*` and no-`API_TOKEN` browser constraints.
-- [ ] Add a testable guardrail for Docker docs if the repo has a docs test pattern.
-- [ ] Record red and green evidence.
+- [x] Capture the chosen dockerization path: test image first, browser runtime later.
+- [x] Document backend service names, ports, and internal URLs.
+- [x] Document same-origin `/api/*` and no-`API_TOKEN` browser constraints.
+- [x] Add a testable guardrail for Docker docs if the repo has a docs test pattern.
+- [x] Record red and green evidence.
 
 ### Acceptance Criteria
 
-- [ ] Future Docker work has a written contract.
-- [ ] Security boundaries are explicit before any image or Compose file exists.
-- [ ] The current pass remains documentation-only.
+- [x] Future Docker work has a written contract.
+- [x] Security boundaries are explicit before any image or Compose file exists.
+- [x] The current pass remains documentation-only.
+
+### Implementation Notes
+
+- The D0 guardrail test lives in `test/dockerization-contract.test.js`.
+- Red run: `node --test test/dockerization-contract.test.js` failed because the contract file and documentation links were not present.
+- Green run: `node --test test/dockerization-contract.test.js`.
+- Full-suite run: `npm test`.
+- D0 did not add `Dockerfile`, `.dockerignore`, Compose, proxy, dev-server, renderer, or application runtime files.
 
 ## Phase D1 - UI Test Container
 
