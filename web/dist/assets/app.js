@@ -20,8 +20,8 @@ async function renderCurrentRoute() {
 
 function loadRendererModules() {
   rendererModulesPromise ??= Promise.all([
-    import("/src/renderer/domRenderer.js?v=admin-login-1"),
-    import("/src/renderer/pipelineRuntime.js?v=admin-login-1")
+    import("/src/renderer/domRenderer.js?v=admin-login-2"),
+    import("/src/renderer/pipelineRuntime.js?v=admin-login-2")
   ]).then(([domRenderer, pipelineRuntime]) => ({
     mountRoute: domRenderer.mountRoute,
     attachPipelineMonitor: pipelineRuntime.attachPipelineMonitor
@@ -157,7 +157,7 @@ function redirectToLogin() {
 }
 
 function loadApiClient() {
-  apiClientPromise ??= import("/src/api/client.js?v=admin-login-1").then(({ createApiClient }) => createApiClient());
+  apiClientPromise ??= import("/src/api/client.js?v=admin-login-2").then(({ createApiClient }) => createApiClient());
 
   return apiClientPromise;
 }

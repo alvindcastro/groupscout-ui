@@ -382,8 +382,8 @@ test("D4 production server serves assets and forwards /api/* through one origin"
       sameOrigin: true
     }
   });
-  assert.match(indexHtml, /<link rel="stylesheet" href="\/assets\/styles\.css\?v=admin-login-1">/);
-  assert.match(indexHtml, /<script type="module" src="\/assets\/app\.js\?v=admin-login-1"><\/script>/);
+  assert.match(indexHtml, /<link rel="stylesheet" href="\/assets\/styles\.css\?v=admin-login-2">/);
+  assert.match(indexHtml, /<script type="module" src="\/assets\/app\.js\?v=admin-login-2"><\/script>/);
   assert.match(appJs, /fetchImpl\("\/api\/system"/);
   assert.equal(proxyRequest.url.href, "http://groupscout:8080/api/system?scope=smoke");
   assert.equal(proxyRequest.method, "GET");

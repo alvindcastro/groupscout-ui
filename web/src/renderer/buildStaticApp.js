@@ -17,11 +17,11 @@ const INDEX_HTML = `<!doctype html>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>GroupScout</title>
-    <link rel="stylesheet" href="/assets/styles.css?v=admin-login-1">
+    <link rel="stylesheet" href="/assets/styles.css?v=admin-login-2">
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/assets/app.js?v=admin-login-1"></script>
+    <script type="module" src="/assets/app.js?v=admin-login-2"></script>
   </body>
 </html>
 `;
