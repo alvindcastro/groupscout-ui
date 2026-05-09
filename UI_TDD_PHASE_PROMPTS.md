@@ -688,6 +688,60 @@ Do not add Dockerfile, Compose, nginx/proxy config, browser framework, dev serve
 - Do not add future framework, renderer, dev-server, or broader product runtime code without strict TDD and focused verification.
 - Backend constraints inspected: `/mnt/c/Users/alvin/GolandProjects/groupscout/Dockerfile`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docker-compose.yml`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/guides/DOCKER.md`, `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/guides/TESTING.md`, and `/mnt/c/Users/alvin/GolandProjects/groupscout/docs/API_CONFIG.md`.
 
+## Phase 13 - Product Renderer Runtime
+
+> Status: brainstorm and prompt pack documented only. No renderer, framework, package install step, lockfile, dev server, Dockerfile change, Compose change, browser test harness, or production UI code is implemented by this planning pass. The brainstorm lives in `docs/phase-13-product-renderer-runtime.md`; detailed prompts and tickable tasks live in `docs/phase-13-product-renderer-runtime-prompts.md`.
+
+### Prompt
+
+```text
+Strictly follow TDD. Do not skip the red step.
+
+Goal: introduce the next product renderer/runtime only after tests prove the contract, browser behavior, asset safety, and Docker impact.
+
+Context:
+- The UI repo is currently model-level JavaScript tested with node:test.
+- D1 runs npm test in a container.
+- D3 compose.dev.yml is a backend-network health harness, not a product dev server.
+- D4 serves web/dist and proxies /api/* server-side from one origin.
+- The backend Docker stack lives in /mnt/c/Users/alvin/GolandProjects/groupscout and provides service groupscout on groupscout_net.
+- Browser-facing code must keep relative /api/* calls and must not expose API_TOKEN or other server secrets.
+
+TDD requirements:
+1. Start with a renderer/runtime contract test or docs guardrail before adding dependencies.
+2. Add browser/component harness support only after failing tests prove model-level tests are insufficient.
+3. Mount existing screen models in a renderer before introducing live backend behavior.
+4. Prove generated static assets are secret-free before serving them from D4.
+5. Change Compose only after a real product dev server exists and failing Compose tests describe the new behavior.
+6. Treat live backend 404/schema drift separately from Docker/proxy failures.
+
+Do not implement renderer code, dependencies, Docker changes, Compose changes, or backend route fixes in a planning-only pass.
+```
+
+### Phase Tasks
+
+- [ ] 13-A - Renderer Runtime Contract
+- [ ] 13-B - Browser And Component Test Harness Decision
+- [ ] 13-C - Minimal Renderer Mount
+- [ ] 13-D - Static Build And Asset Safety
+- [ ] 13-E - Product Dev Server And Compose
+- [ ] 13-F - Live Backend Compatibility Smoke
+
+### Acceptance Criteria
+
+- [ ] The chosen renderer/runtime contract is test-covered before dependencies are added.
+- [ ] Browser tests cover DOM, focus, accessibility, responsive layout, and same-origin API behavior that model tests cannot prove.
+- [ ] Existing screen models remain the product behavior source until live data wiring is explicitly introduced.
+- [ ] D4 remains the production same-origin static/proxy boundary unless a later tested contract replaces it.
+- [ ] D3 Compose semantics are not changed until a product dev server exists.
+- [ ] Backend route drift is documented as backend/API compatibility work, not misclassified as UI Docker failure.
+
+### Planning Notes
+
+- Current backend findings: `groupscout` listens on `8080`, `alertd` on `8081`, Grafana on host `3000`, and shared service discovery uses `groupscout_net`.
+- Current UI findings: this working tree has only `.idea/*` line-ending changes; no product UI source changes are pending.
+- Recommended next read-only subagent split is renderer fit, Docker runtime impact, browser test strategy, and backend compatibility.
+
 ## Open Decisions To Resolve Before Coding
 
 - [ ] Is verification a lead status or a separate source-review status?
@@ -717,6 +771,7 @@ Do not add Dockerfile, Compose, nginx/proxy config, browser framework, dev serve
 - [x] Phase 10 - Later Alertd Read-Only Console
 - [x] Phase 11 - Today Command Center And System Health Summary
 - [x] Phase 12 - UI Dockerization
+- [ ] Phase 13 - Product Renderer Runtime
 
 ## Related Refactor Prompt Pack
 

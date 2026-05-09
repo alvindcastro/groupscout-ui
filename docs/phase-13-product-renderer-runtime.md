@@ -2,6 +2,8 @@
 
 This is a docs-only brainstorm for the next UI runtime step after Phase 12 D0-D5. No product renderer, framework, package install step, lockfile, dev server, Dockerfile change, Compose change, or browser test harness is implemented here.
 
+Detailed copy-paste prompts and tickable future tasks live in [Phase 13 Product Renderer Runtime Prompt Pack](./phase-13-product-renderer-runtime-prompts.md).
+
 ## Current Baseline
 
 - The repo is still primarily a model-level plain JavaScript UI workspace tested with Node's built-in `node:test`.
@@ -76,6 +78,15 @@ Watchouts:
 - The production smoke path still covers `GET /healthz`, `GET /`, `GET /assets/app.js`, and one same-origin `/api/*` request when a backend or stub is reachable.
 - Documentation states whether `compose.dev.yml` still runs the D3 health harness or a real product dev server.
 - README, developer guide, testing docs, troubleshooting docs, and changelog are updated when behavior changes.
+
+## Prompt Pack Summary
+
+- Phase 13-A: renderer/runtime contract before dependencies.
+- Phase 13-B: browser and component test harness decision.
+- Phase 13-C: minimal renderer mount for existing screen models.
+- Phase 13-D: static build and public asset safety.
+- Phase 13-E: product dev server and Compose behavior.
+- Phase 13-F: live backend compatibility smoke.
 
 ## Suggested Parallel Agent Prompts
 

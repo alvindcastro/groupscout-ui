@@ -222,7 +222,7 @@ Use [phase-12-ui-dockerization.md](./phase-12-ui-dockerization.md) for the phase
 
 Runtime model: `lightweight-node-server`. D4 implements `npm run start:ui`, container port `3000`, health path `/healthz`, server-owned assets under `web/dist`, and server-side `/api/*` routing to `http://groupscout:8080` by default. Framework selection and the product UI renderer are still not implemented.
 
-The next planning surface is [Phase 13 Product Renderer Runtime Brainstorm](./phase-13-product-renderer-runtime.md). It treats renderer/framework choice, development-server behavior, browser-level tests, and Docker smoke coverage as one decision set so the D0-D5 Docker contract remains stable.
+The next planning surface is [Phase 13 Product Renderer Runtime Brainstorm](./phase-13-product-renderer-runtime.md), with implementation-ready future prompts in [Phase 13 Product Renderer Runtime Prompt Pack](./phase-13-product-renderer-runtime-prompts.md). It treats renderer/framework choice, development-server behavior, browser-level tests, and Docker smoke coverage as one decision set so the D0-D5 Docker contract remains stable.
 
 Development Compose override: `compose.dev.yml`. Use it beside the backend Compose file so the UI service joins the backend `groupscout_net` network and can target backend service `groupscout` at `http://groupscout:8080`:
 

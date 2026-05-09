@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Docs - Phase 13 Renderer Runtime Prompt Pack
+
+- What: Added a docs-only Phase 13 prompt pack with strict-TDD copy-paste prompts, parallel agent prompts, tickable phase tasks, backend Docker findings, UI working-tree findings, and explicit non-goals for future renderer/runtime work.
+- Where: Added `docs/phase-13-product-renderer-runtime-prompts.md`; updated `docs/phase-13-product-renderer-runtime.md`, `UI_TDD_PHASE_PROMPTS.md`, `README.md`, and `docs/developer-guide.md`.
+- When: Documented on 2026-05-09 after inspecting sibling backend Markdown/Docker files and current UI working-tree changes.
+- Why: Future product renderer, browser test harness, static build, Compose, and live backend compatibility work needs phase-scoped prompts before any code, dependency, or Docker changes.
+- How: Kept the pass documentation-only, preserved D1-D5 Docker boundaries, required red-first tests for every future implementation phase, and noted that current UI working-tree changes are limited to `.idea/*` line-ending churn.
+
 ### Docs - Backend Plus Frontend Docker E2E
 
 - What: Clarified the current docs-only backend plus frontend Docker smoke path, including stable Compose project naming for the backend network and the distinction between D3 health harness and D4 static/proxy runtime.

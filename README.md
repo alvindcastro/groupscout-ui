@@ -121,6 +121,7 @@ The default development UI host port is `3001` because the backend stack publish
 - [UI Dockerization Contract](./docs/ui-dockerization-contract.md)
 - [Docker Runtime Matrix](./docs/docker-runtime-matrix.md)
 - [Phase 13 Product Renderer Runtime Brainstorm](./docs/phase-13-product-renderer-runtime.md)
+- [Phase 13 Product Renderer Runtime Prompt Pack](./docs/phase-13-product-renderer-runtime-prompts.md)
 
 ## Phase 0 Guardrails
 
