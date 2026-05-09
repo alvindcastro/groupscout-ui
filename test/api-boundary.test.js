@@ -24,6 +24,8 @@ test("API client module keeps the public entry point and constants stable for ad
     [
       "getLeadRawAudit",
       "getLead",
+      "getAuthStatus",
+      "getCurrentAdmin",
       "getStats",
       "getSystem",
       "listAlerts",
@@ -31,6 +33,7 @@ test("API client module keeps the public entry point and constants stable for ad
       "listLeads",
       "listPipelineRuns",
       "logLeadOutreach",
+      "loginWithSetupToken",
       "patchLead",
       "request",
       "startPipelineRun"
@@ -46,6 +49,7 @@ test("API client split keeps feature adapters focused behind the facade", async 
     entries.filter((entry) => entry.endsWith(".js")).sort(),
     [
       "alerts.js",
+      "auth.js",
       "client.js",
       "leads.js",
       "outreach.js",

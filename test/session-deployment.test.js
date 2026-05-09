@@ -73,6 +73,51 @@ test("UI API requests require a valid operator session cookie", () => {
   );
 });
 
+test("UI auth endpoints reach the backend before a session exists", () => {
+  const config = createUiDeploymentConfig({
+    UI_ENABLED: "true",
+    UI_SESSION_SECRET: "0123456789abcdef0123456789abcdef"
+  });
+
+  assert.deepEqual(
+    authorizeUiApiRequest({ pathname: "/api/auth/status", headers: {} }, { config, sessions: new Set() }),
+    { allowed: true, reason: "public-auth-endpoint" }
+  );
+
+  assert.deepEqual(
+    authorizeUiApiRequest({ pathname: "/api/auth/login", headers: {} }, { config, sessions: new Set() }),
+    { allowed: true, reason: "public-auth-endpoint" }
+  );
+
+  assert.deepEqual(
+    authorizeUiApiRequest({ pathname: "/api/auth/me", headers: {} }, { config, sessions: new Set() }),
+    {
+      allowed: false,
+      status: 401,
+      reason: "missing-session",
+      headers: { "www-authenticate": "GroupScoutSession" }
+    }
+  );
+});
+
+test("UI proxy can forward backend-owned admin session cookies", () => {
+  const config = createUiDeploymentConfig({
+    UI_ENABLED: "true",
+    UI_SESSION_SECRET: "0123456789abcdef0123456789abcdef"
+  });
+
+  assert.deepEqual(
+    authorizeUiApiRequest(
+      {
+        pathname: "/api/leads",
+        headers: { cookie: `${SESSION_COOKIE_NAME}=backend-session-token` }
+      },
+      { config }
+    ),
+    { allowed: true, reason: "session-forwarded" }
+  );
+});
+
 test("UI API requests allow backend Docker smoke when session auth is not configured", () => {
   const config = createUiDeploymentConfig({
     UI_ENABLED: "true"
@@ -206,6 +251,37 @@ test("production request handler gates /api proxying behind the UI session contr
   assert.deepEqual(JSON.parse(valid.body), {
     path: "/api/system?scope=smoke",
     cookie: `${SESSION_COOKIE_NAME}=valid-session`
+  });
+});
+
+test("production request handler forwards admin login before session gating", async () => {
+  const handler = createProductionRequestHandler({
+    env: {
+      UI_ENABLED: "true",
+      UI_SESSION_SECRET: "0123456789abcdef0123456789abcdef",
+      UI_API_PROXY_TARGET: "http://backend.example.test"
+    },
+    fetchImpl: async (url, init) =>
+      Response.json(
+        {
+          path: new URL(url).pathname,
+          method: init.method
+        },
+        {
+          headers: {
+            "set-cookie": `${SESSION_COOKIE_NAME}=backend-session-token; Path=/; HttpOnly`
+          }
+        }
+      )
+  });
+
+  const login = await dispatchProductionRequest(handler, { url: "/api/auth/login", method: "POST" });
+
+  assert.equal(login.statusCode, 200);
+  assert.equal(login.headers["set-cookie"], `${SESSION_COOKIE_NAME}=backend-session-token; Path=/; HttpOnly`);
+  assert.deepEqual(JSON.parse(login.body), {
+    path: "/api/auth/login",
+    method: "POST"
   });
 });
 

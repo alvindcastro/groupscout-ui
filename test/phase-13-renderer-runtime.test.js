@@ -97,6 +97,7 @@ test("13-C renderer mounts Today, Lead Inbox, and Lead Detail from existing scre
   const leads = renderRouteToHtml("/leads");
   const detail = renderRouteToHtml("/leads/lead_hotel_001");
   const pipeline = renderRouteToHtml("/pipeline");
+  const login = renderRouteToHtml("/admin/login");
   const loading = renderRouteToHtml("/leads", { screenState: "loading" });
   const empty = renderRouteToHtml("/leads", { leads: [] });
   const error = renderRouteToHtml("/leads", { screenState: "error", errorMessage: "API unavailable" });
@@ -117,6 +118,8 @@ test("13-C renderer mounts Today, Lead Inbox, and Lead Detail from existing scre
   assert.match(pipeline.html, /id="pipeline-run-feedback"/);
   assert.match(pipeline.html, /id="pipeline-output"/);
   assert.match(pipeline.html, /Slack output preview/);
+  assert.match(login.html, /data-admin-login-form/);
+  assert.match(login.html, /aria-label="Setup token"/);
   assert.match(loading.html, /role="status"[^>]*>Loading leads for review\./);
   assert.match(empty.html, /No leads available/);
   assert.match(error.html, /role="alert"[^>]*>API unavailable/);

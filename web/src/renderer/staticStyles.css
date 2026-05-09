@@ -1391,6 +1391,37 @@ section[data-layout] > label {
   width: min(360px, 100%);
 }
 
+.admin-login {
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+}
+
+.admin-login form {
+  width: min(100%, 360px);
+  display: grid;
+  gap: 16px;
+}
+
+.admin-login h1 {
+  margin: 0;
+}
+
+.admin-login label {
+  display: grid;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.admin-login input {
+  min-height: 42px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0 12px;
+  font: inherit;
+}
+
 button:hover,
 .app-shell > main a:hover {
   transform: translateY(-1px);

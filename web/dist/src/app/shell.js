@@ -1,4 +1,5 @@
 import { createAnalyticsDashboardScreen } from "./analyticsDashboard.js";
+import { createAdminLoginScreen } from "./adminLogin.js";
 import { createAlertdConsoleScreen } from "./alertdConsole.js";
 import { createLeadDetailScreen } from "./leadDetail.js";
 import { createLeadInboxScreen } from "./leadInbox.js";
@@ -49,6 +50,10 @@ export function createMountedRouteShell(pathname = "/", { basePath = "/", viewpo
 }
 
 function findActiveRoute(pathname) {
+  if (pathname === "/admin/login") {
+    return { label: "Admin Login", path: "/admin/login", hidden: true };
+  }
+
   if (pathname.startsWith("/leads/")) {
     return appNavigation.find((route) => route.path === "/leads");
   }
@@ -57,6 +62,10 @@ function findActiveRoute(pathname) {
 }
 
 function createRouteContent(pathname, activeRoute, { viewport = "desktop" } = {}) {
+  if (pathname === "/admin/login") {
+    return createAdminLoginScreen();
+  }
+
   if (pathname.startsWith("/leads/")) {
     return createLeadDetailScreen({ leadId: pathname.slice("/leads/".length), viewport });
   }

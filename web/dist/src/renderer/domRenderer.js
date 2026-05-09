@@ -152,6 +152,10 @@ function renderState(screen) {
     return renderVerificationQueue(screen);
   }
 
+  if (screen.kind === "admin-login-screen") {
+    return renderAdminLogin(screen);
+  }
+
   return renderGenericScreen(screen);
 }
 
@@ -619,6 +623,21 @@ function renderGenericScreen(screen) {
     ...renderGenericActions(screen),
     renderStatusFallback(screen),
     "</section>"
+  ].join("");
+}
+
+function renderAdminLogin(screen) {
+  const field = screen.form.fields[0];
+
+  return [
+    `<section class="admin-login" data-layout="${escapeHtml(screen.layout.mode)}">`,
+    `<form data-admin-login-form action="${escapeHtml(screen.form.action)}" method="${escapeHtml(screen.form.method)}">`,
+    `<h1>${escapeHtml(screen.heading)}</h1>`,
+    `<label>${escapeHtml(field.label)}<input required type="password" name="${escapeHtml(field.name)}" aria-label="${escapeHtml(field.ariaLabel)}" inputmode="${escapeHtml(field.inputMode)}" autocomplete="${escapeHtml(field.autocomplete)}"></label>`,
+    `<button type="submit">${escapeHtml(screen.form.submitLabel)}</button>`,
+    `<p id="admin-login-feedback" data-admin-login-feedback role="status" aria-live="polite"></p>`,
+    `</form>`,
+    `</section>`
   ].join("");
 }
 

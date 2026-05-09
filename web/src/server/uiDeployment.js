@@ -82,6 +82,10 @@ export function authorizeUiApiRequest(request, { config, sessions } = {}) {
     return { allowed: true, reason: "outside-api-boundary" };
   }
 
+  if (isPublicAuthEndpoint(request.pathname)) {
+    return { allowed: true, reason: "public-auth-endpoint" };
+  }
+
   if (!config?.enabled) {
     return {
       allowed: false,
@@ -108,11 +112,19 @@ export function authorizeUiApiRequest(request, { config, sessions } = {}) {
     return unauthorized("missing-session");
   }
 
+  if (!sessions) {
+    return { allowed: true, reason: "session-forwarded" };
+  }
+
   if (!hasSession(sessions, sessionId)) {
     return unauthorized("invalid-session");
   }
 
   return { allowed: true, reason: "session-valid" };
+}
+
+function isPublicAuthEndpoint(pathname) {
+  return pathname === "/api/auth/status" || pathname === "/api/auth/login";
 }
 
 function parseEnabled(value) {

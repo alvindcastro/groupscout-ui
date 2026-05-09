@@ -2,6 +2,7 @@ const root = typeof document === "undefined" ? undefined : document.querySelecto
 const workspaceLabel = "GroupScout operator workspace";
 const STATIC_ROUTE_PREFIXES = Object.freeze(["/api/", "/assets/", "/src/"]);
 let rendererModulesPromise;
+let apiClientPromise;
 
 root?.setAttribute("aria-label", workspaceLabel);
 
@@ -39,8 +40,55 @@ if (typeof document !== "undefined" && typeof window !== "undefined") {
     renderCurrentRoute();
   });
 
+  document.addEventListener("submit", async (event) => {
+    const form = event.target.closest("form[data-admin-login-form]");
+
+    if (!form) {
+      return;
+    }
+
+    event.preventDefault();
+    await submitAdminLogin(form);
+  });
+
   window.addEventListener("popstate", renderCurrentRoute);
   renderCurrentRoute();
+}
+
+async function submitAdminLogin(form) {
+  const feedback = form.querySelector("[data-admin-login-feedback]");
+  const submit = form.querySelector('button[type="submit"]');
+  const token = new FormData(form).get("token");
+
+  setLoginFeedback(feedback, "Checking token.");
+  if (submit) {
+    submit.disabled = true;
+  }
+
+  try {
+    const apiClient = await loadApiClient();
+    await apiClient.loginWithSetupToken({ token: String(token ?? "") });
+    window.history.pushState({}, "", "/");
+    await renderCurrentRoute();
+  } catch {
+    setLoginFeedback(feedback, "Token rejected.");
+  } finally {
+    if (submit) {
+      submit.disabled = false;
+    }
+  }
+}
+
+function loadApiClient() {
+  apiClientPromise ??= import("/src/api/client.js?v=pipeline-output-4").then(({ createApiClient }) => createApiClient());
+
+  return apiClientPromise;
+}
+
+function setLoginFeedback(feedback, message) {
+  if (feedback) {
+    feedback.textContent = message;
+  }
 }
 
 export function shouldInterceptAppNavigation(event, anchor, location = globalThis.window?.location) {
