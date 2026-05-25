@@ -25,3 +25,59 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+
+  groupscout-ui-production:
+    profiles:
+      - smoke-ui-e2e
+    build:
+      context: ${GROUPSCOUT_UI_REPO:-/mnt/c/Users/alvin/WebstormProjects/groupscout-ui}
+      dockerfile: Dockerfile
+      target: production
+    image: groupscout-ui-production
+    environment:
+      NODE_ENV: "production"
+      UI_API_PROXY_TARGET: "http://groupscout:8080"
+      UI_PUBLIC_API_PATH: "/api/*"
+      UI_HEALTH_PATH: "/healthz"
+      UI_PORT: "3000"
+    ports:
+      - "${GROUPSCOUT_UI_PRODUCTION_HOST_PORT:-3002}:3000"
+    networks:
+      - groupscout_net
+    depends_on:
+      groupscout:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/healthz').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  groupscout-ui-production-bad-proxy:
+    profiles:
+      - smoke-ui-e2e
+    build:
+      context: ${GROUPSCOUT_UI_REPO:-/mnt/c/Users/alvin/WebstormProjects/groupscout-ui}
+      dockerfile: Dockerfile
+      target: production
+    image: groupscout-ui-production
+    environment:
+      NODE_ENV: "production"
+      UI_API_PROXY_TARGET: "http://groupscout-bad-proxy-target:8080"
+      UI_PUBLIC_API_PATH: "/api/*"
+      UI_HEALTH_PATH: "/healthz"
+      UI_PORT: "3000"
+    ports:
+      - "${GROUPSCOUT_UI_BAD_PROXY_HOST_PORT:-3003}:3000"
+    networks:
+      - groupscout_net
+    depends_on:
+      groupscout:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/healthz').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s

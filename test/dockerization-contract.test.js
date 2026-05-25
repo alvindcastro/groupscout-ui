@@ -237,6 +237,24 @@ test("D3 Compose override wires the UI service to the backend network without se
   assert.doesNotMatch(compose, /API_TOKEN|DATABASE_URL|SLACK|RESEND|OPENAI|ANTHROPIC|CLAUDE|OLLAMA|UI_SESSION_SECRET/i);
 });
 
+test("D4 production Compose profile wires static UI runtime without secrets", async () => {
+  const compose = await readFile(COMPOSE_DEV, "utf8");
+
+  assert.match(compose, /^  groupscout-ui-production:/m);
+  assert.match(compose, /profiles:\n      - smoke-ui-e2e/);
+  assert.match(compose, /target: production/);
+  assert.match(compose, /image: groupscout-ui-production/);
+  assert.match(compose, /"\$\{GROUPSCOUT_UI_PRODUCTION_HOST_PORT:-3002\}:3000"/);
+  assert.match(compose, /UI_API_PROXY_TARGET: "http:\/\/groupscout:8080"/);
+  assert.match(compose, /UI_PUBLIC_API_PATH: "\/api\/\*"/);
+  assert.match(compose, /networks:\n      - groupscout_net/);
+  assert.match(compose, /depends_on:\n      groupscout:\n        condition: service_started/);
+  assert.match(compose, /^  groupscout-ui-production-bad-proxy:/m);
+  assert.match(compose, /"\$\{GROUPSCOUT_UI_BAD_PROXY_HOST_PORT:-3003\}:3000"/);
+  assert.match(compose, /UI_API_PROXY_TARGET: "http:\/\/groupscout-bad-proxy-target:8080"/);
+  assert.doesNotMatch(compose, /API_TOKEN|DATABASE_URL|POSTGRES_URL|SLACK|RESEND|SENDGRID|OPENAI|ANTHROPIC|CLAUDE|OLLAMA|UI_SESSION_SECRET/i);
+});
+
 test("D3 dev Compose health harness matches the D2 runtime contract", async () => {
   const {
     DEV_COMPOSE_CONTRACT,
