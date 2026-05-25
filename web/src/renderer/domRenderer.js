@@ -1,3 +1,6 @@
+import { renderLeadDetail } from "./leadDetailRenderer.js";
+import { renderVerificationQueue } from "./verificationRenderer.js";
+import { escapeHtml, formatCellValue, normalizeClassToken, scoreBand } from "./renderUtils.js";
 import { createRouteShell } from "../app/shell.js";
 import { mockLeadInboxLeads } from "../app/leadInbox.js";
 import { createApiClient } from "../api/client.js";
@@ -269,140 +272,6 @@ function leadInboxColumnWidth(columnKey) {
   }
 }
 
-function renderLeadDetail(screen) {
-  return [
-    `<article class="lead-detail-workspace" data-layout="${escapeHtml(screen.layout.mode)}">`,
-    renderLeadDetailHero(screen),
-    renderDetailSummary(screen.summary),
-    renderSourceEvidence(screen.sourceEvidence),
-    renderAiEnrichment(screen.aiEnrichment),
-    renderDetailActions(screen.actions),
-    renderOutreach(screen.outreach),
-    renderActivity(screen.activity),
-    "</article>"
-  ].join("");
-}
-
-function renderLeadDetailHero(screen) {
-  const summary = detailSummaryMap(screen.summary);
-  const score = Number(summary.Score ?? 0);
-  const actions = (screen.actions?.items ?? []).slice(0, 3);
-
-  return [
-    `<header class="detail-hero">`,
-    `<a class="back-link" href="/leads"><span class="icon icon-back" aria-hidden="true"></span>Back to leads</a>`,
-    `<div class="detail-hero-main">`,
-    `<div><span class="eyebrow">Lead Workspace</span><h1>${escapeHtml(screen.heading)}</h1></div>`,
-    `<span class="score-badge detail-score" data-score-band="${escapeHtml(scoreBand(score))}">${escapeHtml(summary.Score ?? "")}</span>`,
-    `</div>`,
-    `<div class="detail-hero-meta">`,
-    `<span class="status-chip status-${escapeHtml(normalizeClassToken(screen.state))}">${escapeHtml(screen.state)}</span>`,
-    `<span>${escapeHtml(summary.Timing ?? "Timing unknown")}</span>`,
-    `<span>${escapeHtml(summary["Property fit"] ?? "Property fit unknown")}</span>`,
-    `<span>${escapeHtml(summary["Room-night signal"] ?? "Room-night signal unknown")}</span>`,
-    `</div>`,
-    actions.length
-      ? `<div class="action-row hero-actions">${actions.map((action) => `<button type="button">${escapeHtml(action.label)}</button>`).join("")}</div>`
-      : "",
-    `</header>`
-  ].join("");
-}
-
-function renderDetailSummary(summary) {
-  const items = summary?.items ?? [];
-
-  return [
-    `<section class="detail-card detail-summary"><h2>Summary</h2><dl>`,
-    ...items.map(([label, value]) =>
-      `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`
-    ),
-    "</dl></section>"
-  ].join("");
-}
-
-function renderSourceEvidence(sourceEvidence) {
-  if (!sourceEvidence) {
-    return "";
-  }
-
-  return [
-    `<section class="detail-card evidence-card"><h2><span class="section-icon section-icon-evidence" aria-hidden="true"></span>Source Evidence</h2>`,
-    `<p><strong>Source</strong> ${escapeHtml(sourceEvidence.sourceName)}</p>`,
-    `<p><strong>Collected</strong> ${escapeHtml(sourceEvidence.collectedAt)}</p>`,
-    `<p><a href="${escapeHtml(sourceEvidence.sourceUrl)}">Open source record</a></p>`,
-    `<p><a href="${escapeHtml(sourceEvidence.rawAuditLink.href)}">${escapeHtml(sourceEvidence.rawAuditLink.label)}</a></p>`,
-    "</section>"
-  ].join("");
-}
-
-function renderAiEnrichment(aiEnrichment) {
-  if (!aiEnrichment) {
-    return "";
-  }
-
-  const claims = (aiEnrichment.claims ?? []).map((claim) => [
-    `<li>`,
-    `<strong>${escapeHtml(claim.field)}</strong>`,
-    `<span>${escapeHtml(claim.displayValue)}</span>`,
-    claim.reviewerCorrection
-      ? `<em>Correction: ${escapeHtml(claim.reviewerCorrection.value)}</em>`
-      : "",
-    `</li>`
-  ].join(""));
-
-  return [
-    `<section class="detail-card enrichment-card"><h2><span class="section-icon section-icon-ai" aria-hidden="true"></span>AI Enrichment</h2>`,
-    `<p>${escapeHtml(aiEnrichment.rationale)}</p>`,
-    `<p><strong>Uncertainty</strong> ${escapeHtml(aiEnrichment.uncertainty?.level)}: ${escapeHtml(aiEnrichment.uncertainty?.reason)}</p>`,
-    `<ul class="claim-list">${claims.join("")}</ul>`,
-    "</section>"
-  ].join("");
-}
-
-function renderDetailActions(actions) {
-  const items = actions?.items ?? [];
-
-  return [
-    `<section class="detail-card actions-card"><h2><span class="section-icon section-icon-action" aria-hidden="true"></span>Actions</h2><div class="action-row">`,
-    ...items.map((action) => `<button type="button">${escapeHtml(action.label)}</button>`),
-    "</div></section>"
-  ].join("");
-}
-
-function renderOutreach(outreach) {
-  if (!outreach) {
-    return "";
-  }
-
-  const attempts = (outreach.attempts ?? []).map((attempt) =>
-    `<li><strong>${escapeHtml(attempt.label)}</strong><span>${escapeHtml(attempt.timestamp)}</span><p>${escapeHtml(attempt.notes)}</p></li>`
-  );
-  const actions = (outreach.workspace?.actions ?? []).map((action) =>
-    `<button type="button">${escapeHtml(action.label)}</button>`
-  );
-
-  return [
-    `<section class="detail-card outreach-card"><h2><span class="section-icon section-icon-outreach" aria-hidden="true"></span>Outreach</h2>`,
-    `<p><strong>Recommended timing</strong> ${escapeHtml(outreach.recommendedTiming)}</p>`,
-    `<p><strong>Contact</strong> ${escapeHtml(outreach.workspace?.defaultContact?.channel)}: ${escapeHtml(outreach.workspace?.defaultContact?.value)}</p>`,
-    `<textarea readonly>${escapeHtml(outreach.workspace?.draft?.value ?? "")}</textarea>`,
-    `<div class="action-row">${actions.join("")}</div>`,
-    `<ul class="timeline-list">${attempts.join("")}</ul>`,
-    "</section>"
-  ].join("");
-}
-
-function renderActivity(activity) {
-  const entries = activity?.entries ?? [];
-
-  return [
-    `<section class="detail-card activity-card"><h2><span class="section-icon section-icon-activity" aria-hidden="true"></span>Activity</h2><ol class="timeline-list">`,
-    ...entries.map((entry) =>
-      `<li><strong>${escapeHtml(entry.label)}</strong><span>${escapeHtml(entry.timestamp)}</span><p>${escapeHtml(entry.detail)}</p></li>`
-    ),
-    "</ol></section>"
-  ].join("");
-}
 
 function renderPipelineMonitor(screen) {
   return [
@@ -506,120 +375,6 @@ function renderOutreachDraftFields(draft) {
     .map((field) => `<div><dt>${escapeHtml(field.label)}</dt><dd>${escapeHtml(draft.values?.[field.name] ?? "")}</dd></div>`);
 }
 
-function renderVerificationQueue(screen) {
-  const rows = screen.table?.rows ?? [];
-  const mobileCards = screen.mobileCards ?? [];
-  const reviewItems = rows.length ? rows : mobileCards;
-  const controls = screen.controls ?? [];
-  const highCount = reviewItems.filter(isHighPriorityVerificationItem).length;
-  const missingRaw = reviewItems.filter(hasMissingRawAudit).length;
-  const unowned = reviewItems.filter(isUnownedVerificationItem).length;
-
-  if (screen.state === "empty") {
-    return `<section class="verification-queue" data-layout="${escapeHtml(screen.layout.mode)}"><header class="screen-heading"><div><span class="eyebrow">Evidence Review</span><h1>${escapeHtml(screen.heading)}</h1></div></header><p>${escapeHtml(screen.emptyState?.title ?? "No leads require verification")}</p></section>`;
-  }
-
-  if (screen.state === "error") {
-    return `<section class="verification-queue" data-layout="${escapeHtml(screen.layout.mode)}"><header class="screen-heading"><div><span class="eyebrow">Evidence Review</span><h1>${escapeHtml(screen.heading)}</h1></div></header><p>${escapeHtml(screen.errorState?.message ?? "Verification queue could not load.")}</p></section>`;
-  }
-
-  return [
-    `<section class="verification-queue" data-layout="${escapeHtml(screen.layout.mode)}">`,
-    `<header class="screen-heading verification-heading"><div><span class="eyebrow">Evidence Review</span><h1>${escapeHtml(screen.heading)}</h1></div><p>${reviewItems.length} leads need review</p></header>`,
-    `<div class="queue-metrics">`,
-    renderQueueMetric("High severity", highCount, "high"),
-    renderQueueMetric("Missing raw audit", missingRaw, "missing"),
-    renderQueueMetric("Unowned", unowned, "unowned"),
-    `</div>`,
-    `<div class="verification-filters">${controls.map(renderVerificationControl).join("")}</div>`,
-    mobileCards.length
-      ? `<div class="verification-card-list">${mobileCards.map(renderVerificationMobileCard).join("")}</div>`
-      : `<div class="table-scroll verification-table"><table><thead><tr><th>Score</th><th>Lead</th><th>Trigger</th><th>Evidence</th><th>Owner</th><th>Updated</th><th>Actions</th></tr></thead><tbody>${rows.map(renderVerificationRow).join("")}</tbody></table></div>`,
-    `</section>`
-  ].join("");
-}
-
-function isHighPriorityVerificationItem(item) {
-  return item.priority === "high" || [
-    "Missing source or raw audit",
-    "High score with weak rationale"
-  ].includes(item.trigger);
-}
-
-function hasMissingRawAudit(item) {
-  return item.cells?.["raw-audit"] === "Missing" || item.meta?.includes("Missing");
-}
-
-function isUnownedVerificationItem(item) {
-  return item.cells?.owner === "Unowned" || item.meta?.includes("Unowned");
-}
-
-function renderQueueMetric(label, value, tone) {
-  return `<p class="queue-metric queue-metric-${escapeHtml(tone)}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></p>`;
-}
-
-function renderVerificationControl(control) {
-  if (control.type === "button") {
-    return `<button type="button">${escapeHtml(control.label)}</button>`;
-  }
-
-  return `<label>${escapeHtml(control.label)}<input aria-label="${escapeHtml(control.ariaLabel)}" name="${escapeHtml(control.name)}"></label>`;
-}
-
-function renderVerificationRow(row) {
-  const score = Number(row.cells.score);
-  const rawAudit = row.cells["raw-audit"];
-  const rawTone = rawAudit === "Missing" ? "missing" : "available";
-  const actions = (row.actions ?? []).slice(0, 3).map((action) => {
-    const tag = action.href
-      ? "a"
-      : "button";
-    const attrs = action.href
-      ? ` href="${escapeHtml(action.href)}"`
-      : ` type="button"`;
-
-    return `<${tag}${attrs} class="row-action row-action-${escapeHtml(normalizeClassToken(action.action))}">${escapeHtml(action.label)}</${tag}>`;
-  });
-
-  return [
-    `<tr data-priority="${escapeHtml(row.priority)}">`,
-    `<td><span class="score-badge" data-score-band="${escapeHtml(scoreBand(score))}">${escapeHtml(row.cells.score)}</span></td>`,
-    `<td class="verification-lead"><a href="${escapeHtml(row.href)}">${escapeHtml(row.cells.lead)}</a><small>${escapeHtml(row.id)}</small></td>`,
-    `<td><span class="trigger-badge trigger-${escapeHtml(row.priority)}">${escapeHtml(row.cells.trigger)}</span></td>`,
-    `<td><a class="raw-audit-chip raw-audit-${escapeHtml(rawTone)}" href="${escapeHtml(row.rawAuditLink.href)}">${escapeHtml(rawAudit)}</a><small>${escapeHtml(row.cells.source)}</small></td>`,
-    `<td><span class="status-chip ${row.cells.owner === "Unowned" ? "status-watch" : "status-ok"}">${escapeHtml(row.cells.owner)}</span></td>`,
-    `<td>${escapeHtml(row.cells.updated)}</td>`,
-    `<td><div class="row-actions">${actions.join("")}</div></td>`,
-    `</tr>`
-  ].join("");
-}
-
-function renderVerificationMobileCard(card) {
-  const score = Number(card.score);
-  const rawAudit = card.meta?.includes("Missing") ? "Missing" : "Available";
-  const rawTone = rawAudit === "Missing" ? "missing" : "available";
-  const meta = (card.meta ?? []).filter((item) => item !== rawAudit);
-  const actions = (card.actions ?? []).map((action) => {
-    const tag = action.href
-      ? "a"
-      : "button";
-    const attrs = action.href
-      ? ` href="${escapeHtml(action.href)}"`
-      : ` type="button"`;
-
-    return `<${tag}${attrs} class="row-action row-action-${escapeHtml(normalizeClassToken(action.action))}">${escapeHtml(action.label)}</${tag}>`;
-  });
-
-  return [
-    `<article class="verification-card" data-lead-id="${escapeHtml(card.id)}">`,
-    `<header><a class="verification-card-title" href="${escapeHtml(card.href)}">${escapeHtml(card.title)}</a><span class="score-badge" data-score-band="${escapeHtml(scoreBand(score))}">${escapeHtml(card.score)}</span></header>`,
-    `<p><span class="trigger-badge trigger-${escapeHtml(normalizeClassToken(card.trigger))}">${escapeHtml(card.trigger)}</span></p>`,
-    `<p>${meta.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</p>`,
-    `<p><a class="raw-audit-chip raw-audit-${escapeHtml(rawTone)}" href="${escapeHtml(card.rawAuditLink.href)}">${escapeHtml(card.rawAuditLink.label)}</a><small>${escapeHtml(rawAudit)}</small></p>`,
-    `<div class="row-actions">${actions.join("")}</div>`,
-    `</article>`
-  ].join("");
-}
 
 function renderGenericScreen(screen) {
   return [
@@ -712,19 +467,6 @@ function renderStatusFallback(screen) {
   return "";
 }
 
-function detailSummaryMap(summary) {
-  return Object.fromEntries((summary?.items ?? []).map(([label, value]) => [label, value]));
-}
-
-function normalizeClassToken(value) {
-  return String(value ?? "unknown").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "unknown";
-}
-
-function scoreBand(score) {
-  if (score >= 90) return "high";
-  if (score >= 75) return "medium";
-  return "low";
-}
 
 function collectFocusableLabels(shell) {
   const controls = shell.content.controls?.map((control) => control.ariaLabel ?? control.label) ?? [];
@@ -765,28 +507,4 @@ function collectActionLabels(screen) {
   }
 
   return labels.filter(Boolean);
-}
-
-function formatCellValue(value) {
-  if (value === null || value === undefined) {
-    return "";
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(formatCellValue).join(" ");
-  }
-
-  if (typeof value === "object") {
-    return Object.values(value).map(formatCellValue).join(" ");
-  }
-
-  return value;
-}
-
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
 }
