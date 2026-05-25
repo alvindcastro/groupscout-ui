@@ -32,6 +32,14 @@ export const LEAD_INBOX_ITEM_FIELDS = [
 
 export function createLeadApiMethods() {
   return {
+    async getLead(leadId) {
+      const response = await this.request(buildLeadDetailPath(leadId), {
+        method: "GET"
+      });
+
+      return adaptLeadDetailResponse(response);
+    },
+
     async listLeads(filters = {}) {
       const response = await this.request(buildLeadInboxPath(filters), {
         method: "GET"
@@ -71,6 +79,11 @@ function buildLeadInboxPath(filters) {
 
   let queryString = searchParams.toString();
   return queryString ? `${API_BASE_PATH}/leads?${queryString}` : `${API_BASE_PATH}/leads`;
+}
+
+function buildLeadDetailPath(leadId) {
+  assertLeadId(leadId);
+  return `${API_BASE_PATH}/leads/${encodeURIComponent(leadId)}`;
 }
 
 function buildLeadPatchPath(leadId) {
@@ -178,4 +191,137 @@ function adaptLeadInboxItem(lead) {
   }
 
   return item;
+}
+
+function adaptLeadDetailResponse(response) {
+  if (!response || typeof response.id !== "string") {
+    throw new Error("GET /api/leads/{id} response must include id");
+  }
+
+  const detail = {
+    id: response.id,
+    status: response.status,
+    summary: adaptLeadDetailSummary(response.summary),
+    sourceEvidence: adaptLeadDetailSourceEvidence(response.source_evidence),
+    aiEnrichment: adaptLeadDetailAiEnrichment(response.ai_enrichment),
+    actions: response.actions ?? [],
+    outreach: adaptLeadDetailOutreach(response.outreach),
+    activity: adaptLeadDetailActivity(response.activity)
+  };
+
+  for (const field of [
+    "status",
+    "summary",
+    "sourceEvidence",
+    "aiEnrichment",
+    "outreach",
+    "activity"
+  ]) {
+    if (detail[field] === undefined) {
+      throw new Error(`GET /api/leads/{id} response is missing required field: ${field}`);
+    }
+  }
+
+  return detail;
+}
+
+function adaptLeadDetailSummary(summary) {
+  if (!summary) {
+    throw new Error("GET /api/leads/{id} response must include summary");
+  }
+
+  const adapted = {
+    title: summary.title,
+    score: summary.score,
+    timing: summary.timing,
+    roomNightSignal: summary.room_night_signal,
+    propertyFit: summary.property_fit
+  };
+
+  requireDefinedFields("summary", adapted, [
+    "title",
+    "score",
+    "timing",
+    "roomNightSignal",
+    "propertyFit"
+  ]);
+  return adapted;
+}
+
+function adaptLeadDetailSourceEvidence(sourceEvidence) {
+  if (!sourceEvidence) {
+    throw new Error("GET /api/leads/{id} response must include source_evidence");
+  }
+
+  const adapted = {
+    sourceName: sourceEvidence.source_name,
+    sourceUrl: sourceEvidence.source_url,
+    rawAuditHref: sourceEvidence.raw_audit_href,
+    collectedAt: sourceEvidence.collected_at
+  };
+
+  requireDefinedFields("source_evidence", adapted, [
+    "sourceName",
+    "sourceUrl",
+    "rawAuditHref",
+    "collectedAt"
+  ]);
+  return adapted;
+}
+
+function adaptLeadDetailAiEnrichment(aiEnrichment) {
+  if (!aiEnrichment || !Array.isArray(aiEnrichment.claims)) {
+    throw new Error("GET /api/leads/{id} response must include ai_enrichment claims");
+  }
+
+  return {
+    rationale: aiEnrichment.rationale,
+    uncertainty: aiEnrichment.uncertainty,
+    claims: aiEnrichment.claims.map((claim) => ({
+      field: claim.field,
+      value: claim.value,
+      reviewerCorrection: claim.reviewer_correction
+    }))
+  };
+}
+
+function adaptLeadDetailOutreach(outreach) {
+  if (!outreach || !Array.isArray(outreach.attempts)) {
+    throw new Error("GET /api/leads/{id} response must include outreach attempts");
+  }
+
+  return {
+    recommendedTiming: outreach.recommended_timing,
+    contact: outreach.contact,
+    draft: outreach.draft,
+    attempts: outreach.attempts.map((attempt) => ({
+      channel: attempt.channel,
+      label: attempt.label,
+      contact: attempt.contact,
+      notes: attempt.notes,
+      outcome: attempt.outcome,
+      timestamp: attempt.timestamp
+    }))
+  };
+}
+
+function adaptLeadDetailActivity(activity) {
+  if (!Array.isArray(activity)) {
+    throw new Error("GET /api/leads/{id} response must include activity");
+  }
+
+  return activity.map((entry) => ({
+    type: entry.type,
+    label: entry.label,
+    detail: entry.detail,
+    timestamp: entry.timestamp
+  }));
+}
+
+function requireDefinedFields(section, object, fields) {
+  for (const field of fields) {
+    if (object[field] === undefined) {
+      throw new Error(`GET /api/leads/{id} ${section} is missing required field: ${field}`);
+    }
+  }
 }

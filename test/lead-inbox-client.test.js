@@ -26,6 +26,167 @@ const apiLead = {
   verification_state: "needs_review"
 };
 
+const apiLeadDetail = {
+  id: "lead_123",
+  status: "new",
+  summary: {
+    title: "Downtown hotel tower renovation",
+    score: 94,
+    timing: "today",
+    room_night_signal: "210 room nights",
+    property_fit: "hotel"
+  },
+  source_evidence: {
+    source_name: "Austin permit feed",
+    source_url: "https://permits.example.test/austin/123",
+    raw_audit_href: "/api/leads/lead_123/raw",
+    collected_at: "2026-05-01T15:20:00Z"
+  },
+  ai_enrichment: {
+    rationale: "Permit scope includes occupied hotel floor renovation.",
+    uncertainty: {
+      level: "medium",
+      reason: "Crew duration is inferred from permit scope."
+    },
+    claims: [
+      {
+        field: "Project type",
+        value: "renovation"
+      },
+      {
+        field: "Crew size",
+        value: "8",
+        reviewer_correction: "8-10"
+      }
+    ]
+  },
+  actions: ["Claim lead", "Dismiss"],
+  outreach: {
+    recommended_timing: "Call today before 4 PM local time.",
+    contact: {
+      channel: "email",
+      value: "manager@example.test"
+    },
+    draft: "Can GroupScout help reserve rooms for your renovation crew?",
+    attempts: [
+      {
+        channel: "email",
+        label: "Draft copied",
+        contact: "manager@example.test",
+        notes: "Operator copied the draft.",
+        outcome: "contacted",
+        timestamp: "2026-05-01T16:00:00Z"
+      }
+    ]
+  },
+  activity: [
+    {
+      type: "status_history",
+      label: "Lead created",
+      detail: "New lead created from permit ingestion.",
+      timestamp: "2026-05-01T15:20:00Z"
+    }
+  ]
+};
+
+test("lead detail client serializes GET /api/leads/{id} with encoded lead ids", async () => {
+  const calls = [];
+  const client = createApiClient({
+    fetchImpl: async (url, init) => {
+      calls.push({ url, init });
+      return Response.json(apiLeadDetail);
+    }
+  });
+
+  await client.getLead("lead 123/a");
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "/api/leads/lead%20123%2Fa");
+  assert.equal(calls[0].init.method, "GET");
+  assert.equal(calls[0].init.credentials, "same-origin");
+});
+
+test("lead detail client adapts source evidence, AI enrichment, outreach, and activity sections", async () => {
+  const client = createApiClient({
+    fetchImpl: async () => Response.json(apiLeadDetail)
+  });
+
+  const detail = await client.getLead("lead_123");
+
+  assert.deepEqual(detail, {
+    id: "lead_123",
+    status: "new",
+    summary: {
+      title: "Downtown hotel tower renovation",
+      score: 94,
+      timing: "today",
+      roomNightSignal: "210 room nights",
+      propertyFit: "hotel"
+    },
+    sourceEvidence: {
+      sourceName: "Austin permit feed",
+      sourceUrl: "https://permits.example.test/austin/123",
+      rawAuditHref: "/api/leads/lead_123/raw",
+      collectedAt: "2026-05-01T15:20:00Z"
+    },
+    aiEnrichment: {
+      rationale: "Permit scope includes occupied hotel floor renovation.",
+      uncertainty: {
+        level: "medium",
+        reason: "Crew duration is inferred from permit scope."
+      },
+      claims: [
+        {
+          field: "Project type",
+          value: "renovation",
+          reviewerCorrection: undefined
+        },
+        {
+          field: "Crew size",
+          value: "8",
+          reviewerCorrection: "8-10"
+        }
+      ]
+    },
+    actions: ["Claim lead", "Dismiss"],
+    outreach: {
+      recommendedTiming: "Call today before 4 PM local time.",
+      contact: {
+        channel: "email",
+        value: "manager@example.test"
+      },
+      draft: "Can GroupScout help reserve rooms for your renovation crew?",
+      attempts: [
+        {
+          channel: "email",
+          label: "Draft copied",
+          contact: "manager@example.test",
+          notes: "Operator copied the draft.",
+          outcome: "contacted",
+          timestamp: "2026-05-01T16:00:00Z"
+        }
+      ]
+    },
+    activity: [
+      {
+        type: "status_history",
+        label: "Lead created",
+        detail: "New lead created from permit ingestion.",
+        timestamp: "2026-05-01T15:20:00Z"
+      }
+    ]
+  });
+});
+
+test("lead detail client fails at the API boundary when required sections are missing", async () => {
+  const client = createApiClient({
+    fetchImpl: async () => Response.json({ ...apiLeadDetail, source_evidence: undefined })
+  });
+
+  await assert.rejects(() => client.getLead("lead_123"), /source_evidence/);
+  await assert.rejects(() => client.getLead(""), /lead id/i);
+});
+
 test("lead inbox client serializes GET /api/leads filters, pagination, and default priority sort", async () => {
   const calls = [];
   const client = createApiClient({
