@@ -13,9 +13,9 @@ export function renderRouteToHtml(pathname = "/", options = {}) {
   const shell = createRenderableShell(pathname, options);
   const focusableLabels = collectFocusableLabels(shell);
   const html = [
-    '<div class="app-shell" data-renderer="vanilla-dom">',
+    '<div class="app-shell cyber-shell" data-renderer="vanilla-dom">',
     renderNavigation(shell),
-    `<main aria-label="GroupScout operator workspace">${renderScreen(shell.content)}</main>`,
+    `<main class="cyber-main" aria-label="GroupScout operator workspace">${renderScreen(shell.content)}</main>`,
     "</div>"
   ].join("");
 
@@ -71,8 +71,15 @@ function createLeadInboxOverride(screen, options) {
         cells: {
           score: String(lead.score),
           title: lead.title,
-          status: lead.status,
-          owner: lead.owner ?? "Unowned"
+          "segment-project": `${lead.segment} / ${lead.projectType}`,
+          "location-property": `${lead.location} / ${lead.propertyFit}`,
+          source: formatValue(lead.source),
+          "crew-duration": `${lead.estimatedCrewSize} crew / ${lead.estimatedDurationDays} days`,
+          "outreach-timing": lead.outreachTiming,
+          status: formatValue(lead.status),
+          owner: lead.owner ?? "Unowned",
+          created: lead.createdAt.slice(0, 10),
+          "evidence-verification": `${formatValue(lead.evidenceState)} / ${formatValue(lead.verificationState)}`
         }
       }))
     },
@@ -97,18 +104,20 @@ function renderNavigation(shell) {
     return `<a href="${escapeHtml(section.href ?? section.path)}"${ariaCurrent}>${escapeHtml(section.label)}</a>`;
   });
 
-  return `<nav aria-label="Primary">${links.join("")}</nav>`;
+  return [
+    '<nav class="cyber-nav" aria-label="Primary">',
+    '<div class="cyber-brand">GroupScout<small>operator console</small></div>',
+    `<div class="cyber-nav-links">${links.join("")}</div>`,
+    "</nav>"
+  ].join("");
 }
 
 function renderScreen(screen) {
-  if (screen.statusRegion) {
-    return [
-      `<section role="${screen.statusRegion.role}">${escapeHtml(screen.statusRegion.message)}</section>`,
-      renderState(screen)
-    ].join("");
-  }
+  const status = screen.statusRegion
+    ? `<section class="cyber-status${screen.statusRegion.role === "alert" ? " cyber-alert" : ""}" role="${screen.statusRegion.role}">${escapeHtml(screen.statusRegion.message)}</section>`
+    : "";
 
-  return renderState(screen);
+  return `${status}${renderState(screen)}`;
 }
 
 function renderState(screen) {
@@ -124,55 +133,236 @@ function renderState(screen) {
     return renderLeadDetail(screen);
   }
 
-  return `<section><h1>${escapeHtml(screen.heading ?? "GroupScout")}</h1></section>`;
+  return [
+    '<section class="cyber-screen cyber-terminal">',
+    renderHero(screen.heading ?? "GroupScout", "Reserved route", "Phase channel awaiting workflow activation."),
+    "</section>"
+  ].join("");
 }
 
 function renderToday(screen) {
   const items = screen.summary?.items ?? [];
+  const priorityRows = screen.priorityLeads?.rows ?? [];
+  const alertRows = screen.activeAlerts?.rows ?? [];
+  const failedRows = screen.failedJobs?.rows ?? [];
 
   return [
-    `<section data-layout="${escapeHtml(screen.layout.mode)}">`,
-    `<h1>${escapeHtml(screen.heading)}</h1>`,
-    ...items.map((item) => `<a href="${escapeHtml(item.href)}">${escapeHtml(item.label)} ${escapeHtml(item.value)}</a>`),
-    ...((screen.priorityLeads?.rows ?? []).map((row) => `<p>${escapeHtml(row.title)} ${escapeHtml(row.timing)}</p>`)),
+    `<section class="cyber-screen" data-layout="${escapeHtml(screen.layout.mode)}">`,
+    renderHero(screen.heading, "Command feed", "High-score leads, stale ownership, alerts, and failed jobs in one operator surface."),
+    `<div class="cyber-grid">${items.map(renderMetric).join("")}</div>`,
+    '<section class="cyber-terminal">',
+    '<div class="cyber-label">Priority leads</div>',
+    renderList(priorityRows.map((row) => ({
+      title: row.title,
+      detail: `${row.score ?? ""} ${row.status ?? ""} ${row.timing ?? ""}`.trim(),
+      href: row.href ?? `/leads/${row.id}`
+    }))),
+    "</section>",
+    '<div class="cyber-card-grid">',
+    renderMiniPanel("Active alerts", alertRows),
+    renderMiniPanel("Failed jobs", failedRows),
+    "</div>",
+    "</section>"
+  ].join("");
+}
+
+function renderMetric(item) {
+  return [
+    `<a class="cyber-card cyber-metric" href="${escapeHtml(item.href ?? "#")}">`,
+    `<span class="cyber-label">${escapeHtml(item.label)}</span>`,
+    `<span class="cyber-metric-value">${escapeHtml(item.value)}</span>`,
+    "</a>"
+  ].join("");
+}
+
+function renderMiniPanel(title, rows) {
+  return [
+    '<section class="cyber-panel">',
+    `<h2 class="cyber-label">${escapeHtml(title)}</h2>`,
+    renderList(rows.map((row) => ({
+      title: row.title ?? row.property ?? row.collector ?? row.id,
+      detail: row.impact ?? row.reason ?? row.status ?? row.nextStep ?? ""
+    }))),
     "</section>"
   ].join("");
 }
 
 function renderLeadInbox(screen) {
   if (screen.state === "empty") {
-    return `<section data-layout="${escapeHtml(screen.layout.mode)}"><h1>${escapeHtml(screen.heading)}</h1><p>${escapeHtml(screen.emptyState?.title ?? "No leads available")}</p></section>`;
+    return renderEmptyState(screen, screen.emptyState?.title ?? "No leads available");
   }
 
   if (screen.state === "error") {
-    return `<section data-layout="${escapeHtml(screen.layout.mode)}"><h1>${escapeHtml(screen.heading)}</h1><p>${escapeHtml(screen.errorState?.message ?? "Lead inbox could not load.")}</p></section>`;
+    return renderEmptyState(screen, screen.errorState?.message ?? "Lead inbox could not load.");
   }
 
-  const controls = screen.controls.map((control) =>
-    `<label>${escapeHtml(control.label)}<input aria-label="${escapeHtml(control.ariaLabel)}" name="${escapeHtml(control.name)}"></label>`
-  );
-  const headers = screen.table.columns.map((column) => `<th>${escapeHtml(column.label)}</th>`);
-  const rows = screen.table.rows.map((row) => `<tr><td><a href="/leads/${escapeHtml(row.id)}">${escapeHtml(row.cells.title)}</a></td><td>${escapeHtml(row.cells.score)}</td><td>${escapeHtml(row.cells.status)}</td></tr>`);
+  const controls = screen.controls.map(renderControl).join("");
+  const visibleColumns = screen.table.visibleColumns?.length
+    ? screen.table.visibleColumns
+    : screen.table.columns;
+  const headers = visibleColumns.map((column) => `<th scope="col">${escapeHtml(column.label)}</th>`);
+  const rows = screen.table.rows.map((row) => {
+    const cells = visibleColumns.map((column) => {
+      const value = row.cells[column.key] ?? "";
+      const content = column.key === "title"
+        ? `<a href="${escapeHtml(row.href ?? `/leads/${row.id}`)}">${escapeHtml(value)}</a>`
+        : escapeHtml(value);
+
+      return `<td>${content}</td>`;
+    });
+
+    return `<tr>${cells.join("")}</tr>`;
+  });
 
   return [
-    `<section data-layout="${escapeHtml(screen.layout.mode)}">`,
-    `<h1>${escapeHtml(screen.heading)}</h1>`,
-    ...controls,
-    `<table><thead><tr>${headers.join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`,
+    `<section class="cyber-screen" data-layout="${escapeHtml(screen.layout.mode)}">`,
+    renderHero(screen.heading, "Lead acquisition", "Filter high-intent crew lodging demand before the window closes."),
+    `<form class="cyber-controls" aria-label="Lead filters">${controls}</form>`,
+    '<div class="cyber-table-wrap">',
+    `<table class="cyber-table"><caption>Lead Inbox leads</caption><thead><tr>${headers.join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`,
+    "</div>",
     "</section>"
   ].join("");
 }
 
-function renderLeadDetail(screen) {
-  const sections = screen.sections.map((section) => `<section><h2>${escapeHtml(section.title)}</h2></section>`);
-  const summary = screen.summary?.items?.map(([label, value]) => `<p>${escapeHtml(label)} ${escapeHtml(value)}</p>`) ?? [];
+function renderEmptyState(screen, message) {
+  return [
+    `<section class="cyber-screen" data-layout="${escapeHtml(screen.layout.mode)}">`,
+    renderHero(screen.heading, "Lead acquisition", message),
+    `<div class="cyber-terminal"><p class="cyber-cursor">${escapeHtml(message)}</p></div>`,
+    "</section>"
+  ].join("");
+}
+
+function renderControl(control) {
+  if (control.type === "button") {
+    return `<button class="cyber-button cyber-button-secondary" type="button" aria-label="${escapeHtml(control.ariaLabel)}">${escapeHtml(control.label)}</button>`;
+  }
+
+  if (control.type === "select") {
+    return [
+      `<label class="cyber-field">${escapeHtml(control.label)}<span class="cyber-field-inner">`,
+      `<select class="cyber-select" aria-label="${escapeHtml(control.ariaLabel)}" name="${escapeHtml(control.name)}">`,
+      `<option value="">All ${escapeHtml(control.label.toLowerCase())}</option>`,
+      "</select>",
+      "</span></label>"
+    ].join("");
+  }
+
+  const inputType = control.type === "search" || control.type === "number" || control.type === "date"
+    ? control.type
+    : "text";
+  const placeholder = control.type === "search" ? "Scan lead signal" : control.label;
 
   return [
-    `<article data-layout="${escapeHtml(screen.layout.mode)}">`,
-    `<h1>${escapeHtml(screen.heading)}</h1>`,
-    ...summary,
-    ...sections,
+    `<label class="cyber-field">${escapeHtml(control.label)}<span class="cyber-field-inner">`,
+    `<input class="cyber-input" type="${inputType}" aria-label="${escapeHtml(control.ariaLabel)}" name="${escapeHtml(control.name)}" placeholder="${escapeHtml(placeholder)}">`,
+    "</span></label>"
+  ].join("");
+}
+
+function renderLeadDetail(screen) {
+  const summary = screen.summary?.items ?? [];
+  const actions = screen.actions?.items ?? [];
+  const claims = screen.aiEnrichment?.claims ?? [];
+  const activity = screen.activity?.entries ?? [];
+
+  return [
+    `<article class="cyber-detail" data-layout="${escapeHtml(screen.layout.mode)}">`,
+    renderHero(screen.heading, "Evidence workspace", "Keep the original source, the model inference, and the reviewer correction visible together."),
+    '<section class="cyber-card-grid">',
+    renderSummaryPanel(summary),
+    renderActionPanel(actions),
+    "</section>",
+    '<section class="cyber-terminal">',
+    '<h2 class="cyber-label">Source Evidence</h2>',
+    renderSourceEvidence(screen.sourceEvidence),
+    "</section>",
+    '<section class="cyber-panel">',
+    '<h2 class="cyber-label">AI Enrichment</h2>',
+    screen.aiEnrichment?.rationale ? `<p>${escapeHtml(screen.aiEnrichment.rationale)}</p>` : "",
+    renderClaims(claims),
+    "</section>",
+    '<section class="cyber-panel">',
+    '<h2 class="cyber-label">Outreach</h2>',
+    `<p>${escapeHtml(screen.outreach?.recommendedTiming ?? "")}</p>`,
+    "</section>",
+    '<section class="cyber-panel">',
+    '<h2 class="cyber-label">Activity</h2>',
+    renderList(activity.map((entry) => ({ title: entry.label, detail: `${entry.detail} ${entry.timestamp}` }))),
+    "</section>",
     "</article>"
+  ].join("");
+}
+
+function renderHero(title, kicker, subtitle) {
+  return [
+    '<header class="cyber-hero">',
+    `<div class="cyber-kicker cyber-cursor">${escapeHtml(kicker)}</div>`,
+    `<h1 class="cyber-title cyber-glitch" data-text="${escapeHtml(title)}">${escapeHtml(title)}</h1>`,
+    `<p class="cyber-subtitle">${escapeHtml(subtitle)}</p>`,
+    "</header>"
+  ].join("");
+}
+
+function renderSummaryPanel(items) {
+  return [
+    '<section class="cyber-panel">',
+    '<h2 class="cyber-label">Summary</h2>',
+    renderList(items.map(([label, value]) => ({ title: label, detail: value }))),
+    "</section>"
+  ].join("");
+}
+
+function renderActionPanel(actions) {
+  return [
+    '<section class="cyber-panel">',
+    '<h2 class="cyber-label">Actions</h2>',
+    `<div class="cyber-controls">${actions.map((action) => `<button class="cyber-button" type="button">${escapeHtml(action.label)}</button>`).join("")}</div>`,
+    "</section>"
+  ].join("");
+}
+
+function renderSourceEvidence(sourceEvidence) {
+  if (!sourceEvidence) {
+    return '<p class="cyber-cursor">Source record unavailable.</p>';
+  }
+
+  return renderList([
+    { title: "Source", detail: sourceEvidence.sourceName },
+    { title: "Collected", detail: sourceEvidence.collectedAt },
+    { title: "Raw audit", detail: sourceEvidence.rawAuditLink?.label, href: sourceEvidence.rawAuditLink?.href }
+  ]);
+}
+
+function renderClaims(claims) {
+  return [
+    '<div class="cyber-grid">',
+    ...claims.map((claim) => [
+      '<div class="cyber-card">',
+      `<strong>${escapeHtml(claim.field)}</strong>`,
+      `<p><span class="cyber-chip">${escapeHtml(claim.original.label)}</span> ${escapeHtml(claim.original.value)}</p>`,
+      claim.reviewerCorrection
+        ? `<p><span class="cyber-chip">${escapeHtml(claim.reviewerCorrection.label)}</span> ${escapeHtml(claim.reviewerCorrection.value)}</p>`
+        : "",
+      "</div>"
+    ].join("")),
+    "</div>"
+  ].join("");
+}
+
+function renderList(items) {
+  return [
+    '<ul class="cyber-list">',
+    ...items.map((item) => [
+      '<li class="cyber-row">',
+      item.href
+        ? `<a href="${escapeHtml(item.href)}"><strong>${escapeHtml(item.title)}</strong></a>`
+        : `<strong>${escapeHtml(item.title)}</strong>`,
+      item.detail ? `<span>${escapeHtml(item.detail)}</span>` : "",
+      "</li>"
+    ].join("")),
+    "</ul>"
   ].join("");
 }
 
@@ -181,6 +371,10 @@ function collectFocusableLabels(shell) {
   const links = shell.sections.map((section) => section.label);
 
   return [...controls, ...links];
+}
+
+function formatValue(value) {
+  return String(value ?? "").replaceAll("_", " ");
 }
 
 function escapeHtml(value) {

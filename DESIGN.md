@@ -1,7 +1,70 @@
 ---
 version: alpha
-name: Mintlify
-description: Mintlify presents documentation infrastructure with a dual-mode aesthetic — atmospheric sky-gradient marketing heroes (cloud illustration backdrops, soft cream-to-blue washes) paired with dense developer-grade documentation surfaces. The system uses Inter for UI prose, Geist Mono for code, and a signature Mintlify green ({colors.brand-green}) reserved for accent CTAs and active states. Black-pill primary buttons dominate marketing, white-on-dark inversions appear on dark hero bands, and a 3-column documentation layout (sidebar / prose / TOC) anchors the developer experience. Coverage spans homepage, startups program, pricing comparison, and the live tabs documentation page.
+name: Cyberpunk Glitch
+description: GroupScout now uses a dark cyberpunk operator-console aesthetic: void-black surfaces, neon green primary actions, magenta and cyan interference accents, monospace type, CRT scanlines, glowing borders, and chamfered technical panels. The legacy Mintlify-derived token names remain as compatibility aliases for existing screen-model contracts, but the active rendered surface follows the cyber token set below.
+
+cyber-colors:
+  background: "#0a0a0f"
+  foreground: "#e0e0e0"
+  card: "#12121a"
+  muted: "#1c1c2e"
+  mutedForeground: "#6b7280"
+  accent: "#00ff88"
+  accentSecondary: "#ff00ff"
+  accentTertiary: "#00d4ff"
+  border: "#2a2a3a"
+  input: "#12121a"
+  ring: "#00ff88"
+  destructive: "#ff3366"
+
+cyber-typography:
+  heading:
+    fontFamily: "\"Orbitron\", \"Share Tech Mono\", monospace"
+    textTransform: uppercase
+    letterSpacing: "0.08em"
+  body:
+    fontFamily: "\"JetBrains Mono\", \"Fira Code\", Consolas, monospace"
+    lineHeight: 1.6
+  label:
+    fontFamily: "\"Share Tech Mono\", monospace"
+    letterSpacing: "0.2em"
+    textTransform: uppercase
+
+cyber-effects:
+  shadow-neon: "0 0 5px #00ff88, 0 0 10px #00ff8840"
+  shadow-neon-sm: "0 0 3px #00ff88, 0 0 6px #00ff8830"
+  shadow-neon-lg: "0 0 10px #00ff88, 0 0 20px #00ff8860, 0 0 40px #00ff8830"
+  shadow-neon-secondary: "0 0 5px #ff00ff, 0 0 20px #ff00ff60"
+  shadow-neon-tertiary: "0 0 5px #00d4ff, 0 0 20px #00d4ff60"
+  clip-chamfer: "polygon(0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px))"
+  clip-chamfer-sm: "polygon(0 6px, 6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px))"
+
+cyber-components:
+  button-primary:
+    backgroundColor: "{colors.accent}"
+    textColor: "{colors.background}"
+    border: "2px solid {colors.accent}"
+    clipPath: "{effects.clip-chamfer-sm}"
+  button-secondary:
+    backgroundColor: "transparent"
+    textColor: "{colors.accentSecondary}"
+    border: "2px solid {colors.accentSecondary}"
+    clipPath: "{effects.clip-chamfer-sm}"
+  text-input:
+    backgroundColor: "{colors.input}"
+    textColor: "{colors.accent}"
+    height: 44px
+    clipPath: "{effects.clip-chamfer-sm}"
+  card-base:
+    backgroundColor: "{colors.card}"
+    border: "1px solid {colors.border}"
+    clipPath: "{effects.clip-chamfer}"
+  feature-comparison-table:
+    backgroundColor: "{colors.card}"
+    border: "1px solid {colors.border}"
+    clipPath: "{effects.clip-chamfer}"
+  property-row:
+    border: "0 0 1px rgba(0, 255, 136, 0.18) solid"
 
 colors:
   primary: "#0a0a0a"

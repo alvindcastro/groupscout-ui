@@ -13,6 +13,7 @@ const COMPOSE_DEV = new URL("../compose.dev.yml", import.meta.url);
 const STATIC_ROOT = new URL("../web/dist/", import.meta.url);
 const STATIC_INDEX = new URL("../web/dist/index.html", import.meta.url);
 const STATIC_APP = new URL("../web/dist/assets/app.js", import.meta.url);
+const STATIC_CSS = new URL("../web/dist/assets/app.css", import.meta.url);
 
 test("13-A renderer runtime contract preserves D4 production and secret-free public config", async () => {
   const {
@@ -102,13 +103,20 @@ test("13-C renderer mounts Today, Lead Inbox, and Lead Detail from existing scre
   assert.equal(RENDERER_BROWSER_ENTRY_CONTRACT.apiPath, "/api/*");
   assert.equal(RENDERER_BROWSER_ENTRY_CONTRACT.sameOriginOnly, true);
   assert.match(today.html, /<nav[^>]+aria-label="Primary"/);
+  assert.match(today.html, /class="app-shell cyber-shell"/);
   assert.match(today.html, /<main[^>]+aria-label="GroupScout operator workspace"/);
+  assert.match(today.html, /cyber-title cyber-glitch/);
   assert.match(today.html, /Today/);
   assert.match(leads.html, /Lead Inbox/);
-  assert.match(leads.html, /aria-label="Search leads"/);
+  assert.match(leads.html, /type="search"[^>]+aria-label="Search leads"/);
+  assert.match(leads.html, /<select[^>]+aria-label="Status"/);
+  assert.match(leads.html, /<button[^>]+type="button"[^>]+aria-label="Clear filters"/);
+  assert.match(leads.html, /<caption>Lead Inbox leads<\/caption>/);
+  assert.match(leads.html, /<th scope="col">Score<\/th>/);
   assert.match(leads.html, /Riverside hotel renovation crew block/);
   assert.match(detail.html, /Source Evidence/);
   assert.match(detail.html, /AI Enrichment/);
+  assert.match(detail.html, /Evidence workspace/);
   assert.match(detail.html, /Riverside hotel renovation crew block/);
   assert.match(loading.html, /role="status"[^>]*>Loading leads for review\./);
   assert.match(empty.html, /No leads available/);
@@ -118,20 +126,28 @@ test("13-C renderer mounts Today, Lead Inbox, and Lead Detail from existing scre
   assert.doesNotMatch(JSON.stringify(leads.props), /API_TOKEN|DATABASE_URL|UI_SESSION_SECRET/);
 });
 
-test("13-D static product build output is present, route-safe, and secret-free", async () => {
-  const [{ createStaticAssetResponsePlan }, packageJsonSource, indexHtml, appJs] = await Promise.all([
+test("13-D static product build output is present, cyberpunk-styled, route-safe, and secret-free", async () => {
+  const [{ createStaticAssetResponsePlan }, packageJsonSource, indexHtml, appJs, appCss] = await Promise.all([
     import(PRODUCTION_SERVER),
     readFile(PACKAGE_JSON, "utf8"),
     readFile(STATIC_INDEX, "utf8"),
-    readFile(STATIC_APP, "utf8")
+    readFile(STATIC_APP, "utf8"),
+    readFile(STATIC_CSS, "utf8")
   ]);
   const packageJson = JSON.parse(packageJsonSource);
 
   assert.equal(packageJson.scripts.build, "node web/src/renderer/buildStaticApp.js");
   assert.match(indexHtml, /<main id="app" aria-label="GroupScout operator workspace"><\/main>/);
+  assert.match(indexHtml, /<link rel="stylesheet" href="\/assets\/app\.css">/);
   assert.match(indexHtml, /<script type="module" src="\/assets\/app\.js"><\/script>/);
   assert.match(appJs, /GroupScout operator workspace/);
+  assert.match(appJs, /cyber-shell|cyber-glitch|Lead Inbox leads/);
   assert.match(appJs, /createApiClient|\/api\/system/);
+  assert.match(appCss, /--color-background: #0a0a0f/);
+  assert.match(appCss, /--color-accent: #00ff88/);
+  assert.match(appCss, /scanline|repeating-linear-gradient/);
+  assert.match(appCss, /clip-path: var\(--clip-chamfer/);
+  assert.match(appCss, /prefers-reduced-motion/);
 
   for (const asset of await listStaticFiles(STATIC_ROOT)) {
     const source = await readFile(new URL(asset, STATIC_ROOT), "utf8");
