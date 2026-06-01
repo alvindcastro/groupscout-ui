@@ -14,12 +14,12 @@ function createApiClient(fetchImpl = fetch) {
 function render(pathname = window.location.pathname) {
   if (pathname.startsWith("/leads/")) {
     return [
-      '<div class="app-shell cyber-shell" data-renderer="static-dom">',
-      '<nav class="cyber-nav" aria-label="Primary"><div class="cyber-brand">GroupScout<small>operator console</small></div><div class="cyber-nav-links"><a href="/">Today</a><a href="/leads" aria-current="page">Leads</a></div></nav>',
-      '<section class="cyber-main cyber-detail" data-layout="desktop-evidence-workspace">',
-      '<header class="cyber-hero"><div class="cyber-kicker cyber-cursor">Evidence workspace</div><h1 class="cyber-title cyber-glitch" data-text="Riverside hotel renovation crew block">Riverside hotel renovation crew block</h1><p class="cyber-subtitle">Keep source evidence and AI enrichment visible together.</p></header>',
-      '<section class="cyber-terminal"><h2 class="cyber-label">Source Evidence</h2></section>',
-      '<section class="cyber-panel"><h2 class="cyber-label">AI Enrichment</h2></section>',
+      '<div class="app-shell soft-shell" data-renderer="static-dom">',
+      '<nav class="soft-nav" aria-label="Primary"><div class="soft-brand">GroupScout<small>operator console</small></div><div class="soft-nav-links"><a href="/">Today</a><a href="/leads" aria-current="page">Leads</a></div></nav>',
+      '<section class="soft-main soft-detail" data-layout="desktop-evidence-workspace">',
+      '<header class="soft-hero"><div class="soft-kicker">Evidence workspace</div><h1 class="soft-title">Riverside hotel renovation crew block</h1><p class="soft-subtitle">Keep source evidence and AI enrichment visible together.</p></header>',
+      '<section class="soft-terminal"><h2 class="soft-label">Source Evidence</h2></section>',
+      '<section class="soft-panel"><h2 class="soft-label">AI Enrichment</h2></section>',
       '</section>',
       '</div>'
     ].join("");
@@ -27,23 +27,23 @@ function render(pathname = window.location.pathname) {
 
   if (pathname === "/leads") {
     return [
-      '<div class="app-shell cyber-shell" data-renderer="static-dom">',
-      '<nav class="cyber-nav" aria-label="Primary"><div class="cyber-brand">GroupScout<small>operator console</small></div><div class="cyber-nav-links"><a href="/">Today</a><a href="/leads" aria-current="page">Leads</a></div></nav>',
-      '<section class="cyber-main cyber-screen" data-layout="desktop-table">',
-      '<header class="cyber-hero"><div class="cyber-kicker cyber-cursor">Lead acquisition</div><h1 class="cyber-title cyber-glitch" data-text="Lead Inbox">Lead Inbox</h1><p class="cyber-subtitle">Filter high-intent crew lodging demand.</p></header>',
-      '<form class="cyber-controls" aria-label="Lead filters"><label class="cyber-field">Search leads<span class="cyber-field-inner"><input class="cyber-input" type="search" aria-label="Search leads" name="q"></span></label></form>',
-      '<div class="cyber-table-wrap"><table class="cyber-table"><caption>Lead Inbox leads</caption><tbody><tr><td><a href="/leads/lead_hotel_001">Riverside hotel renovation crew block</a></td></tr></tbody></table></div>',
+      '<div class="app-shell soft-shell" data-renderer="static-dom">',
+      '<nav class="soft-nav" aria-label="Primary"><div class="soft-brand">GroupScout<small>operator console</small></div><div class="soft-nav-links"><a href="/">Today</a><a href="/leads" aria-current="page">Leads</a></div></nav>',
+      '<section class="soft-main soft-screen" data-layout="desktop-table">',
+      '<header class="soft-hero"><div class="soft-kicker">Lead acquisition</div><h1 class="soft-title">Lead Inbox</h1><p class="soft-subtitle">Filter high-intent crew lodging demand.</p></header>',
+      '<form class="soft-controls" aria-label="Lead filters"><label class="soft-field">Search leads<span class="soft-field-inner"><input class="soft-input" type="search" aria-label="Search leads" name="q"></span></label></form>',
+      '<div class="soft-table-wrap"><table class="soft-table"><caption>Lead Inbox leads</caption><tbody><tr><td><a href="/leads/lead_hotel_001">Riverside hotel renovation crew block</a></td></tr></tbody></table></div>',
       '</section>',
       '</div>'
     ].join("");
   }
 
   return [
-    '<div class="app-shell cyber-shell" data-renderer="static-dom">',
-    '<nav class="cyber-nav" aria-label="Primary"><div class="cyber-brand">GroupScout<small>operator console</small></div><div class="cyber-nav-links"><a href="/" aria-current="page">Today</a><a href="/leads">Leads</a></div></nav>',
-    '<section class="cyber-main cyber-screen" data-layout="desktop-command-center">',
-    '<header class="cyber-hero"><div class="cyber-kicker cyber-cursor">Command feed</div><h1 class="cyber-title cyber-glitch" data-text="Today">Today</h1><p class="cyber-subtitle">GroupScout operator workspace</p></header>',
-    '<section class="cyber-terminal"><p class="cyber-cursor">High-score leads and operational risk signals online.</p></section>',
+    '<div class="app-shell soft-shell" data-renderer="static-dom">',
+    '<nav class="soft-nav" aria-label="Primary"><div class="soft-brand">GroupScout<small>operator console</small></div><div class="soft-nav-links"><a href="/" aria-current="page">Today</a><a href="/leads">Leads</a></div></nav>',
+    '<section class="soft-main soft-screen" data-layout="desktop-command-center">',
+    '<header class="soft-hero"><div class="soft-kicker">Command feed</div><h1 class="soft-title">Today</h1><p class="soft-subtitle">GroupScout operator workspace</p></header>',
+    '<section class="soft-terminal"><p >High-score leads and operational risk signals online.</p></section>',
     '</section>',
     '</div>'
   ].join("");

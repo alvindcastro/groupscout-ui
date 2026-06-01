@@ -1,4 +1,4 @@
-:root {
+export const SOFT_STYLE_CSS = `:root {
   color-scheme: light;
   --color-background: #E0E5EC;
   --color-foreground: #3D4852;
@@ -489,3 +489,4 @@ button {
     font-size: clamp(2.25rem, 15vw, 4.5rem);
   }
 }
+`;

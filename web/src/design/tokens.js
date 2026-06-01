@@ -1,156 +1,152 @@
-const monoBody = "\"JetBrains Mono\", \"Fira Code\", Consolas, monospace";
-const monoAccent = "\"Share Tech Mono\", monospace";
-const monoHeading = "\"Orbitron\", \"Share Tech Mono\", monospace";
+const bodyFont = "\"DM Sans\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif";
+const displayFont = "\"Plus Jakarta Sans\", \"DM Sans\", system-ui, sans-serif";
 
 export const designTokens = {
   colors: {
-    background: "#0a0a0f",
-    foreground: "#e0e0e0",
-    card: "#12121a",
-    muted: "#1c1c2e",
-    mutedForeground: "#6b7280",
-    accent: "#00ff88",
-    accentSecondary: "#ff00ff",
-    accentTertiary: "#00d4ff",
-    border: "#2a2a3a",
-    input: "#12121a",
-    ring: "#00ff88",
-    destructive: "#ff3366",
+    background: "#E0E5EC",
+    foreground: "#3D4852",
+    card: "#E0E5EC",
+    muted: "#6B7280",
+    mutedForeground: "#6B7280",
+    accent: "#6C63FF",
+    accentLight: "#8B84FF",
+    accentSecondary: "#38B2AC",
+    border: "transparent",
+    input: "#E0E5EC",
+    ring: "#6C63FF",
+    destructive: "#B42318",
+    placeholder: "#A0AEC0",
+    shadowLight: "rgba(255, 255, 255, 0.56)",
+    shadowDark: "rgb(163, 177, 198, 0.64)",
 
-    primary: "#00ff88",
-    "on-primary": "#0a0a0f",
-    "brand-green": "#00ff88",
-    "brand-green-deep": "#00cc6d",
-    "brand-green-soft": "#70ffc1",
-    "brand-tag": "#00d4ff",
-    "brand-warn": "#f5d742",
-    "brand-annotate": "#00ff88",
-    "brand-error": "#ff3366",
-    "brand-cursor": "#00ff88",
-    "hero-sky-from": "#0a0a0f",
-    "hero-sky-to": "#12121a",
-    "hero-dark-from": "#050508",
-    "hero-dark-to": "#12121a",
-    "testimonial-orange": "#ff00ff",
-    "testimonial-orange-deep": "#b000b8",
-    canvas: "#0a0a0f",
-    "canvas-dark": "#050508",
-    surface: "#12121a",
-    "surface-soft": "#1c1c2e",
-    "surface-code": "#050508",
-    hairline: "#2a2a3a",
-    "hairline-soft": "rgba(0, 255, 136, 0.18)",
-    "hairline-dark": "#2a2a3a",
-    ink: "#e0e0e0",
-    charcoal: "#12121a",
-    slate: "#8b94a7",
-    steel: "#6b7280",
-    stone: "#8b94a7",
-    "on-dark": "#e0e0e0",
-    "on-dark-muted": "#9ca3af"
+    primary: "#6C63FF",
+    "on-primary": "#ffffff",
+    "brand-green": "#38B2AC",
+    "brand-green-deep": "#2C7A7B",
+    "brand-green-soft": "#B2F5EA",
+    "brand-tag": "#6C63FF",
+    "brand-warn": "#946200",
+    "brand-annotate": "#38B2AC",
+    "brand-error": "#B42318",
+    "brand-cursor": "#6C63FF",
+    "hero-sky-from": "#E0E5EC",
+    "hero-sky-to": "#E0E5EC",
+    "hero-dark-from": "#CBD5E1",
+    "hero-dark-to": "#E0E5EC",
+    "testimonial-orange": "#6C63FF",
+    "testimonial-orange-deep": "#5147D9",
+    canvas: "#E0E5EC",
+    "canvas-dark": "#3D4852",
+    surface: "#E0E5EC",
+    "surface-soft": "#E0E5EC",
+    "surface-code": "#D5DCE5",
+    hairline: "transparent",
+    "hairline-soft": "transparent",
+    "hairline-dark": "transparent",
+    ink: "#3D4852",
+    charcoal: "#3D4852",
+    slate: "#4B5563",
+    steel: "#6B7280",
+    stone: "#718096",
+    "on-dark": "#ffffff",
+    "on-dark-muted": "#E2E8F0"
   },
   typography: {
     "hero-display": {
-      fontFamily: monoHeading,
+      fontFamily: displayFont,
       fontSize: "64px",
-      fontWeight: 900,
+      fontWeight: 800,
       lineHeight: 1.02,
-      letterSpacing: "0.08em",
-      textTransform: "uppercase"
+      letterSpacing: "-0.03em"
     },
     "heading-1": {
-      fontFamily: monoHeading,
+      fontFamily: displayFont,
       fontSize: "42px",
       fontWeight: 800,
       lineHeight: 1.1,
-      letterSpacing: "0.06em",
-      textTransform: "uppercase"
+      letterSpacing: "-0.03em"
     },
     "heading-2": {
-      fontFamily: monoHeading,
+      fontFamily: displayFont,
       fontSize: "30px",
       fontWeight: 700,
-      lineHeight: 1.15,
-      letterSpacing: "0.04em",
-      textTransform: "uppercase"
+      lineHeight: 1.18,
+      letterSpacing: "-0.02em"
     },
     "body-md": {
-      fontFamily: monoBody,
+      fontFamily: bodyFont,
       fontSize: "16px",
       fontWeight: 400,
       lineHeight: 1.6,
       letterSpacing: "0"
     },
     "body-sm": {
-      fontFamily: monoBody,
+      fontFamily: bodyFont,
       fontSize: "14px",
       fontWeight: 400,
       lineHeight: 1.5,
       letterSpacing: "0"
     },
     "body-sm-medium": {
-      fontFamily: monoBody,
+      fontFamily: bodyFont,
       fontSize: "14px",
       fontWeight: 600,
       lineHeight: 1.5,
-      letterSpacing: "0.02em"
+      letterSpacing: "0"
     },
     "caption-bold": {
-      fontFamily: monoAccent,
+      fontFamily: bodyFont,
       fontSize: "13px",
       fontWeight: 700,
       lineHeight: 1.4,
-      letterSpacing: "0.12em",
-      textTransform: "uppercase"
+      letterSpacing: "0.02em"
     },
     micro: {
-      fontFamily: monoAccent,
+      fontFamily: bodyFont,
       fontSize: "12px",
-      fontWeight: 500,
+      fontWeight: 600,
       lineHeight: 1.4,
-      letterSpacing: "0.16em",
-      textTransform: "uppercase"
+      letterSpacing: "0.04em"
     },
     "micro-uppercase": {
-      fontFamily: monoAccent,
+      fontFamily: bodyFont,
       fontSize: "11px",
       fontWeight: 700,
       lineHeight: 1.4,
-      letterSpacing: "0.2em",
+      letterSpacing: "0.08em",
       textTransform: "uppercase"
     },
     "button-md": {
-      fontFamily: monoAccent,
+      fontFamily: bodyFont,
       fontSize: "14px",
       fontWeight: 700,
       lineHeight: 1.3,
-      letterSpacing: "0.12em",
-      textTransform: "uppercase"
+      letterSpacing: "0"
     },
     "code-sm": {
-      fontFamily: monoBody,
+      fontFamily: bodyFont,
       fontSize: "13px",
-      fontWeight: 500,
+      fontWeight: 600,
       lineHeight: 1.4
     },
     "code-inline": {
-      fontFamily: monoBody,
+      fontFamily: bodyFont,
       fontSize: "13px",
-      fontWeight: 600,
+      fontWeight: 700,
       lineHeight: 1.3
     }
   },
   rounded: {
     none: "0px",
-    xs: "0px",
-    sm: "2px",
-    base: "4px",
-    md: "4px",
-    lg: "4px",
-    xl: "4px",
-    xxl: "4px",
-    full: "4px",
-    chamfer: "10px"
+    xs: "12px",
+    sm: "12px",
+    base: "16px",
+    md: "16px",
+    lg: "32px",
+    xl: "32px",
+    xxl: "32px",
+    full: "9999px",
+    container: "32px"
   },
   spacing: {
     xxs: "4px",
@@ -167,138 +163,144 @@ export const designTokens = {
     hero: "120px"
   },
   effects: {
-    "shadow-neon": "0 0 5px #00ff88, 0 0 10px #00ff8840",
-    "shadow-neon-sm": "0 0 3px #00ff88, 0 0 6px #00ff8830",
-    "shadow-neon-lg": "0 0 10px #00ff88, 0 0 20px #00ff8860, 0 0 40px #00ff8830",
-    "shadow-neon-secondary": "0 0 5px #ff00ff, 0 0 20px #ff00ff60",
-    "shadow-neon-tertiary": "0 0 5px #00d4ff, 0 0 20px #00d4ff60",
-    "clip-chamfer": "polygon(0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px))",
-    "clip-chamfer-sm": "polygon(0 6px, 6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px))"
+    extruded: "9px 9px 16px rgb(163, 177, 198, 0.6), -9px -9px 16px rgba(255, 255, 255, 0.5)",
+    extrudedHover: "12px 12px 20px rgb(163, 177, 198, 0.7), -12px -12px 20px rgba(255, 255, 255, 0.6)",
+    extrudedSmall: "5px 5px 10px rgb(163, 177, 198, 0.6), -5px -5px 10px rgba(255, 255, 255, 0.5)",
+    inset: "inset 6px 6px 10px rgb(163, 177, 198, 0.6), inset -6px -6px 10px rgba(255, 255, 255, 0.5)",
+    insetDeep: "inset 10px 10px 20px rgb(163, 177, 198, 0.7), inset -10px -10px 20px rgba(255, 255, 255, 0.6)",
+    insetSmall: "inset 3px 3px 6px rgb(163, 177, 198, 0.6), inset -3px -3px 6px rgba(255, 255, 255, 0.5)",
+    accentInset: "inset 4px 4px 8px rgba(43, 38, 143, 0.35), inset -4px -4px 8px rgba(255, 255, 255, 0.22)",
+    floating: "float 3s ease-in-out infinite"
   },
   components: {
     "button-primary": {
       backgroundColor: "{colors.accent}",
-      textColor: "{colors.background}",
+      textColor: "{colors.on-primary}",
       typography: "{typography.button-md}",
-      rounded: "{rounded.none}",
-      clipPath: "{effects.clip-chamfer-sm}",
-      padding: "10px 20px",
-      border: "2px solid {colors.accent}",
-      shadow: "{effects.shadow-neon}"
+      rounded: "{rounded.base}",
+      padding: "12px 20px",
+      border: "0",
+      shadow: "{effects.extrudedSmall}",
+      activeShadow: "{effects.accentInset}"
     },
     "button-secondary": {
-      backgroundColor: "transparent",
-      textColor: "{colors.accentSecondary}",
+      backgroundColor: "{colors.background}",
+      textColor: "{colors.foreground}",
       typography: "{typography.button-md}",
-      rounded: "{rounded.none}",
-      clipPath: "{effects.clip-chamfer-sm}",
-      padding: "10px 20px",
-      border: "2px solid {colors.accentSecondary}",
-      shadow: "{effects.shadow-neon-secondary}"
+      rounded: "{rounded.base}",
+      padding: "12px 20px",
+      border: "0",
+      shadow: "{effects.extrudedSmall}",
+      activeShadow: "{effects.insetSmall}"
     },
     "button-ghost": {
-      backgroundColor: "rgba(0, 255, 136, 0.08)",
+      backgroundColor: "{colors.background}",
       textColor: "{colors.accent}",
       typography: "{typography.button-md}",
-      rounded: "{rounded.none}",
-      clipPath: "{effects.clip-chamfer-sm}",
-      padding: "8px 12px"
+      rounded: "{rounded.full}",
+      padding: "8px 12px",
+      shadow: "{effects.insetSmall}"
     },
     "text-input": {
       backgroundColor: "{colors.input}",
-      textColor: "{colors.accent}",
+      textColor: "{colors.foreground}",
       typography: "{typography.body-md}",
       rounded: "{rounded.base}",
-      clipPath: "{effects.clip-chamfer-sm}",
       padding: "{spacing.sm} {spacing.md}",
-      border: "1px solid {colors.border}",
-      height: "44px",
-      focusShadow: "{effects.shadow-neon-sm}"
+      border: "0",
+      height: "48px",
+      shadow: "{effects.inset}",
+      focusShadow: "{effects.insetDeep}"
     },
     "search-pill": {
-      backgroundColor: "{colors.muted}",
-      textColor: "{colors.foreground}",
+      backgroundColor: "{colors.background}",
+      textColor: "{colors.muted}",
       typography: "{typography.body-sm}",
-      rounded: "{rounded.none}",
-      clipPath: "{effects.clip-chamfer-sm}",
+      rounded: "{rounded.full}",
       padding: "{spacing.xs} {spacing.md}",
       height: "44px",
-      border: "1px solid {colors.border}"
+      border: "0",
+      shadow: "{effects.insetSmall}"
     },
     "segmented-tab": {
-      backgroundColor: "transparent",
-      textColor: "{colors.mutedForeground}",
+      backgroundColor: "{colors.background}",
+      textColor: "{colors.muted}",
       typography: "{typography.body-sm-medium}",
       padding: "{spacing.sm} {spacing.md}",
-      border: "0 0 2px transparent solid"
+      border: "0",
+      shadow: "{effects.extrudedSmall}"
     },
     "segmented-tab-active": {
-      backgroundColor: "rgba(0, 255, 136, 0.08)",
+      backgroundColor: "{colors.background}",
       textColor: "{colors.accent}",
       typography: "{typography.body-sm-medium}",
-      border: "0 0 2px {colors.accent} solid",
-      shadow: "{effects.shadow-neon-sm}"
+      border: "0",
+      shadow: "{effects.insetSmall}"
     },
     "sidebar-nav-item": {
-      backgroundColor: "transparent",
-      textColor: "{colors.mutedForeground}",
+      backgroundColor: "{colors.background}",
+      textColor: "{colors.muted}",
       typography: "{typography.body-sm}",
-      rounded: "{rounded.none}",
-      clipPath: "{effects.clip-chamfer-sm}",
-      padding: "{spacing.xs} {spacing.md}"
+      rounded: "{rounded.base}",
+      padding: "{spacing.xs} {spacing.md}",
+      shadow: "{effects.extrudedSmall}"
     },
     "sidebar-nav-item-active": {
-      backgroundColor: "rgba(0, 255, 136, 0.1)",
+      backgroundColor: "{colors.background}",
       textColor: "{colors.accent}",
       typography: "{typography.body-sm-medium}",
-      border: "1px solid rgba(0, 255, 136, 0.35)"
+      shadow: "{effects.insetSmall}"
     },
     "badge-tag": {
-      backgroundColor: "rgba(0, 212, 255, 0.12)",
-      textColor: "{colors.accentTertiary}",
+      backgroundColor: "{colors.background}",
+      textColor: "{colors.accent}",
       typography: "{typography.caption-bold}",
-      rounded: "{rounded.sm}",
-      padding: "2px 8px",
-      border: "1px solid rgba(0, 212, 255, 0.35)"
+      rounded: "{rounded.full}",
+      padding: "4px 10px",
+      border: "0",
+      shadow: "{effects.insetSmall}"
     },
     "badge-type": {
-      backgroundColor: "rgba(255, 0, 255, 0.1)",
+      backgroundColor: "{colors.background}",
       textColor: "{colors.accentSecondary}",
       typography: "{typography.code-sm}",
-      rounded: "{rounded.sm}",
-      padding: "2px 6px",
-      border: "1px solid rgba(255, 0, 255, 0.3)"
+      rounded: "{rounded.full}",
+      padding: "4px 10px",
+      border: "0",
+      shadow: "{effects.insetSmall}"
     },
     "card-base": {
-      backgroundColor: "{colors.card}",
-      rounded: "{rounded.none}",
-      clipPath: "{effects.clip-chamfer}",
+      backgroundColor: "{colors.background}",
+      rounded: "{rounded.container}",
       padding: "{spacing.xl}",
-      border: "1px solid {colors.border}",
-      hoverShadow: "{effects.shadow-neon}"
+      border: "0",
+      shadow: "{effects.extruded}",
+      hoverShadow: "{effects.extrudedHover}"
     },
     "code-inline": {
       backgroundColor: "{colors.background}",
-      textColor: "{colors.accent}",
+      textColor: "{colors.foreground}",
       typography: "{typography.code-inline}",
       rounded: "{rounded.sm}",
-      padding: "2px 6px",
-      border: "1px solid rgba(0, 255, 136, 0.35)"
+      padding: "4px 8px",
+      border: "0",
+      shadow: "{effects.insetSmall}"
     },
     "feature-comparison-table": {
-      backgroundColor: "{colors.card}",
+      backgroundColor: "{colors.background}",
       textColor: "{colors.foreground}",
       typography: "{typography.body-sm}",
-      rounded: "{rounded.none}",
-      clipPath: "{effects.clip-chamfer}",
-      border: "1px solid {colors.border}"
+      rounded: "{rounded.container}",
+      border: "0",
+      shadow: "{effects.extruded}"
     },
     "property-row": {
       backgroundColor: "transparent",
       textColor: "{colors.foreground}",
       typography: "{typography.body-sm}",
       padding: "{spacing.md} 0",
-      border: "0 0 1px rgba(0, 255, 136, 0.18) solid"
+      border: "0",
+      shadow: "{effects.insetSmall}"
     }
   }
 };

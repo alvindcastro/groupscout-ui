@@ -103,9 +103,9 @@ test("13-C renderer mounts Today, Lead Inbox, and Lead Detail from existing scre
   assert.equal(RENDERER_BROWSER_ENTRY_CONTRACT.apiPath, "/api/*");
   assert.equal(RENDERER_BROWSER_ENTRY_CONTRACT.sameOriginOnly, true);
   assert.match(today.html, /<nav[^>]+aria-label="Primary"/);
-  assert.match(today.html, /class="app-shell cyber-shell"/);
+  assert.match(today.html, /class="app-shell soft-shell"/);
   assert.match(today.html, /<main[^>]+aria-label="GroupScout operator workspace"/);
-  assert.match(today.html, /cyber-title cyber-glitch/);
+  assert.match(today.html, /soft-title/);
   assert.match(today.html, /Today/);
   assert.match(leads.html, /Lead Inbox/);
   assert.match(leads.html, /type="search"[^>]+aria-label="Search leads"/);
@@ -126,7 +126,7 @@ test("13-C renderer mounts Today, Lead Inbox, and Lead Detail from existing scre
   assert.doesNotMatch(JSON.stringify(leads.props), /API_TOKEN|DATABASE_URL|UI_SESSION_SECRET/);
 });
 
-test("13-D static product build output is present, cyberpunk-styled, route-safe, and secret-free", async () => {
+test("13-D static product build output is present, neumorphic-styled, route-safe, and secret-free", async () => {
   const [{ createStaticAssetResponsePlan }, packageJsonSource, indexHtml, appJs, appCss] = await Promise.all([
     import(PRODUCTION_SERVER),
     readFile(PACKAGE_JSON, "utf8"),
@@ -141,12 +141,14 @@ test("13-D static product build output is present, cyberpunk-styled, route-safe,
   assert.match(indexHtml, /<link rel="stylesheet" href="\/assets\/app\.css">/);
   assert.match(indexHtml, /<script type="module" src="\/assets\/app\.js"><\/script>/);
   assert.match(appJs, /GroupScout operator workspace/);
-  assert.match(appJs, /cyber-shell|cyber-glitch|Lead Inbox leads/);
+  assert.match(appJs, /soft-shell|soft-hero|Lead Inbox leads/);
   assert.match(appJs, /createApiClient|\/api\/system/);
-  assert.match(appCss, /--color-background: #0a0a0f/);
-  assert.match(appCss, /--color-accent: #00ff88/);
-  assert.match(appCss, /scanline|repeating-linear-gradient/);
-  assert.match(appCss, /clip-path: var\(--clip-chamfer/);
+  assert.match(appCss, /--color-background: #E0E5EC/);
+  assert.match(appCss, /--color-foreground: #3D4852/);
+  assert.match(appCss, /--color-accent: #6C63FF/);
+  assert.match(appCss, /--shadow-extruded: 9px 9px 16px rgb\(163, 177, 198, 0\.6\), -9px -9px 16px rgba\(255, 255, 255, 0\.5\)/);
+  assert.match(appCss, /--shadow-inset-deep: inset 10px 10px 20px rgb\(163, 177, 198, 0\.7\), inset -10px -10px 20px rgba\(255, 255, 255, 0\.6\)/);
+  assert.match(appCss, /border-radius: 32px/);
   assert.match(appCss, /prefers-reduced-motion/);
 
   for (const asset of await listStaticFiles(STATIC_ROOT)) {

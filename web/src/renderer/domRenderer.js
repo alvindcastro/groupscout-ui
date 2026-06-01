@@ -13,9 +13,9 @@ export function renderRouteToHtml(pathname = "/", options = {}) {
   const shell = createRenderableShell(pathname, options);
   const focusableLabels = collectFocusableLabels(shell);
   const html = [
-    '<div class="app-shell cyber-shell" data-renderer="vanilla-dom">',
+    '<div class="app-shell soft-shell" data-renderer="vanilla-dom">',
     renderNavigation(shell),
-    `<main class="cyber-main" aria-label="GroupScout operator workspace">${renderScreen(shell.content)}</main>`,
+    `<main class="soft-main" aria-label="GroupScout operator workspace">${renderScreen(shell.content)}</main>`,
     "</div>"
   ].join("");
 
@@ -105,16 +105,16 @@ function renderNavigation(shell) {
   });
 
   return [
-    '<nav class="cyber-nav" aria-label="Primary">',
-    '<div class="cyber-brand">GroupScout<small>operator console</small></div>',
-    `<div class="cyber-nav-links">${links.join("")}</div>`,
+    '<nav class="soft-nav" aria-label="Primary">',
+    '<div class="soft-brand">GroupScout<small>operator console</small></div>',
+    `<div class="soft-nav-links">${links.join("")}</div>`,
     "</nav>"
   ].join("");
 }
 
 function renderScreen(screen) {
   const status = screen.statusRegion
-    ? `<section class="cyber-status${screen.statusRegion.role === "alert" ? " cyber-alert" : ""}" role="${screen.statusRegion.role}">${escapeHtml(screen.statusRegion.message)}</section>`
+    ? `<section class="soft-status${screen.statusRegion.role === "alert" ? " soft-alert" : ""}" role="${screen.statusRegion.role}">${escapeHtml(screen.statusRegion.message)}</section>`
     : "";
 
   return `${status}${renderState(screen)}`;
@@ -134,7 +134,7 @@ function renderState(screen) {
   }
 
   return [
-    '<section class="cyber-screen cyber-terminal">',
+    '<section class="soft-screen soft-terminal">',
     renderHero(screen.heading ?? "GroupScout", "Reserved route", "Phase channel awaiting workflow activation."),
     "</section>"
   ].join("");
@@ -147,18 +147,18 @@ function renderToday(screen) {
   const failedRows = screen.failedJobs?.rows ?? [];
 
   return [
-    `<section class="cyber-screen" data-layout="${escapeHtml(screen.layout.mode)}">`,
+    `<section class="soft-screen" data-layout="${escapeHtml(screen.layout.mode)}">`,
     renderHero(screen.heading, "Command feed", "High-score leads, stale ownership, alerts, and failed jobs in one operator surface."),
-    `<div class="cyber-grid">${items.map(renderMetric).join("")}</div>`,
-    '<section class="cyber-terminal">',
-    '<div class="cyber-label">Priority leads</div>',
+    `<div class="soft-grid">${items.map(renderMetric).join("")}</div>`,
+    '<section class="soft-terminal">',
+    '<div class="soft-label">Priority leads</div>',
     renderList(priorityRows.map((row) => ({
       title: row.title,
       detail: `${row.score ?? ""} ${row.status ?? ""} ${row.timing ?? ""}`.trim(),
       href: row.href ?? `/leads/${row.id}`
     }))),
     "</section>",
-    '<div class="cyber-card-grid">',
+    '<div class="soft-card-grid">',
     renderMiniPanel("Active alerts", alertRows),
     renderMiniPanel("Failed jobs", failedRows),
     "</div>",
@@ -168,17 +168,17 @@ function renderToday(screen) {
 
 function renderMetric(item) {
   return [
-    `<a class="cyber-card cyber-metric" href="${escapeHtml(item.href ?? "#")}">`,
-    `<span class="cyber-label">${escapeHtml(item.label)}</span>`,
-    `<span class="cyber-metric-value">${escapeHtml(item.value)}</span>`,
+    `<a class="soft-card soft-metric" href="${escapeHtml(item.href ?? "#")}">`,
+    `<span class="soft-label">${escapeHtml(item.label)}</span>`,
+    `<span class="soft-metric-value">${escapeHtml(item.value)}</span>`,
     "</a>"
   ].join("");
 }
 
 function renderMiniPanel(title, rows) {
   return [
-    '<section class="cyber-panel">',
-    `<h2 class="cyber-label">${escapeHtml(title)}</h2>`,
+    '<section class="soft-panel">',
+    `<h2 class="soft-label">${escapeHtml(title)}</h2>`,
     renderList(rows.map((row) => ({
       title: row.title ?? row.property ?? row.collector ?? row.id,
       detail: row.impact ?? row.reason ?? row.status ?? row.nextStep ?? ""
@@ -215,11 +215,11 @@ function renderLeadInbox(screen) {
   });
 
   return [
-    `<section class="cyber-screen" data-layout="${escapeHtml(screen.layout.mode)}">`,
+    `<section class="soft-screen" data-layout="${escapeHtml(screen.layout.mode)}">`,
     renderHero(screen.heading, "Lead acquisition", "Filter high-intent crew lodging demand before the window closes."),
-    `<form class="cyber-controls" aria-label="Lead filters">${controls}</form>`,
-    '<div class="cyber-table-wrap">',
-    `<table class="cyber-table"><caption>Lead Inbox leads</caption><thead><tr>${headers.join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`,
+    `<form class="soft-controls" aria-label="Lead filters">${controls}</form>`,
+    '<div class="soft-table-wrap">',
+    `<table class="soft-table"><caption>Lead Inbox leads</caption><thead><tr>${headers.join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`,
     "</div>",
     "</section>"
   ].join("");
@@ -227,22 +227,22 @@ function renderLeadInbox(screen) {
 
 function renderEmptyState(screen, message) {
   return [
-    `<section class="cyber-screen" data-layout="${escapeHtml(screen.layout.mode)}">`,
+    `<section class="soft-screen" data-layout="${escapeHtml(screen.layout.mode)}">`,
     renderHero(screen.heading, "Lead acquisition", message),
-    `<div class="cyber-terminal"><p class="cyber-cursor">${escapeHtml(message)}</p></div>`,
+    `<div class="soft-terminal"><p >${escapeHtml(message)}</p></div>`,
     "</section>"
   ].join("");
 }
 
 function renderControl(control) {
   if (control.type === "button") {
-    return `<button class="cyber-button cyber-button-secondary" type="button" aria-label="${escapeHtml(control.ariaLabel)}">${escapeHtml(control.label)}</button>`;
+    return `<button class="soft-button soft-button-secondary" type="button" aria-label="${escapeHtml(control.ariaLabel)}">${escapeHtml(control.label)}</button>`;
   }
 
   if (control.type === "select") {
     return [
-      `<label class="cyber-field">${escapeHtml(control.label)}<span class="cyber-field-inner">`,
-      `<select class="cyber-select" aria-label="${escapeHtml(control.ariaLabel)}" name="${escapeHtml(control.name)}">`,
+      `<label class="soft-field">${escapeHtml(control.label)}<span class="soft-field-inner">`,
+      `<select class="soft-select" aria-label="${escapeHtml(control.ariaLabel)}" name="${escapeHtml(control.name)}">`,
       `<option value="">All ${escapeHtml(control.label.toLowerCase())}</option>`,
       "</select>",
       "</span></label>"
@@ -255,8 +255,8 @@ function renderControl(control) {
   const placeholder = control.type === "search" ? "Scan lead signal" : control.label;
 
   return [
-    `<label class="cyber-field">${escapeHtml(control.label)}<span class="cyber-field-inner">`,
-    `<input class="cyber-input" type="${inputType}" aria-label="${escapeHtml(control.ariaLabel)}" name="${escapeHtml(control.name)}" placeholder="${escapeHtml(placeholder)}">`,
+    `<label class="soft-field">${escapeHtml(control.label)}<span class="soft-field-inner">`,
+    `<input class="soft-input" type="${inputType}" aria-label="${escapeHtml(control.ariaLabel)}" name="${escapeHtml(control.name)}" placeholder="${escapeHtml(placeholder)}">`,
     "</span></label>"
   ].join("");
 }
@@ -268,27 +268,27 @@ function renderLeadDetail(screen) {
   const activity = screen.activity?.entries ?? [];
 
   return [
-    `<article class="cyber-detail" data-layout="${escapeHtml(screen.layout.mode)}">`,
+    `<article class="soft-detail" data-layout="${escapeHtml(screen.layout.mode)}">`,
     renderHero(screen.heading, "Evidence workspace", "Keep the original source, the model inference, and the reviewer correction visible together."),
-    '<section class="cyber-card-grid">',
+    '<section class="soft-card-grid">',
     renderSummaryPanel(summary),
     renderActionPanel(actions),
     "</section>",
-    '<section class="cyber-terminal">',
-    '<h2 class="cyber-label">Source Evidence</h2>',
+    '<section class="soft-terminal">',
+    '<h2 class="soft-label">Source Evidence</h2>',
     renderSourceEvidence(screen.sourceEvidence),
     "</section>",
-    '<section class="cyber-panel">',
-    '<h2 class="cyber-label">AI Enrichment</h2>',
+    '<section class="soft-panel">',
+    '<h2 class="soft-label">AI Enrichment</h2>',
     screen.aiEnrichment?.rationale ? `<p>${escapeHtml(screen.aiEnrichment.rationale)}</p>` : "",
     renderClaims(claims),
     "</section>",
-    '<section class="cyber-panel">',
-    '<h2 class="cyber-label">Outreach</h2>',
+    '<section class="soft-panel">',
+    '<h2 class="soft-label">Outreach</h2>',
     `<p>${escapeHtml(screen.outreach?.recommendedTiming ?? "")}</p>`,
     "</section>",
-    '<section class="cyber-panel">',
-    '<h2 class="cyber-label">Activity</h2>',
+    '<section class="soft-panel">',
+    '<h2 class="soft-label">Activity</h2>',
     renderList(activity.map((entry) => ({ title: entry.label, detail: `${entry.detail} ${entry.timestamp}` }))),
     "</section>",
     "</article>"
@@ -297,18 +297,18 @@ function renderLeadDetail(screen) {
 
 function renderHero(title, kicker, subtitle) {
   return [
-    '<header class="cyber-hero">',
-    `<div class="cyber-kicker cyber-cursor">${escapeHtml(kicker)}</div>`,
-    `<h1 class="cyber-title cyber-glitch" data-text="${escapeHtml(title)}">${escapeHtml(title)}</h1>`,
-    `<p class="cyber-subtitle">${escapeHtml(subtitle)}</p>`,
+    '<header class="soft-hero">',
+    `<div class="soft-kicker">${escapeHtml(kicker)}</div>`,
+    `<h1 class="soft-title">${escapeHtml(title)}</h1>`,
+    `<p class="soft-subtitle">${escapeHtml(subtitle)}</p>`,
     "</header>"
   ].join("");
 }
 
 function renderSummaryPanel(items) {
   return [
-    '<section class="cyber-panel">',
-    '<h2 class="cyber-label">Summary</h2>',
+    '<section class="soft-panel">',
+    '<h2 class="soft-label">Summary</h2>',
     renderList(items.map(([label, value]) => ({ title: label, detail: value }))),
     "</section>"
   ].join("");
@@ -316,16 +316,16 @@ function renderSummaryPanel(items) {
 
 function renderActionPanel(actions) {
   return [
-    '<section class="cyber-panel">',
-    '<h2 class="cyber-label">Actions</h2>',
-    `<div class="cyber-controls">${actions.map((action) => `<button class="cyber-button" type="button">${escapeHtml(action.label)}</button>`).join("")}</div>`,
+    '<section class="soft-panel">',
+    '<h2 class="soft-label">Actions</h2>',
+    `<div class="soft-controls">${actions.map((action) => `<button class="soft-button" type="button">${escapeHtml(action.label)}</button>`).join("")}</div>`,
     "</section>"
   ].join("");
 }
 
 function renderSourceEvidence(sourceEvidence) {
   if (!sourceEvidence) {
-    return '<p class="cyber-cursor">Source record unavailable.</p>';
+    return '<p >Source record unavailable.</p>';
   }
 
   return renderList([
@@ -337,13 +337,13 @@ function renderSourceEvidence(sourceEvidence) {
 
 function renderClaims(claims) {
   return [
-    '<div class="cyber-grid">',
+    '<div class="soft-grid">',
     ...claims.map((claim) => [
-      '<div class="cyber-card">',
+      '<div class="soft-card">',
       `<strong>${escapeHtml(claim.field)}</strong>`,
-      `<p><span class="cyber-chip">${escapeHtml(claim.original.label)}</span> ${escapeHtml(claim.original.value)}</p>`,
+      `<p><span class="soft-chip">${escapeHtml(claim.original.label)}</span> ${escapeHtml(claim.original.value)}</p>`,
       claim.reviewerCorrection
-        ? `<p><span class="cyber-chip">${escapeHtml(claim.reviewerCorrection.label)}</span> ${escapeHtml(claim.reviewerCorrection.value)}</p>`
+        ? `<p><span class="soft-chip">${escapeHtml(claim.reviewerCorrection.label)}</span> ${escapeHtml(claim.reviewerCorrection.value)}</p>`
         : "",
       "</div>"
     ].join("")),
@@ -353,9 +353,9 @@ function renderClaims(claims) {
 
 function renderList(items) {
   return [
-    '<ul class="cyber-list">',
+    '<ul class="soft-list">',
     ...items.map((item) => [
-      '<li class="cyber-row">',
+      '<li class="soft-row">',
       item.href
         ? `<a href="${escapeHtml(item.href)}"><strong>${escapeHtml(item.title)}</strong></a>`
         : `<strong>${escapeHtml(item.title)}</strong>`,
