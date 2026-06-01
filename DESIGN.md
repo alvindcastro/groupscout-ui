@@ -170,7 +170,7 @@ The visual language is Soft UI / Neumorphism. Elements are molded from a single 
 
 ## Typography
 
-Display headings use Plus Jakarta Sans where available, falling back to DM Sans and system sans fonts. Body and UI copy use DM Sans with system fallbacks. Font loading is not runtime-coupled; the app remains dependency-free if those fonts are unavailable.
+Display headings use Plus Jakarta Sans where available, falling back to DM Sans and system sans fonts. The app uses a compact operator-workspace scale rather than landing-page typography: route titles cap at `3.5rem`, metrics sit around `30px`, and dense UI copy uses 13-15px text. Font loading is not runtime-coupled; the app remains dependency-free if those fonts are unavailable.
 
 ## Accessibility
 

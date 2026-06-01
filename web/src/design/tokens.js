@@ -54,49 +54,49 @@ export const designTokens = {
   typography: {
     "hero-display": {
       fontFamily: displayFont,
-      fontSize: "64px",
+      fontSize: "48px",
       fontWeight: 800,
-      lineHeight: 1.02,
+      lineHeight: 1.08,
       letterSpacing: "-0.03em"
     },
     "heading-1": {
       fontFamily: displayFont,
-      fontSize: "42px",
+      fontSize: "34px",
       fontWeight: 800,
       lineHeight: 1.1,
       letterSpacing: "-0.03em"
     },
     "heading-2": {
       fontFamily: displayFont,
-      fontSize: "30px",
+      fontSize: "24px",
       fontWeight: 700,
       lineHeight: 1.18,
       letterSpacing: "-0.02em"
     },
     "body-md": {
       fontFamily: bodyFont,
-      fontSize: "16px",
+      fontSize: "15px",
       fontWeight: 400,
       lineHeight: 1.6,
       letterSpacing: "0"
     },
     "body-sm": {
       fontFamily: bodyFont,
-      fontSize: "14px",
+      fontSize: "13px",
       fontWeight: 400,
       lineHeight: 1.5,
       letterSpacing: "0"
     },
     "body-sm-medium": {
       fontFamily: bodyFont,
-      fontSize: "14px",
+      fontSize: "13px",
       fontWeight: 600,
       lineHeight: 1.5,
       letterSpacing: "0"
     },
     "caption-bold": {
       fontFamily: bodyFont,
-      fontSize: "13px",
+      fontSize: "12px",
       fontWeight: 700,
       lineHeight: 1.4,
       letterSpacing: "0.02em"
@@ -118,20 +118,20 @@ export const designTokens = {
     },
     "button-md": {
       fontFamily: bodyFont,
-      fontSize: "14px",
+      fontSize: "13px",
       fontWeight: 700,
       lineHeight: 1.3,
       letterSpacing: "0"
     },
     "code-sm": {
       fontFamily: bodyFont,
-      fontSize: "13px",
+      fontSize: "12px",
       fontWeight: 600,
       lineHeight: 1.4
     },
     "code-inline": {
       fontFamily: bodyFont,
-      fontSize: "13px",
+      fontSize: "12px",
       fontWeight: 700,
       lineHeight: 1.3
     }
