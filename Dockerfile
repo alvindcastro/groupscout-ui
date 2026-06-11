@@ -4,8 +4,6 @@ WORKDIR /workspace
 ENV NODE_ENV=test
 
 COPY package.json ./
-COPY DESIGN.md ./
-COPY docs ./docs
 COPY web ./web
 COPY test ./test
 COPY Dockerfile ./

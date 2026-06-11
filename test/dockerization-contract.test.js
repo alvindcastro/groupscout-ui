@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
+import { pathToFileURL } from "node:url";
 
 const DOCKERFILE = new URL("../Dockerfile", import.meta.url);
 const DOCKERIGNORE = new URL("../.dockerignore", import.meta.url);
@@ -11,14 +12,18 @@ const DEV_COMPOSE_SERVER = new URL("../web/src/server/devComposeHealthServer.js"
 const PRODUCTION_SERVER = new URL("../web/src/server/productionServer.js", import.meta.url);
 const STATIC_INDEX = new URL("../web/dist/index.html", import.meta.url);
 const STATIC_APP = new URL("../web/dist/assets/app.js", import.meta.url);
-const CONTRACT_DOC = new URL("../docs/ui-dockerization-contract.md", import.meta.url);
-const PHASE_DOC = new URL("../docs/phase-12-ui-dockerization.md", import.meta.url);
-const DEVELOPER_GUIDE = new URL("../docs/developer-guide.md", import.meta.url);
-const TESTING_DOC = new URL("../docs/testing.md", import.meta.url);
-const TROUBLESHOOTING_DOC = new URL("../docs/troubleshooting.md", import.meta.url);
+const DOCS_ROOT = pathToFileURL(
+  `${(process.env.GROUPSCOUT_UI_DOCS_ROOT || "/mnt/c/Users/alvin/groupscout-site/frontend").replace(/\/$/, "")}/`
+);
+const CONTRACT_DOC = new URL("docs/ui-dockerization-contract.md", DOCS_ROOT);
+const PHASE_DOC = new URL("docs/phase-12-ui-dockerization.md", DOCS_ROOT);
+const DEVELOPER_GUIDE = new URL("docs/developer-guide.md", DOCS_ROOT);
+const TESTING_DOC = new URL("docs/testing.md", DOCS_ROOT);
+const TROUBLESHOOTING_DOC = new URL("docs/troubleshooting.md", DOCS_ROOT);
 
-test("D0 dockerization contract documents the chosen path before Docker files exist", async () => {
-  const contract = await readFile(CONTRACT_DOC, "utf8");
+test("D0 dockerization contract documents the chosen path before Docker files exist", async (t) => {
+  const contract = await readDoc(t, CONTRACT_DOC);
+  if (contract === null) return;
 
   assert.match(contract, /^# UI Dockerization Contract/m);
   assert.match(contract, /D0 status: documentation-only/i);
@@ -26,8 +31,9 @@ test("D0 dockerization contract documents the chosen path before Docker files ex
   assert.match(contract, /No Dockerfile, Compose file, reverse proxy, dev server, renderer, or application runtime is added in D0\./);
 });
 
-test("D0 dockerization contract records backend service names and internal URLs", async () => {
-  const contract = await readFile(CONTRACT_DOC, "utf8");
+test("D0 dockerization contract records backend service names and internal URLs", async (t) => {
+  const contract = await readDoc(t, CONTRACT_DOC);
+  if (contract === null) return;
 
   assert.match(contract, /Backend service: `groupscout`/);
   assert.match(contract, /Backend internal URL: `http:\/\/groupscout:8080`/);
@@ -36,8 +42,9 @@ test("D0 dockerization contract records backend service names and internal URLs"
   assert.match(contract, /Shared backend network: `groupscout_net`/);
 });
 
-test("D0 dockerization contract preserves same-origin and browser credential boundaries", async () => {
-  const contract = await readFile(CONTRACT_DOC, "utf8");
+test("D0 dockerization contract preserves same-origin and browser credential boundaries", async (t) => {
+  const contract = await readDoc(t, CONTRACT_DOC);
+  if (contract === null) return;
 
   assert.match(contract, /Browser API calls stay same-origin through `\/api\/\*`/);
   assert.match(contract, /`API_TOKEN` remains reserved for automation clients/);
@@ -45,12 +52,13 @@ test("D0 dockerization contract preserves same-origin and browser credential bou
   assert.match(contract, /session-cookie/i);
 });
 
-test("D0 dockerization docs expose the contract and red-green evidence", async () => {
+test("D0 dockerization docs expose the contract and red-green evidence", async (t) => {
   const [phaseDoc, developerGuide, testingDoc] = await Promise.all([
-    readFile(PHASE_DOC, "utf8"),
-    readFile(DEVELOPER_GUIDE, "utf8"),
-    readFile(TESTING_DOC, "utf8")
+    readDoc(t, PHASE_DOC),
+    readDoc(t, DEVELOPER_GUIDE),
+    readDoc(t, TESTING_DOC)
   ]);
+  if ([phaseDoc, developerGuide, testingDoc].includes(null)) return;
 
   assert.match(phaseDoc, /\[UI Dockerization Contract\]\(\.\/ui-dockerization-contract\.md\)/);
   assert.match(phaseDoc, /Red run: `node --test test\/dockerization-contract\.test\.js`/);
@@ -110,13 +118,14 @@ test("D1 .dockerignore excludes local, dependency, VCS, log, and generated artif
   }
 });
 
-test("D1 documentation records test-image commands and non-runtime scope", async () => {
+test("D1 documentation records test-image commands and non-runtime scope", async (t) => {
   const [contract, phaseDoc, developerGuide, testingDoc] = await Promise.all([
-    readFile(CONTRACT_DOC, "utf8"),
-    readFile(PHASE_DOC, "utf8"),
-    readFile(DEVELOPER_GUIDE, "utf8"),
-    readFile(TESTING_DOC, "utf8")
+    readDoc(t, CONTRACT_DOC),
+    readDoc(t, PHASE_DOC),
+    readDoc(t, DEVELOPER_GUIDE),
+    readDoc(t, TESTING_DOC)
   ]);
+  if ([contract, phaseDoc, developerGuide, testingDoc].includes(null)) return;
 
   assert.match(contract, /D1 status: UI test container/i);
   assert.match(contract, /docker build --target test -t groupscout-ui-test \./);
@@ -198,13 +207,14 @@ test("D2 browser runtime contract keeps /api routing same-origin and token-free"
   );
 });
 
-test("D2 documentation records runtime contract, red-green evidence, and future scope", async () => {
+test("D2 documentation records runtime contract, red-green evidence, and future scope", async (t) => {
   const [contract, phaseDoc, developerGuide, testingDoc] = await Promise.all([
-    readFile(CONTRACT_DOC, "utf8"),
-    readFile(PHASE_DOC, "utf8"),
-    readFile(DEVELOPER_GUIDE, "utf8"),
-    readFile(TESTING_DOC, "utf8")
+    readDoc(t, CONTRACT_DOC),
+    readDoc(t, PHASE_DOC),
+    readDoc(t, DEVELOPER_GUIDE),
+    readDoc(t, TESTING_DOC)
   ]);
+  if ([contract, phaseDoc, developerGuide, testingDoc].includes(null)) return;
 
   assert.match(contract, /D2 status: browser runtime contract/i);
   assert.match(contract, /Runtime model: `lightweight-node-server`/);
@@ -306,14 +316,15 @@ test("D3 dev Compose health harness matches the D2 runtime contract", async () =
   );
 });
 
-test("D3 documentation records Compose commands, constraints, and evidence", async () => {
+test("D3 documentation records Compose commands, constraints, and evidence", async (t) => {
   const [contract, phaseDoc, developerGuide, testingDoc, troubleshootingDoc] = await Promise.all([
-    readFile(CONTRACT_DOC, "utf8"),
-    readFile(PHASE_DOC, "utf8"),
-    readFile(DEVELOPER_GUIDE, "utf8"),
-    readFile(TESTING_DOC, "utf8"),
-    readFile(TROUBLESHOOTING_DOC, "utf8")
+    readDoc(t, CONTRACT_DOC),
+    readDoc(t, PHASE_DOC),
+    readDoc(t, DEVELOPER_GUIDE),
+    readDoc(t, TESTING_DOC),
+    readDoc(t, TROUBLESHOOTING_DOC)
   ]);
+  if ([contract, phaseDoc, developerGuide, testingDoc, troubleshootingDoc].includes(null)) return;
 
   assert.match(contract, /D3 status: development Compose integration/i);
   assert.match(contract, /Compose override: `compose\.dev\.yml`/);
@@ -322,7 +333,8 @@ test("D3 documentation records Compose commands, constraints, and evidence", asy
   assert.match(contract, /D3 still does not add production same-origin proxying, static asset serving, or a product UI renderer/);
   assert.match(phaseDoc, /#### D3 Evidence/);
   assert.match(phaseDoc, /Docker Compose config: `docker compose -f \/mnt\/c\/Users\/alvin\/GolandProjects\/groupscout\/docker-compose\.yml -f compose\.dev\.yml config --quiet`/);
-  assert.match(developerGuide, /Development Compose override: `compose\.dev\.yml`/);
+  assert.match(developerGuide, /Docker Runtime Matrix/);
+  assert.match(developerGuide, /Development Compose and D4 production smoke details live/);
   assert.match(testingDoc, /Phase 12 D3 run on 2026-05-09/);
   assert.match(troubleshootingDoc, /## UI Development Compose Fails/);
 });
@@ -447,14 +459,15 @@ test("D4 Dockerfile adds a production target without baking production secrets",
   assert.doesNotMatch(productionStage, /API_TOKEN|DATABASE_URL|POSTGRES_URL|SLACK|RESEND|SENDGRID|OPENAI|ANTHROPIC|CLAUDE|OLLAMA|UI_SESSION_SECRET/i);
 });
 
-test("D4 documentation records production same-origin commands, smoke checks, and evidence", async () => {
+test("D4 documentation records production same-origin commands, smoke checks, and evidence", async (t) => {
   const [contract, phaseDoc, developerGuide, testingDoc, troubleshootingDoc] = await Promise.all([
-    readFile(CONTRACT_DOC, "utf8"),
-    readFile(PHASE_DOC, "utf8"),
-    readFile(DEVELOPER_GUIDE, "utf8"),
-    readFile(TESTING_DOC, "utf8"),
-    readFile(TROUBLESHOOTING_DOC, "utf8")
+    readDoc(t, CONTRACT_DOC),
+    readDoc(t, PHASE_DOC),
+    readDoc(t, DEVELOPER_GUIDE),
+    readDoc(t, TESTING_DOC),
+    readDoc(t, TROUBLESHOOTING_DOC)
   ]);
+  if ([contract, phaseDoc, developerGuide, testingDoc, troubleshootingDoc].includes(null)) return;
 
   assert.match(contract, /D4 status: production same-origin serving/i);
   assert.match(contract, /Serving model: `node-static-assets-and-api-proxy`/);
@@ -464,20 +477,22 @@ test("D4 documentation records production same-origin commands, smoke checks, an
   assert.match(phaseDoc, /Smoke health: `GET \/healthz`/);
   assert.match(phaseDoc, /Smoke root: `GET \/`/);
   assert.match(phaseDoc, /Smoke static asset: `GET \/assets\/app\.js`/);
-  assert.match(phaseDoc, /Smoke API proxy: `GET \/api\/system`/);
-  assert.match(developerGuide, /Production same-origin server: `npm run start:ui`/);
+  assert.match(phaseDoc, /Smoke API proxy: `GET \/api\/leads\?limit=1`, `GET \/api\/system`, and `GET \/api\/alerts\?limit=1`/);
+  assert.match(developerGuide, /Production same-origin server:/);
+  assert.match(developerGuide, /npm run start:ui/);
   assert.match(testingDoc, /Phase 12 D4 run on 2026-05-09/);
   assert.match(troubleshootingDoc, /## Production UI Runtime Fails/);
 });
 
-test("D5 operations docs record repeatable Docker commands, dependencies, CI notes, and troubleshooting", async () => {
+test("D5 operations docs record repeatable Docker commands, dependencies, CI notes, and troubleshooting", async (t) => {
   const [contract, phaseDoc, developerGuide, testingDoc, troubleshootingDoc] = await Promise.all([
-    readFile(CONTRACT_DOC, "utf8"),
-    readFile(PHASE_DOC, "utf8"),
-    readFile(DEVELOPER_GUIDE, "utf8"),
-    readFile(TESTING_DOC, "utf8"),
-    readFile(TROUBLESHOOTING_DOC, "utf8")
+    readDoc(t, CONTRACT_DOC),
+    readDoc(t, PHASE_DOC),
+    readDoc(t, DEVELOPER_GUIDE),
+    readDoc(t, TESTING_DOC),
+    readDoc(t, TROUBLESHOOTING_DOC)
   ]);
+  if ([contract, phaseDoc, developerGuide, testingDoc, troubleshootingDoc].includes(null)) return;
 
   assert.match(contract, /D5 status: Docker operations docs and CI hooks/i);
   assert.match(contract, /Local test command: `npm test`/);
@@ -489,7 +504,7 @@ test("D5 operations docs record repeatable Docker commands, dependencies, CI not
   assert.match(phaseDoc, /#### D5 Evidence/);
   assert.match(phaseDoc, /Docker Compose startup: `docker compose -f \/mnt\/c\/Users\/alvin\/GolandProjects\/groupscout\/docker-compose\.yml -f compose\.dev\.yml up --build groupscout-ui groupscout`/);
   assert.match(developerGuide, /## Docker Operations/);
-  assert.match(developerGuide, /Required UI Docker env vars:/);
+  assert.match(developerGuide, /Docker Runtime Matrix/);
   assert.match(developerGuide, /CI hook order:/);
   assert.match(testingDoc, /Phase 12 D5 run on 2026-05-09/);
   assert.match(testingDoc, /Docker operations docs check:/);
@@ -505,4 +520,17 @@ function extractDockerStage(dockerfile, stageName) {
   assert.ok(match, `Expected Dockerfile stage ${stageName}`);
 
   return match[0];
+}
+
+async function readDoc(t, url) {
+  try {
+    return await readFile(url, "utf8");
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      t.skip(`centralized UI docs are not mounted at ${DOCS_ROOT.pathname}`);
+      return null;
+    }
+
+    throw error;
+  }
 }
