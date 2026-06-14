@@ -12,6 +12,7 @@ export const RENDERER_BROWSER_ENTRY_CONTRACT = Object.freeze({
 export function renderRouteToHtml(pathname = "/", options = {}) {
   const shell = createRenderableShell(pathname, options);
   const focusableLabels = collectFocusableLabels(shell);
+  const routeFocusableLabels = collectRouteFocusableLabels(shell);
   const html = [
     '<div class="app-shell soft-shell" data-renderer="vanilla-dom">',
     renderNavigation(shell),
@@ -23,7 +24,8 @@ export function renderRouteToHtml(pathname = "/", options = {}) {
     html,
     props: shell,
     focusableLabels,
-    responsiveMode: shell.content.layout?.mode ?? "unknown"
+    routeFocusableLabels,
+    responsiveMode: responsiveModeForViewport(options.viewport, shell.content.layout?.mode)
   };
 }
 
@@ -371,6 +373,36 @@ function collectFocusableLabels(shell) {
   const links = shell.sections.map((section) => section.label);
 
   return [...controls, ...links];
+}
+
+function collectRouteFocusableLabels(shell) {
+  const controls = shell.content.controls?.map((control) => control.ariaLabel ?? control.label) ?? [];
+  const tableActions = shell.content.table?.rows
+    ?.flatMap((row) => row.actions?.map((action) => action.label ?? action.ariaLabel) ?? []) ?? [];
+  const actionItems = flattenActions(shell.content.actions).map((action) => action.label ?? action.ariaLabel);
+  const tabs = shell.content.tabs?.map((tab) => tab.label) ?? [];
+
+  return [...controls, ...tableActions, ...actionItems, ...tabs].filter(Boolean);
+}
+
+function flattenActions(actions) {
+  if (Array.isArray(actions)) {
+    return actions;
+  }
+
+  if (actions && typeof actions === "object") {
+    return Object.values(actions).flatMap(flattenActions);
+  }
+
+  return [];
+}
+
+function responsiveModeForViewport(viewport, fallback = "unknown") {
+  if (["desktop", "tablet", "mobile"].includes(viewport)) {
+    return viewport;
+  }
+
+  return fallback;
 }
 
 function formatValue(value) {

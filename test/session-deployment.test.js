@@ -8,6 +8,7 @@ import {
   createUiDeploymentConfig,
   resolveUiMount
 } from "../web/src/server/uiDeployment.js";
+import { createProductionApiAuthorizationPlan } from "../web/src/server/productionServer.js";
 
 test("UI API requests require a valid operator session cookie", () => {
   const config = createUiDeploymentConfig({
@@ -66,6 +67,39 @@ test("UI API requests require a valid operator session cookie", () => {
       allowed: false,
       status: 401,
       reason: "invalid-session",
+      headers: { "www-authenticate": "GroupScoutSession" }
+    }
+  );
+});
+
+test("production API proxy applies UI session authorization before upstream forwarding", () => {
+  const env = {
+    UI_ENABLED: "true",
+    UI_SESSION_SECRET: "0123456789abcdef0123456789abcdef"
+  };
+  const sessions = new Set(["session_123"]);
+
+  assert.deepEqual(
+    createProductionApiAuthorizationPlan({
+      pathname: "/api/leads",
+      headers: { cookie: `${SESSION_COOKIE_NAME}=session_123` },
+      env,
+      sessions
+    }),
+    { allowed: true, reason: "session-valid" }
+  );
+
+  assert.deepEqual(
+    createProductionApiAuthorizationPlan({
+      pathname: "/api/leads",
+      headers: {},
+      env,
+      sessions
+    }),
+    {
+      allowed: false,
+      status: 401,
+      reason: "missing-session",
       headers: { "www-authenticate": "GroupScoutSession" }
     }
   );

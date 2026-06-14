@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { BROWSER_RUNTIME_CONTRACT } from "./browserRuntimeContract.js";
+import { authorizeUiApiRequest, createUiDeploymentConfig } from "./uiDeployment.js";
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PUBLIC_ROOT = path.resolve(MODULE_DIR, "../../dist");
@@ -110,7 +111,8 @@ export function assertProductionPublicConfigSafe(value) {
 
 export function createProductionServer({
   env = process.env,
-  publicRoot = DEFAULT_PUBLIC_ROOT
+  publicRoot = DEFAULT_PUBLIC_ROOT,
+  sessions
 } = {}) {
   const resolvedPublicRoot = path.resolve(publicRoot instanceof URL ? fileURLToPath(publicRoot) : publicRoot);
   const backendTarget = env.UI_API_PROXY_TARGET || DEFAULT_BACKEND_TARGET;
@@ -124,6 +126,23 @@ export function createProductionServer({
     }
 
     if (url.pathname.startsWith("/api/")) {
+      const authorization = createProductionApiAuthorizationPlan({
+        pathname: url.pathname,
+        headers: request.headers,
+        env,
+        sessions
+      });
+
+      if (!authorization.allowed) {
+        sendJson(
+          response,
+          authorization.status,
+          { error: "unauthorized", reason: authorization.reason },
+          authorization.headers
+        );
+        return;
+      }
+
       await proxyApiRequest({ request, response, targetBaseUrl: backendTarget });
       return;
     }
@@ -134,6 +153,29 @@ export function createProductionServer({
       publicRoot: resolvedPublicRoot
     });
   });
+}
+
+export function createProductionApiAuthorizationPlan({
+  pathname,
+  headers = {},
+  env = process.env,
+  sessions
+} = {}) {
+  if (!String(pathname || "").startsWith("/api/")) {
+    return { allowed: true, reason: "outside-api-boundary" };
+  }
+
+  if (isAuthBootstrapPath(pathname)) {
+    return { allowed: true, reason: "auth-bootstrap" };
+  }
+
+  return authorizeUiApiRequest(
+    { pathname, headers },
+    {
+      config: createUiDeploymentConfig(env),
+      sessions
+    }
+  );
 }
 
 export function startProductionServer({ env = process.env } = {}) {
@@ -289,12 +331,17 @@ function filterProxyResponseHeaders(headers) {
   return nextHeaders;
 }
 
-function sendJson(response, statusCode, payload) {
+function sendJson(response, statusCode, payload, headers = {}) {
   response.writeHead(statusCode, {
+    ...headers,
     "cache-control": "no-store",
     "content-type": "application/json"
   });
   response.end(JSON.stringify(payload));
+}
+
+function isAuthBootstrapPath(pathname) {
+  return pathname === "/api/auth/status" || pathname === "/api/auth/login";
 }
 
 function contentTypeForPath(filePath) {
