@@ -451,7 +451,10 @@ test("D4 Dockerfile adds a production target without baking production secrets",
   const productionStage = extractDockerStage(dockerfile, "production");
 
   assert.equal(packageJson.scripts["start:ui"], "node web/src/server/productionServer.js");
-  assert.match(productionStage, /^FROM test AS production/m);
+  assert.match(productionStage, /^FROM node:\d+\.\d+\.\d+-[^\s]+ AS production/m);
+  assert.doesNotMatch(productionStage, /^COPY (test|compose\.dev\.yml|Dockerfile|\.dockerignore)\b/m);
+  assert.match(productionStage, /^COPY web \.\/web$/m);
+  assert.match(productionStage, /^USER node$/m);
   assert.match(productionStage, /^ENV NODE_ENV=production/m);
   assert.match(productionStage, /^EXPOSE 3000/m);
   assert.match(productionStage, /^HEALTHCHECK /m);
