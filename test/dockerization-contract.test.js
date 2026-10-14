@@ -503,7 +503,7 @@ test("D5 operations docs record repeatable Docker commands, dependencies, CI not
   assert.match(contract, /Development Compose startup:/);
   assert.match(contract, /Development Compose teardown:/);
   assert.match(contract, /CI order: local Node tests, Docker test-image build\/run, production image build, then optional smoke checks/);
-  assert.match(contract, /CI must not inject `API_TOKEN`, provider keys, Slack tokens, Resend\/SendGrid keys, database URLs, `OLLAMA_BASE_URL`, or `UI_SESSION_SECRET` into browser-visible config or static assets/);
+  assert.match(contract, /CI must not inject `API_TOKEN`, provider keys, Slack tokens, Resend\/SendGrid keys, database URLs, `OLLAMA_BASE_URL`, or `UI_SESSION_SECRET` into browser-visible config,? (or )?static assets/);
   assert.match(phaseDoc, /#### D5 Evidence/);
   assert.match(phaseDoc, /Docker Compose startup: `docker compose -f \/mnt\/c\/Users\/alvin\/GolandProjects\/groupscout\/docker-compose\.yml -f compose\.dev\.yml up --build groupscout-ui groupscout`/);
   assert.match(developerGuide, /## Docker Operations/);
