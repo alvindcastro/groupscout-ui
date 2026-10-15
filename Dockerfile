@@ -1,4 +1,4 @@
-FROM node:22.23.3-bookworm-slim AS test
+FROM node:22.23.3-trixie-slim AS test
 
 WORKDIR /workspace
 ENV NODE_ENV=test
@@ -14,7 +14,7 @@ CMD ["npm", "test"]
 
 # Production starts from a clean base so tests, Compose files and the
 # Dockerfile itself never ship in the runtime image.
-FROM node:22.23.3-bookworm-slim AS production
+FROM node:22.23.3-trixie-slim AS production
 
 WORKDIR /workspace
 ENV NODE_ENV=production

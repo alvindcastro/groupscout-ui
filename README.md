@@ -32,7 +32,7 @@ The project currently uses Node's built-in `node:test` runner and has no package
 
 Prerequisites:
 
-- Node 22 or compatible modern Node runtime. The Dockerfile uses `node:22-bookworm-slim`.
+- Node 22 or compatible modern Node runtime. The Dockerfile and CI use `node:22.23.3-trixie-slim`.
 - Backend running locally when testing proxied `/api/*` behavior.
 - No package install is currently required for the committed scripts.
 

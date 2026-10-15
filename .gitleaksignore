@@ -1,0 +1,18 @@
+# Reviewed gitleaks findings in published history (IaC Phase 4, 2026-10-15).
+# None is a real credential: session-deployment.test.js uses a "0123456789..."
+# UI_SESSION_SECRET fixture, and the curl examples in docs/ use the
+# YOUR_API_TOKEN placeholder.
+# New findings must be fixed (and the secret rotated), not added here.
+3670c6e1766895c2fe518c214431b9060ca3601e:docs/how-to-run-backend.md:curl-auth-header:151
+3670c6e1766895c2fe518c214431b9060ca3601e:docs/testing.md:curl-auth-header:105
+4c0461dea8beab91ac40dad6facabfa9c5a94d47:test/session-deployment.test.js:generic-api-key:106
+4c0461dea8beab91ac40dad6facabfa9c5a94d47:test/session-deployment.test.js:generic-api-key:261
+4c0461dea8beab91ac40dad6facabfa9c5a94d47:test/session-deployment.test.js:generic-api-key:79
+a1b50ee1ae8f947b6973d12590306ef64d7cf59c:test/session-deployment.test.js:generic-api-key:78
+bf6606f2a96fa649cc1e1477d1241ba2d8485414:test/session-deployment.test.js:generic-api-key:123
+bf6606f2a96fa649cc1e1477d1241ba2d8485414:test/session-deployment.test.js:generic-api-key:138
+bf6606f2a96fa649cc1e1477d1241ba2d8485414:test/session-deployment.test.js:generic-api-key:16
+bf6606f2a96fa649cc1e1477d1241ba2d8485414:test/session-deployment.test.js:generic-api-key:78
+bf6606f2a96fa649cc1e1477d1241ba2d8485414:test/session-deployment.test.js:generic-api-key:97
+e9cd878a884b72b3c75e30a20bd7da6528d2fb68:test/session-deployment.test.js:generic-api-key:152
+e9cd878a884b72b3c75e30a20bd7da6528d2fb68:test/session-deployment.test.js:generic-api-key:189

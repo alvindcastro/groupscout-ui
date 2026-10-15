@@ -1,0 +1,30 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "IaC Phase 4 (groupscout-site-6ah.5): weekly, grouped update PRs. Nothing automerges; CI must pass before a PR can merge.",
+  "extends": [
+    "config:recommended",
+    "docker:pinDigests",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "timezone": "America/Vancouver",
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 5,
+  "packageRules": [
+    {
+      "description": "Supply-chain cool-off: wait a week before proposing new Actions.",
+      "matchDatasources": ["github-tags"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "Actions and runner labels. The CI test container follows the Node image rule below.",
+      "matchDatasources": ["github-tags", "github-runners"],
+      "groupName": "GitHub Actions"
+    },
+    {
+      "description": "The Dockerfile stages and the CI test container use the same Node image: one PR updates all of them.",
+      "matchDatasources": ["docker"],
+      "groupName": "Node image"
+    }
+  ]
+}
